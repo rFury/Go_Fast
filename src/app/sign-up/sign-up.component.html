@@ -1,1 +1,39 @@
-<p>sign-up works!</p>
+<div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <mat-card class="w-full max-w-md">
+      <mat-card-header class="justify-center">
+        <mat-card-title class="text-2xl font-bold">Sign Up</mat-card-title>
+      </mat-card-header>
+  
+      <mat-card-content>
+        <form class="space-y-4">
+          <mat-form-field class="w-full">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" required>
+          </mat-form-field>
+  
+          <mat-form-field class="w-full">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" required>
+          </mat-form-field>
+  
+          <mat-form-field class="w-full">
+            <mat-label>Confirm Password</mat-label>
+            <input matInput type="password" required>
+          </mat-form-field>
+  
+          <button 
+            mat-raised-button 
+            color="primary"
+            class="w-full"
+          >
+            Create Account
+          </button>
+        </form>
+  
+        <div class="mt-4 text-center">
+          <span class="text-gray-600">Already have an account? </span>
+          <a routerLink="/signin" class="text-blue-600 hover:underline">Sign In</a>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
