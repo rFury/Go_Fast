@@ -5,7 +5,20 @@
       </mat-card-header>
   
       <mat-card-content>
-        <form class="space-y-4">
+        <form class="space-y-4" [formGroup]="userForm" (ngSubmit)="onSubmit()">
+
+          <div class="flex gap-4">
+            <mat-form-field class="w-1/2">
+              <mat-label>First Name</mat-label>
+              <input matInput type="text" required>
+            </mat-form-field>
+  
+            <mat-form-field class="w-1/2">
+              <mat-label>Last Name</mat-label>
+              <input matInput type="text" required>
+            </mat-form-field>
+          </div>
+          
           <mat-form-field class="w-full">
             <mat-label>Email</mat-label>
             <input matInput type="email" required>
@@ -21,7 +34,9 @@
             <input matInput type="password" required>
           </mat-form-field>
   
-          <button 
+          <button
+            [disabled]="userForm.invalid" 
+            type="submit"
             mat-raised-button 
             color="primary"
             class="w-full"
