@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component,signal,ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
 import { FormControl,FormGroup,Validators,ReactiveFormsModule } from '@angular/forms';
+import { User } from '../../Models/User.model';
+import { AuthService } from '../../Services/auth-service.service';
 
 @Component({
   selector: 'app-sign-up',
@@ -17,18 +19,48 @@ import { FormControl,FormGroup,Validators,ReactiveFormsModule } from '@angular/f
     MatInputModule,
     RouterModule],
   templateUrl: './sign-up.component.html',
-  styleUrl: './sign-up.component.css'
+  styleUrl: './sign-up.component.css',
+  changeDetection:ChangeDetectionStrategy.OnPush,
 })
 export class SignUpComponent {
 
+  constructor (protected authService : AuthService){
+
+  }
+
+  protected readonly value = signal('');
+
+
   userForm = new FormGroup({
+    first_name: new FormControl('', [Validators.required, Validators.minLength(2)]),
+    last_name: new FormControl('', [Validators.required, Validators.minLength(2)]),
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', [Validators.required, Validators.minLength(8)])
   });
 
+  protected onInput(event: Event) {
+    this.value.set((event.target as HTMLInputElement).value);
+  }
+
   onSubmit() {
     if (this.userForm.valid) {
-      console.log('Form Data:', this.userForm.value);
+      const newUser: User = {
+        first_name: this.userForm.value.first_name!,
+        last_name: this.userForm.value.last_name!,
+        email: this.userForm.value.email!,
+        password: this.userForm.value.password!,
+        role: "USER",
+        image: "",
+        isActive: false,
+      };
+      this.authService.AddUser(newUser).subscribe({
+        next: (res) => {
+          console.log('User registered:', res);
+        },
+        error: (err) => {
+          console.error('Registration error:', err);
+        }
+      });
     }
   }
 }
