@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-sign-in',
@@ -13,7 +14,8 @@ import { RouterModule } from '@angular/router';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    RouterModule],
+    RouterModule,
+  MatCheckboxModule],
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.css'
 })

@@ -1,8 +1,16 @@
-<div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-    <mat-card class="w-full max-w-md">
-      <mat-card-header class="justify-center">
-        <mat-card-title class="text-2xl font-bold">Sign In</mat-card-title>
-      </mat-card-header>
+<div class="flex flex-col min-h-screen bg-gray-100 flex items-center justify-center p-4">
+  <a href="#" class="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+    <img class="w-8 h-8 mr-2" src="logo.png" alt="logo">
+    GoFast
+  </a>
+  <mat-card class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+    <mat-card-header class="justify-center">
+      <mat-card-title class="p-6 space-y-4 md:space-y-6 sm:p-8">              
+        <h1 class="text-xl leading-tight tracking-tight text-gray-900 md:text-1xl dark:text-white">
+                  Sign in to your account
+              </h1>
+            </mat-card-title>
+    </mat-card-header>
   
       <mat-card-content>
         <form class="space-y-4">
@@ -15,6 +23,18 @@
             <mat-label>Password</mat-label>
             <input matInput type="password" required>
           </mat-form-field>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-start">
+                <div class="flex items-center h-5">
+                  <mat-checkbox id="remember" aria-describedby="remember" class="dark:focus:ring-primary-600 dark:ring-offset-gray-800"></mat-checkbox>
+                </div>
+                <div class="ml-1 text-sm">
+                  <label for="remember" class="text-gray-500 dark:text-gray-300">Remember me</label>
+                </div>
+            </div>
+            <a routerLink="/signin" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
+          </div>
   
           <button 
             mat-raised-button 
@@ -27,7 +47,7 @@
   
         <div class="mt-4 text-center">
           <span class="text-gray-600">Don't have an account? </span>
-          <a routerLink="/signup" class="text-blue-600 hover:underline">Sign Up</a>
+          <a routerLink="/signup" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign Up</a>
         </div>
       </mat-card-content>
     </mat-card>
