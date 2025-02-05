@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { User } from '../app/Shared/Models/User.model';
+import { User } from '../Models/User.model';
 import { HttpClient, HttpHeaders } from'@angular/common/http';
 import { Observable } from 'rxjs';
-import { auth_conf } from '../app/Shared/Models/auth-confirmation.model';
+import { auth_conf } from '../Models/auth-confirmation.model';
 
 @Injectable({
   providedIn: 'root'
