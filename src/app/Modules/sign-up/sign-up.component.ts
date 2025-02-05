@@ -5,8 +5,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
 import { FormControl,FormGroup,Validators,ReactiveFormsModule } from '@angular/forms';
-import { User } from '../../Models/User.model';
-import { AuthService } from '../../Services/auth-service.service';
+import { User } from '../../Shared/Models/User.model';
+import { AuthService } from '../../Shared/Services/auth-service.service';
 
 @Component({
   selector: 'app-sign-up',
@@ -49,9 +49,6 @@ export class SignUpComponent {
         last_name: this.userForm.value.last_name!,
         email: this.userForm.value.email!,
         password: this.userForm.value.password!,
-        role: "USER",
-        image: "",
-        isActive: false,
       };
       this.authService.AddUser(newUser).subscribe({
         next: (res) => {

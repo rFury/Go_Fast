@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { User } from '../Models/User.model';
+import { User } from '../app/Shared/Models/User.model';
 import { HttpClient, HttpHeaders } from'@angular/common/http';
 import { Observable } from 'rxjs';
+import { auth_conf } from '../app/Shared/Models/auth-confirmation.model';
 
 @Injectable({
   providedIn: 'root'
@@ -17,9 +18,9 @@ export class AuthService {
   constructor(private router:Router,private http: HttpClient) {
     this.loadData();
   }
-    private apiUrl = "http://127.0.0.1:8000/Users";
-    AddUser(val:User): Observable<User> {
-        return this.http.post<User>(this.apiUrl,val)
+    private apiUrl = "http://127.0.0.1:3000/api/users";
+    AddUser(val:User): Observable<auth_conf> {
+        return this.http.post<auth_conf>(this.apiUrl+"/registery",val)
     }
 
     getUserCourant():User 
