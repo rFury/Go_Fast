@@ -1,0 +1,32 @@
+<div class="flex justify-center items-center min-h-screen px-4">
+    <mat-card class="p-6 w-full max-w-sm shadow-lg">
+      <h2 class="text-xl mb-2 text-center">Code Verification</h2>
+      <p class="text-sm text-gray-600 text-center mb-4">
+        Enter the 6-character recovery code sent to your email.
+      </p>
+  
+      <!-- Affichage du compte à rebours -->
+      <p class="text-center text-red-500 text-lg font-semibold mb-5">
+        Time left: {{ formattedTime }}
+      </p>
+  
+      <form [formGroup]="codeForm" (ngSubmit)="verifyCode()" class="space-y-4">
+        <div class="flex justify-between">
+          <input 
+            *ngFor="let num of codeInputs; let i = index"
+            type="text"
+            class="w-10 h-12 text-center text-lg border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            maxlength="1"
+            pattern="[0-9]"
+            [formControlName]="'code' + i"
+            (input)="moveToNext(i, $event)"
+            (keydown)="moveToPrev(i, $event)"
+          />
+        </div>
+  
+        <!-- Désactiver le bouton si les 6 cases ne sont pas remplies -->
+        <button mat-raised-button color="primary" class="w-full mt-7" type="submit" [disabled]="true">Verify</button>
+      </form>
+    </mat-card>
+  </div>
+  
