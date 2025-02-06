@@ -9,9 +9,9 @@ import { ChangePasswordComponent } from './Modules/reset-password/change-passwor
 export const routes: Routes = [
     {path: 'signup', component: SignUpComponent},
     {path: 'signin', component: SignInComponent},
-    { path: 'Home', component: WelcomeComponent },
+    { path: 'home', component: WelcomeComponent },
     { path: 'reset-password', component: ResetPasswordComponent },
     { path: 'verify-code', component: VerifyCodeComponent },
     { path: 'change-password', component: ChangePasswordComponent },
-    { path: '', redirectTo: 'Home', pathMatch: 'full' },
+    { path: '', redirectTo: 'home', pathMatch: 'full' },
 ];
