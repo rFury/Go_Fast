@@ -13,7 +13,7 @@
     </mat-card-header>
   
       <mat-card-content>
-        <form class="space-y-4">
+        <form class="space-y-4" [formGroup]="userForm" (ngSubmit)="onSubmit()">
           <mat-form-field class="w-full">
             <mat-label>Email</mat-label>
             <input matInput type="email" required>
@@ -33,7 +33,7 @@
                   <label for="remember" class="text-gray-500 dark:text-gray-300">Remember me</label>
                 </div>
             </div>
-            <a routerLink="/reset-password" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
+            <a routerLink="/Reset-Password" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Forgot password?</a>
           </div>
   
           <button 
@@ -47,7 +47,7 @@
   
         <div class="mt-4 text-center">
           <span class="text-gray-600">Don't have an account? </span>
-          <a routerLink="/signup" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign Up</a>
+          <a routerLink="/Sign-Up" class="font-medium text-primary-600 hover:underline dark:text-primary-500">Sign Up</a>
         </div>
       </mat-card-content>
     </mat-card>

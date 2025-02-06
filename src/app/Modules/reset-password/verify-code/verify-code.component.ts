@@ -1,4 +1,4 @@
-import { CommonModule, NgFor } from '@angular/common';
+import { CommonModule} from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,6 @@ import { Router } from '@angular/router';
     ReactiveFormsModule,
     CommonModule,
     MatButtonModule,
-    NgFor,
   ],
   templateUrl: './verify-code.component.html',
   styleUrls: ['./verify-code.component.css']
