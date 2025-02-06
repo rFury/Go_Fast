@@ -5,6 +5,7 @@ import { SignUpComponent } from './Modules/sign-up/sign-up.component';
 import { ResetPasswordComponent } from './Modules/reset-password/reset-password.component';
 import { VerifyCodeComponent } from './Modules/reset-password/verify-code/verify-code.component';
 import { ChangePasswordComponent } from './Modules/reset-password/change-password/change-password.component';
+import { MainComponent } from './mini-projet/main/main.component';
 
 export const routes: Routes = [
   { path: 'Sign-In',component: SignInComponent},
@@ -13,5 +14,6 @@ export const routes: Routes = [
   { path: 'Verify-Code', component: VerifyCodeComponent },
   { path: 'Change-Password', component: ChangePasswordComponent },
   { path: 'Home', component: WelcomeComponent },
-  { path: '', redirectTo: 'Home', pathMatch: 'full' },
+  { path: 'Main',component:MainComponent },
+  { path: '', redirectTo: 'Main', pathMatch: 'full' },
 ];
