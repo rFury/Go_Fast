@@ -15,7 +15,6 @@ import { Router, RouterModule } from '@angular/router';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    RouterModule,
     CommonModule
   ],
   templateUrl: './reset-password.component.html',
@@ -35,6 +34,7 @@ export class ResetPasswordComponent {
     if (this.resetForm.valid) {
       // Simuler l'envoi de l'email
       console.log('Email envoyé à', this.resetForm.value.email);
+      sessionStorage.setItem('email',this.resetForm.value.email)
       this.router.navigate(['/verify-code']);
     }
   }
