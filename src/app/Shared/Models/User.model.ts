@@ -1,5 +1,5 @@
-export interface User {
-    _id?: string;
+export interface User 
+{
     username?: string;
     email: string;
     role?: "USER" | "DELIVERY" | "STOCKING";
@@ -7,7 +7,4 @@ export interface User {
     first_name: string;
     image?: string;
     password: string;
-    isActive?: boolean;
-
-  }
-  
+}

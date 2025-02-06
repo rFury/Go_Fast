@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,7 +14,6 @@ import { Router, RouterModule } from '@angular/router';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    CommonModule
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css'
@@ -32,10 +30,8 @@ export class ResetPasswordComponent {
 
   sendEmail() {
     if (this.resetForm.valid) {
-      // Simuler l'envoi de l'email
       console.log('Email envoyé à', this.resetForm.value.email);
-      sessionStorage.setItem('email',this.resetForm.value.email)
-      this.router.navigate(['/verify-code']);
+
     }
   }
 

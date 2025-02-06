@@ -1,73 +1,72 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '../Models/User.model';
-import { HttpClient, HttpHeaders } from'@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from'@angular/common/http';
 import { Observable } from 'rxjs';
 import { auth_conf } from '../Models/auth-confirmation.model';
+import { JwtHelperService } from '@auth0/angular-jwt';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private readonly STORAGE_KEY = 'myAppUserDataKey';
-  User!:User;
-  userCourant!: string;
-  roleCourant!: string;
-  isConnected!: boolean;
+  private helper = new JwtHelperService();
+  private token!: string;
+  public loggedUser!: User;
+  public isloggedIn: Boolean = false;
 
   constructor(private router:Router,private http: HttpClient) {
-    this.loadData();
   }
     private apiUrl = "http://127.0.0.1:3000/api/users";
     AddUser(val:User): Observable<auth_conf> {
         return this.http.post<auth_conf>(this.apiUrl+"/registery",val)
     }
 
-    getUserCourant():User 
-    {
-      return this.User;
+    SignIn(email:string,password:string): Observable<auth_conf> {
+      const params = {
+        email :email,
+        password :password
+      }
+      return this.http.post<auth_conf>(this.apiUrl+"/login",params)
+  }
+
+    requestResetPassword(email: string): Observable<auth_conf> {
+      return this.http.post<auth_conf>(`${this.apiUrl}/reset-password`, { email });
     }
-    disconnect() {
-      this.isConnected = false;
-      this.userCourant = '';
-      this.roleCourant = '';
-      //this.User=new UserModel();
-      this.saveData();
-      this.router.navigate(['/connect']);
-    }
-    testerAdmin(): boolean {
-      return this.roleCourant === 'ADMIN';
+    
+    verifyResetCode(token: string, code: string): Observable<any> {
+      return this.http.post(`${this.apiUrl}/verify-reset-code`, { token, code });
     }
 
-    saveData(): void {
-      const data = {
-        User: this.User,
-        userCourant: this.userCourant,
-        roleCourant: this.roleCourant,
-        isConnected: this.isConnected,
-      };
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+    resetPassword(token: string,newPassword: string): Observable<any> {
+      return this.http.post(`${this.apiUrl}/update-password`, { token, newPassword });
+    }
+    saveToken(jwt: string) {
+      localStorage.setItem('jwt', jwt);
+      this.token = jwt;
+      this.isloggedIn = true;
+      this.decodeJWT();
     }
   
-    private loadData(): void {
-      // Load data from localStorage
-      const storedData = localStorage.getItem(this.STORAGE_KEY);
-      if (storedData) {
-        const data = JSON.parse(storedData);
-        this.User = data.User;
-        this.userCourant = data.userCourant;
-        this.roleCourant = data.roleCourant;
-        this.isConnected = data.isConnected;
+    getToken(): string {
+      return this.token;
+    }
+  
+    decodeJWT() {
+      if (this.token == undefined) return;
+      const decodedToken = this.helper.decodeToken(this.token);
+      this.loggedUser = decodedToken.sub;
+      this.isloggedIn = true;
+    }
+    loadToken() {
+      if (typeof window !== 'undefined') {
+        this.token = localStorage.getItem('jwt')!;
       }
     }
   
-    // Call this method whenever you want to update the data
-    //updateUserData(users: UserModel): void {
-      //this.User = users;
-      /*this.userCourant = userCourant;
-      this.roleCourant = roleCourant;
-      this.isConnected = isConnected;*/
-      // Save the updated data to localStorage
-      //this.saveData();
-    //}
+    isTokenExpired(): Boolean {
+      return this.helper.isTokenExpired(this.token);
+    }
 }

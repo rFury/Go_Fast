@@ -2,7 +2,7 @@
   <mat-card class="p-6 w-full max-w-sm shadow-lg">
     <h2 class="text-xl mb-2 text-center">Code Verification</h2>
     <p class="text-sm text-gray-600 text-center mb-2">
-      Enter the 6-character recovery code sent to your email.
+      Enter code sent to your email.
     </p>
     <p class="text-sm text-gray-600 text-center mb-4">
       Code sent to email address: <br/> <span class="font-bold">{{ email }}</span>
@@ -15,16 +15,18 @@
 
     <form [formGroup]="codeForm" (ngSubmit)="verifyCode()" class="space-y-4">
       <div class="flex justify-between">
-        <input 
-          *ngFor="let num of codeInputs; let i = index"
-          type="text"
-          class="w-10 h-12 text-center text-lg border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          maxlength="1"
-          pattern="[0-9]"
-          [formControlName]="'code' + i"
-          (input)="moveToNext(i, $event)"
-          (keydown)="moveToPrev(i, $event)"
-        />
+        @for(num of codeInputs; track $index) {
+          <input 
+            type="text"
+            class="w-10 h-12 text-center text-lg border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            maxlength="1"
+            pattern="[0-9]"
+            [formControlName]="'code' + $index"
+            (input)="moveToNext($index, $event)"
+            (keydown)="moveToPrev($index, $event)"
+          />
+        }
+        
       </div>
 
       <!-- Verify Button -->
@@ -39,7 +41,10 @@
       
       <!-- Resend Code Button -->
       <button mat-flat-button color="warn" class="w-full mt-2" (click)="resendCode()" [disabled]="resendDisabled">
-        Resend Code <span *ngIf="resendDisabled">({{ resendTimer }}s)</span>
+        Resend Code
+        @if(resendDisabled){ 
+        <span >({{ resendTimer }}s)</span>
+        }
       </button>
     </form>
   </mat-card>

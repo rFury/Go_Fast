@@ -7,11 +7,11 @@ import { VerifyCodeComponent } from './Modules/reset-password/verify-code/verify
 import { ChangePasswordComponent } from './Modules/reset-password/change-password/change-password.component';
 
 export const routes: Routes = [
-    {path: 'signup', component: SignUpComponent},
-    {path: 'signin', component: SignInComponent},
-    { path: 'home', component: WelcomeComponent },
-    { path: 'reset-password', component: ResetPasswordComponent },
-    { path: 'verify-code', component: VerifyCodeComponent },
-    { path: 'change-password', component: ChangePasswordComponent },
-    { path: '', redirectTo: 'home', pathMatch: 'full' },
+  { path: 'Sign-In',component: SignInComponent},
+  { path: 'Reset-Password', component: ResetPasswordComponent },
+  { path: 'Sign-Up',component: SignUpComponent},
+  { path: 'Verify-Code', component: VerifyCodeComponent },
+  { path: 'Change-Password', component: ChangePasswordComponent },
+  { path: 'Home', component: WelcomeComponent },
+  { path: '', redirectTo: 'Home', pathMatch: 'full' },
 ];
