@@ -1,5 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, model, signal } from '@angular/core';
-import { MatTableModule } from '@angular/material/table';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  ViewChild,
+  inject,
+  model,
+  signal,
+} from '@angular/core';
+import { MatTable, MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
@@ -18,6 +26,8 @@ import {
   MatDialogRef,
   MatDialogTitle,
 } from '@angular/material/dialog';
+import { MainService } from '../Service/main.service';
+import { Task } from '../Service/main.service';
 
 @Component({
   selector: 'app-main',
@@ -30,56 +40,69 @@ import {
     MatCheckboxModule,
     MatIconModule,
     MatSelectionList,
-    MatListOption
+    MatListOption,
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-
 })
-export class MainComponent {
+export class MainComponent implements OnInit {
+  @ViewChild(MatTable) table!: MatTable<Task>;
 
-  displayedColumns: string[] = ['taskName', 'taskDate', 'taskDuration', 'importance', 'actions'];
-  dataSource: Task[] = [
-    { taskName: '1iMac 27"', taskDate: 'yy-mm-dd', taskDuration: 1, importance: '300' },
-    { taskName: '1iMac 27"', taskDate: 'yy-mm-dd', taskDuration: 1, importance: '300' },
-    { taskName: '1iMac 27"', taskDate: 'yy-mm-dd', taskDuration: 1, importance: '300' },
-    { taskName: '1iMac 27"', taskDate: 'yy-mm-dd', taskDuration: 1, importance: '300' },
-    { taskName: '1iMac 27"', taskDate: 'yy-mm-dd', taskDuration: 1, importance: '300' },
-    { taskName: '1iMac 27"', taskDate: 'yy-mm-dd', taskDuration: 1, importance: '300' },
-
+  displayedColumns: string[] = [
+    'taskName',
+    'taskDate',
+    'taskDuration',
+    'importance',
+    'actions',
   ];
-
+  dataSource = new MatTableDataSource<Task>([]);
   Importance = [
     { name: 'High', count: 56 },
     { name: 'Medium', count: 16 },
     { name: 'Low', count: 49 },
   ];
 
-  //dialog 
-  readonly dialog = inject(MatDialog);
+  constructor(private mainService: MainService, private dialog: MatDialog) {}
 
-  openDialog(index:number): void {
+  ngOnInit(): void {
+    this.fetchTasks();
+  }
 
-    let data = {};
-    if(index != -1 ){
-      data = this.dataSource[index];
-    }
+  fetchTasks(): void {
+    this.mainService.getTasks().subscribe({
+      next: (res) => {
+        setTimeout(() => {
+          this.dataSource.data = res;
+          this.table?.renderRows();
+        });
+      },
+      error: (err) => {
+        console.log(err.message);
+      },
+    });
+  }
+  openDialog(index: number): void {
+    let data = index !== -1 ? this.dataSource.data[index] : {};
+
     const dialogRef = this.dialog.open(AddUpdateComponent, {
-      data
+      data,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result !== undefined) {
-      }
+    dialogRef.afterClosed().subscribe((result) => {
+      this.fetchTasks();
     });
   }
 
-}
-
-export interface Task {
-  taskName: string;
-  taskDate: string;
-  taskDuration: number;
-  importance: string;
+  deleteTask(id: string): void {
+    this.mainService.deleteTask(id).subscribe({
+      next: () => {
+        this.dataSource.data = this.dataSource.data.filter((task) => task._id !== id);
+        this.table?.renderRows();
+      },
+      error: (err) => {
+        console.log(err.message);
+      },
+    });
+  }
 }

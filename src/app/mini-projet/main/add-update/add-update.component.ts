@@ -12,7 +12,9 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import {MatDatepickerModule} from '@angular/material/datepicker';
-import { Task } from '../main.component';
+import { MainService } from '../../Service/main.service';
+import { response } from 'express';
+import { Task } from '../../Service/main.service';
 
 @Component({
   selector: 'app-add-update',
@@ -33,6 +35,10 @@ import { Task } from '../main.component';
 })
 export class AddUpdateComponent implements OnInit {
 
+  constructor(private mainService: MainService){
+
+  }
+
   minDate = new Date();
   ch = 'Add'
   readonly dialogRef = inject(MatDialogRef<AddUpdateComponent>);
@@ -46,7 +52,33 @@ export class AddUpdateComponent implements OnInit {
   });
 
   onSubmit(){
-    console.log(this.taskForm.value)
+    if(!this.taskForm.valid)return;
+    let data = {
+      taskName : this.taskForm.value.taskName!,
+      taskDate : this.taskForm.value.taskDate!,
+      taskDuration : this.taskForm.value.taskDuration!,
+      importance : this.taskForm.value.importance!,
+
+    }
+    if(this.ch == 'Update'){
+      this.mainService.updateTask(this.data._id!,data).subscribe({
+        next : (res)=>{
+          console.log(res);
+        },
+        error :(err)=>{
+          console.log(err)
+        }
+      });
+    }else if(this.ch == 'Add'){
+      this.mainService.createTask(data).subscribe({
+        next: (res) => {
+          console.log('User registered:', res);
+        },
+        error: (err) => {
+          console.error('Registration error:', err);
+        }
+      });
+    }
   }
 
   onNoClick(): void {
@@ -57,7 +89,13 @@ export class AddUpdateComponent implements OnInit {
   ngOnInit(): void {
     if(this.data.importance != null){
       this.ch = 'Update';
-      this.taskForm.setValue(this.data);
+      let filteredData = {
+        taskName : this.data.taskName!,
+        taskDate : this.data.taskDate!,
+        taskDuration : this.data.taskDuration!,
+        importance : this.data.importance!,
+      }
+      this.taskForm.setValue(filteredData);
     }
   }
 }
