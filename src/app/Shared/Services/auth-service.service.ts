@@ -14,8 +14,6 @@ export class AuthService {
   private readonly STORAGE_KEY = 'myAppUserDataKey';
   private helper = new JwtHelperService();
   private token!: string;
-  public loggedUser!: User;
-  public isloggedIn: Boolean = false;
 
   constructor(private router:Router,private http: HttpClient) {
   }
@@ -43,27 +41,15 @@ export class AuthService {
     resetPassword(token: string,newPassword: string): Observable<any> {
       return this.http.post(`${this.apiUrl}/update-password`, { token, newPassword });
     }
-    saveToken(jwt: string) {
-      localStorage.setItem('jwt', jwt);
+
+    saveVerifToken(jwt: string,which: string) {
+      localStorage.setItem(which, jwt);
       this.token = jwt;
-      this.isloggedIn = true;
-      this.decodeJWT();
     }
-  
-    getToken(): string {
-      return this.token;
-    }
-  
-    decodeJWT() {
-      if (this.token == undefined) return;
-      const decodedToken = this.helper.decodeToken(this.token);
-      this.loggedUser = decodedToken.sub;
-      this.isloggedIn = true;
-    }
-    loadToken() {
-      if (typeof window !== 'undefined') {
-        this.token = localStorage.getItem('jwt')!;
-      }
+
+    getVerifToken(which:string) {
+      return localStorage.getItem(which)!;
+
     }
   
     isTokenExpired(): Boolean {

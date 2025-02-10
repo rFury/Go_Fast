@@ -4,6 +4,7 @@ import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { Router } from '@angular/router';
+import { AuthService } from '../../Services/auth-service.service';
 
 @Component({
   selector: 'app-verify-code',
@@ -19,20 +20,21 @@ import { Router } from '@angular/router';
 export class VerifyCodeComponent implements OnInit, OnDestroy {
   codeForm!: FormGroup;
   codeInputs = new Array(6); 
-  timeLeft = 600; // 10 minutes
+  timeLeft = 600; 
   timer: any;
-  email!: string | null;
+  token!: string | null;
   activebtn: boolean = false;
   resendDisabled: boolean = false;
   resendTimer: number = 10; 
   resendInterval: any;
 
-  constructor(private fb: FormBuilder, private router: Router) {}
+  constructor(private fb: FormBuilder, private router: Router,private authService:AuthService) {}
 
   ngOnInit() {
-    this.email = sessionStorage.getItem('email');
-    if (!this.email) {
-      this.router.navigate(['/home']);
+    this.token=localStorage.getItem("verif_email");
+    console.log(this.token);
+    if (!this.token) {
+      /*this.router.navigate(['/Home']);*/
     }
 
     this.codeForm = this.fb.group({});
