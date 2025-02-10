@@ -1,4 +1,4 @@
-import { Component, inject, model, OnInit } from '@angular/core';
+import { Component, inject, Input, model, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, Validators,ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -15,6 +15,7 @@ import {MatDatepickerModule} from '@angular/material/datepicker';
 import { MainService } from '../../Service/main.service';
 import { response } from 'express';
 import { Task } from '../../Service/main.service';
+import { MatCheckbox } from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-add-update',
@@ -28,13 +29,13 @@ import { Task } from '../../Service/main.service';
     MatDialogActions,
     MatDialogClose,
     ReactiveFormsModule,
-    MatDatepickerModule
+    MatDatepickerModule,
+    MatCheckbox
   ],
   templateUrl: './add-update.component.html',
   styleUrl: './add-update.component.css',
 })
 export class AddUpdateComponent implements OnInit {
-
   constructor(private mainService: MainService){
 
   }
@@ -49,6 +50,7 @@ export class AddUpdateComponent implements OnInit {
     taskDate: new FormControl('', [Validators.required]),
     taskDuration: new FormControl(0, [Validators.required, Validators.min(1)]),
     importance: new FormControl('', [Validators.required]),
+    done: new FormControl(false)
   });
 
   onSubmit(){
@@ -58,8 +60,8 @@ export class AddUpdateComponent implements OnInit {
       taskDate : this.taskForm.value.taskDate!,
       taskDuration : this.taskForm.value.taskDuration!,
       importance : this.taskForm.value.importance!,
-
-    }
+      done : this.taskForm.value.done!
+    };
     if(this.ch == 'Update'){
       this.mainService.updateTask(this.data._id!,data).subscribe({
         next : (res)=>{
@@ -94,6 +96,7 @@ export class AddUpdateComponent implements OnInit {
         taskDate : this.data.taskDate!,
         taskDuration : this.data.taskDuration!,
         importance : this.data.importance!,
+        done:this.data.done ?? false
       }
       this.taskForm.setValue(filteredData);
     }

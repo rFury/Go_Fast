@@ -15,5 +15,5 @@ export const routes: Routes = [
   { path: 'Change-Password', component: ChangePasswordComponent },
   { path: 'Home', component: WelcomeComponent },
   { path: 'Main',component:MainComponent },
-  { path: '', redirectTo: 'Main', pathMatch: 'full' },
+  { path: '', redirectTo: 'Home', pathMatch: 'full' },
 ];

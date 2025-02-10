@@ -19,7 +19,7 @@ export class AuthService {
 
   constructor(private router:Router,private http: HttpClient) {
   }
-    private apiUrl = "http://127.0.0.1:3000/api/users";
+    private apiUrl = "http://127.0.0.1:3000/api/auth";
     AddUser(val:User): Observable<auth_conf> {
         return this.http.post<auth_conf>(this.apiUrl+"/registery",val)
     }

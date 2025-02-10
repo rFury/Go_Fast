@@ -29,6 +29,12 @@
             </select>
           </mat-form-field>
 
+          @if(ch=="Update"){
+            <mat-checkbox matInput [formControl]="taskForm.controls['done']" ngDefaultControl >Mark as Done</mat-checkbox>
+          }
+
+
+
 </mat-dialog-content>
 <mat-dialog-actions>
   <button mat-button (click)="onNoClick()">Cancel</button>
