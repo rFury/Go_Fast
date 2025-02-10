@@ -28,7 +28,8 @@ import {
 } from '@angular/material/dialog';
 import { MainService } from '../Service/main.service';
 import { Task } from '../Service/main.service';
-
+import { FormsModule } from '@angular/forms';
+import { filter } from 'rxjs';
 @Component({
   selector: 'app-main',
   imports: [
@@ -41,6 +42,7 @@ import { Task } from '../Service/main.service';
     MatIconModule,
     MatSelectionList,
     MatListOption,
+    FormsModule
   ],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
@@ -48,19 +50,23 @@ import { Task } from '../Service/main.service';
 })
 export class MainComponent implements OnInit {
   @ViewChild(MatTable) table!: MatTable<Task>;
-
+  original!:Task[];
+  search: string= "";
+  filter:any[]=[];
+  filter_list_task!: Task[];
   displayedColumns: string[] = [
     'taskName',
     'taskDate',
     'taskDuration',
     'importance',
+    "done",
     'actions',
   ];
   dataSource = new MatTableDataSource<Task>([]);
   Importance = [
-    { name: 'High', count: 56 },
-    { name: 'Medium', count: 16 },
-    { name: 'Low', count: 49 },
+    { name: 'High'},
+    { name: 'Moderate'},
+    { name: 'Low'},
   ];
 
   constructor(private mainService: MainService, private dialog: MatDialog) {}
@@ -74,6 +80,7 @@ export class MainComponent implements OnInit {
       next: (res) => {
         setTimeout(() => {
           this.dataSource.data = res;
+          this.original = res;
           this.table?.renderRows();
         });
       },
@@ -104,5 +111,24 @@ export class MainComponent implements OnInit {
         console.log(err.message);
       },
     });
+  }
+
+
+  taskFilter(){
+    console.log(this.filter);
+    console.log(this.search);
+    let temp_task = this.original;
+    const query = this.search.toLowerCase().replace(/\s+/g, ' ').trim();
+    if(query) temp_task = this.original.filter(e=>e.taskName.toLowerCase().includes(query.toLowerCase()))
+
+
+
+      let x = this.filter.length;
+    if(x>0) temp_task=temp_task.filter(e=>e.importance==this.filter[x-1].name);
+
+
+    this.dataSource.data = temp_task
+    this.table.renderRows();
+
   }
 }

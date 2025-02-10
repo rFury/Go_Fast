@@ -1,9 +1,9 @@
-<section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
+<section class="bg-white dark:bg-gray-900 p-3 sm:p-9">
     <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-      <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
+      <div class="bg-gray-200 dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
         <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
           <mat-form-field appearance="outline" class="w-full md:w-1/2">
-            <input matInput placeholder="Search">
+            <input matInput placeholder="Search" (input)="taskFilter()" [(ngModel)]="search">
             <mat-icon matPrefix class="text-gray-500">search</mat-icon>
           </mat-form-field>
 
@@ -15,10 +15,10 @@
             <mat-menu #filterMenu="matMenu">
               <div class="p-3 w-48">
                 <h6 class="mb-3 text-sm font-medium">Choose brand</h6>
-                <mat-selection-list>
+                <mat-selection-list [(ngModel)]="filter" >
                   @for (imp of Importance; track imp) {
                     <mat-list-option [value]="imp">
-                      {{ imp.name }} ({{ imp.count }})
+                      {{ imp.name }}
                     </mat-list-option>
                   }
                 </mat-selection-list>
@@ -52,6 +52,18 @@
               <th mat-header-cell *matHeaderCellDef>importance</th>
               <td mat-cell *matCellDef="let element">{{ element.importance }}</td>
             </ng-container>
+
+              
+            <ng-container matColumnDef="done">
+              <th mat-header-cell *matHeaderCellDef>Done</th>
+              <td mat-cell *matCellDef="let element">
+                @if(element.done){
+                  <mat-icon>done</mat-icon>
+                }@else{
+                  <mat-icon>cancel</mat-icon>
+                }
+              </td>
+            </ng-container>
             
   
             <ng-container matColumnDef="actions">
@@ -71,11 +83,6 @@
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
         </div>
-  
-        <mat-paginator [pageSizeOptions]="[5, 10, 20]" 
-                     showFirstLastButtons
-                     class="bg-gray-50 dark:bg-gray-800">
-        </mat-paginator>
       </div>
     </div>
   </section>

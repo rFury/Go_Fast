@@ -8,6 +8,7 @@ export interface Task {
   taskDate: string;
   taskDuration: number;
   importance: string;
+  done:boolean ;
 }
 
 @Injectable({

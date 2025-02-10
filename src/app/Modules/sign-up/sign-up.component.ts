@@ -1,4 +1,4 @@
-import { Component,signal,ChangeDetectionStrategy } from '@angular/core';
+import { Component,signal,ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,8 @@ import { FormControl,FormGroup,Validators,ReactiveFormsModule,AbstractControl, V
 import { User } from '../../Shared/Models/User.model';
 import { AuthService } from '../../Shared/Services/auth-service.service';
 import { CommonModule } from '@angular/common';
+import { AlertComponent } from '../../Shared/Components/alert/alert.component';
+import { auth_conf } from '../../Shared/Models/auth-confirmation.model';
 
 @Component({
   selector: 'app-sign-up',
@@ -19,18 +21,21 @@ import { CommonModule } from '@angular/common';
     MatFormFieldModule,
     MatInputModule,
     RouterModule,
-    CommonModule],
+    CommonModule,
+  AlertComponent],
   templateUrl: './sign-up.component.html',
   styleUrl: './sign-up.component.css',
   changeDetection:ChangeDetectionStrategy.OnPush,
 })
 export class SignUpComponent {
 
-  constructor (protected authService : AuthService){
+  constructor (protected authService : AuthService,private cdr: ChangeDetectorRef){
 
   }
 
   protected readonly value = signal('');
+  protected error!:string;
+  protected showAlert = false;
 
 
   userForm = new FormGroup({
@@ -54,21 +59,35 @@ export class SignUpComponent {
         email: this.userForm.value.email!,
         password: this.userForm.value.password!,
       };
+      console.log(newUser)
       this.authService.AddUser(newUser).subscribe({
         next: (res) => {
-          console.log('User registered:', res);
+          let result:auth_conf = res;
+          
         },
         error: (err) => {
-          console.error('Registration error:', err);
+          this.error = err.error.message;
+          this.showAlert=true;
+          this.cdr.detectChanges();
         }
       });
     }
   }
+
+  check(){
+  }
+
 }
+
+
 export function passwordMatchValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const password = control.get('password')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { passwordMismatch: true };
+    if(password === confirmPassword){
+      return null;      
+    }else{
+      return  {passwordMismatch: true} ;
+    }
   };
 }

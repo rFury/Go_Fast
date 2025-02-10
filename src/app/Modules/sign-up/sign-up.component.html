@@ -3,47 +3,72 @@
     <img class="w-8 h-8 mr-2" src="logo.png" alt="logo">
     GoFast
   </a>
-  <mat-card class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+  <mat-card
+    class="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
     <mat-card-header class="justify-center">
-      <mat-card-title class="p-6 space-y-4 md:space-y-6 sm:p-8">              
+      <mat-card-title class="p-6 space-y-4 md:space-y-6 sm:p-8">
         <h1 class="text-xl leading-tight tracking-tight text-gray-900 md:text-1xl dark:text-white">
-                  Create your account
-              </h1>
-            </mat-card-title>
+          Create your account
+        </h1>
+      </mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
+
+      @if (showAlert) {
+      <app-alert [Data]="{
+        alert_class: 'text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400',
+        message: error,
+        link: 'Sign-In',
+        linkMessage: 'Try Signing In.'
+      }"
+      (close)="showAlert = false"/>
+      }
+      
       <form class="space-y-1 md:space-y-3" [formGroup]="userForm" (ngSubmit)="onSubmit()">
 
         <div class="flex gap-4">
           <mat-form-field class="w-1/2">
             <mat-label>First Name</mat-label>
             <input matInput type="text" required formControlName="first_name">
+            <mat-error *ngIf="userForm.get('first_name')?.invalid && userForm.get('first_name')?.touched">
+              2 characters required.
+            </mat-error>
           </mat-form-field>
 
           <mat-form-field class="w-1/2">
             <mat-label>Last Name</mat-label>
             <input matInput type="text" required formControlName="last_name">
+            <mat-error *ngIf="userForm.get('last_name')?.invalid && userForm.get('last_name')?.touched">
+              2 characters required.
+            </mat-error>
           </mat-form-field>
         </div>
 
         <mat-form-field class="w-full">
           <mat-label>Email</mat-label>
           <input matInput type="email" required formControlName="email">
+          <mat-error *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched">
+            Invalid email address.
+          </mat-error>
+
         </mat-form-field>
 
         <mat-form-field class="w-full" hintLabel="Min 8 characters">
           <mat-label>Password</mat-label>
           <input matInput #input type="password" minlength="8" (input)="onInput($event)" formControlName="password" />
-          <mat-hint align="end">{{value().length}}/8</mat-hint>
+          <mat-hint align="end">{{value().length}}</mat-hint>
         </mat-form-field>
 
-        <mat-form-field class="w-full" [ngClass]="{'border-red-500': userForm.hasError('passwordMismatch') && userForm.get('confirmPassword')?.touched}">
+        <mat-form-field class="w-full">
           <mat-label>Confirm Password</mat-label>
-          <input matInput type="password" required formControlName="confirmPassword">
+          <input matInput type="password" required formControlName="confirmPassword" (touch)="check()">
+          <mat-error>
+            Password do not match.
+          </mat-error>
         </mat-form-field>
 
-        <button [disabled]="userForm.invalid" type="submit" mat-raised-button color="primary" class="w-full">
+        <button  type="submit" mat-raised-button color="primary" class="w-full">
           Create Account
         </button>
       </form>
