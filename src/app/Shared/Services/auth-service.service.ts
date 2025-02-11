@@ -16,7 +16,9 @@ export class AuthService {
   private token!: string;
 
   constructor(private router:Router,private http: HttpClient) {
+    this.loadToken();
   }
+
     private apiUrl = "http://127.0.0.1:3000/api/auth";
     AddUser(val:User): Observable<auth_conf> {
         return this.http.post<auth_conf>(this.apiUrl+"/registery",val)
@@ -34,25 +36,49 @@ export class AuthService {
       return this.http.post<auth_conf>(`${this.apiUrl}/reset-password`, { email });
     }
     
-    verifyResetCode(token: string, code: string): Observable<any> {
-      return this.http.post(`${this.apiUrl}/verify-reset-code`, { token, code });
+    verifyResetCode(token: string, code: string): Observable<auth_conf> {
+      return this.http.post<auth_conf>(`${this.apiUrl}/verify-reset-code`, { token, code });
     }
 
-    resetPassword(token: string,newPassword: string): Observable<any> {
-      return this.http.post(`${this.apiUrl}/update-password`, { token, newPassword });
+    verifyEmailCode(token: string, code: string): Observable<auth_conf> {
+      return this.http.post<auth_conf>(`${this.apiUrl}/verify-mail`, { token, code });
     }
 
-    saveVerifToken(jwt: string,which: string) {
-      localStorage.setItem(which, jwt);
+    resetPassword(token: string,newPassword: string): Observable<auth_conf> {
+      return this.http.post<auth_conf>(`${this.apiUrl}/update-password`, { token, newPassword });
+    }
+
+    resendCode(email:string): Observable<auth_conf>{
+      return this.http.post<auth_conf>(`${this.apiUrl}/resend-mail`,{email:email});
+    }
+
+    //TOKEN WISE
+
+    loadToken(){
+      this.token = localStorage.getItem('jwt')!;
+    }
+    saveToken(jwt: string) {
+      localStorage.setItem('jwt', jwt);
       this.token = jwt;
     }
 
-    getVerifToken(which:string) {
-      return localStorage.getItem(which)!;
-
+    getToken() {
+      return this.token;
     }
-  
+
+    removeToken() {
+      localStorage.removeItem('jwt');
+      this.token=''
+    }
+
+    decodeToken(){
+      return this.helper.decodeToken(this.token);
+    }
+    decodeVerifToken(Token:string){
+      return this.helper.decodeToken(Token);
+    }
     isTokenExpired(): Boolean {
       return this.helper.isTokenExpired(this.token);
     }
 }
+

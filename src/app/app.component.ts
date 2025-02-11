@@ -12,10 +12,4 @@ import { CommonModule } from '@angular/common';
 })
 export class AppComponent {
   title = 'Go_Fast';
-  generateArray(size: number): number[] {
-    return Array.from({ length: size }, (_, i) => i);
-  }
-
-  floor(value: number): number {
-    return Math.floor(value);
-  }}
+}

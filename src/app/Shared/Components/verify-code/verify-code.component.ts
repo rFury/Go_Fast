@@ -1,87 +1,73 @@
-import { CommonModule} from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../Services/auth-service.service';
+import { TokenVerif } from '../../Models/TokenVerif.model';
+import { auth_conf } from '../../Models/auth-confirmation.model';
+import { CodeInputModule } from 'angular-code-input';
+import { AlertComponent } from '../alert/alert.component';
 
 @Component({
   selector: 'app-verify-code',
   imports: [
     MatCardModule,
-    ReactiveFormsModule,
     CommonModule,
     MatButtonModule,
+    CodeInputModule,
+    AlertComponent
   ],
   templateUrl: './verify-code.component.html',
-  styleUrls: ['./verify-code.component.css']
+  styleUrls: ['./verify-code.component.css'],
 })
 export class VerifyCodeComponent implements OnInit, OnDestroy {
-  codeForm!: FormGroup;
-  codeInputs = new Array(6); 
-  timeLeft = 600; 
+
+  showAlert:boolean = false;
+  isCodeComplete:Boolean = false;
+  timeLeft = 0;
   timer: any;
   token!: string | null;
-  activebtn: boolean = false;
-  resendDisabled: boolean = false;
-  resendTimer: number = 10; 
+  activebtn: Boolean = false;
+  resendDisabled: Boolean = false;
+  resendTimer: number = 30;
   resendInterval: any;
+  email!: string;
+  now = new Date();
+  which!: Boolean; //true == verif email || false == reset password
+  code!:string;
 
-  constructor(private fb: FormBuilder, private router: Router,private authService:AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit() {
-    this.token=localStorage.getItem("verif_email");
-    console.log(this.token);
-    if (!this.token) {
-      /*this.router.navigate(['/Home']);*/
-    }
-
-    this.codeForm = this.fb.group({});
-    
-    for (let i = 0; i < 8; i++) {
-      this.codeForm.addControl('code' + i, new FormControl('', [Validators.required, Validators.pattern('[0-9]')]));
-    }
-
-    this.codeForm.valueChanges.subscribe(() => {
-      this.activebtn = this.isCodeComplete();
-      console.log(Object.values(this.codeForm.value).join(''))
-      console.log(this.activebtn)
+    this.route.queryParams.subscribe((params) => {
+      let token = params['verifToken'];
+      this.which = true;
+      if (token == undefined || token == null) {
+        token = params['resetToken'];
+        this.which = false;
+      }
+      if (token) {
+        this.token = token;
+        let object: TokenVerif = this.authService.decodeVerifToken(this.token!);
+        this.email = object.email;
+        let timestamp = object.exp;
+        const expDate = new Date(timestamp * 1000);
+        this.timeLeft = Math.floor(
+          (expDate.getTime() - this.now.getTime()) / 1000
+        );
+      }
     });
-
     this.startTimer();
   }
-
-  moveToNext(index: number, event: any) {
-    const value = event.target.value;
-    if (value.length === 1 && index < 5) {
-      const nextInput = document.querySelectorAll('input')[index + 1] as HTMLInputElement;
-      nextInput.focus();
-    }
-  }
-
-  moveToPrev(index: number, event: KeyboardEvent) {
-    if (event.key === 'Backspace' && index > 0) {
-      // Effacer uniquement la valeur du champ actuel dans le formulaire
-      this.codeForm.get('code' + index)?.setValue('');
-  
-      // Déplacer le focus vers le champ précédent
-      const prevInput = document.querySelectorAll('input')[index - 1] as HTMLInputElement;
-      prevInput.focus();
-    }
-  }
-  
-
-  isCodeComplete(): boolean {
-    return Object.values(this.codeForm.value).join('').length===6;
-    /* Object.values(this.codeForm.value).every(val => val && val.toString().length === 1) */
-  }
-  
-
   startTimer() {
     this.timer = setInterval(() => {
       if (this.timeLeft > 0) {
-        this.timeLeft--; 
+        this.timeLeft--;
       } else {
         clearInterval(this.timer);
         this.router.navigate(['/home']);
@@ -92,7 +78,7 @@ export class VerifyCodeComponent implements OnInit, OnDestroy {
   startResendTimer() {
     this.resendDisabled = true;
     this.resendTimer = 10;
-    
+
     this.resendInterval = setInterval(() => {
       if (this.resendTimer > 0) {
         this.resendTimer--;
@@ -109,11 +95,33 @@ export class VerifyCodeComponent implements OnInit, OnDestroy {
   }
 
   verifyCode() {
-    if (this.isCodeComplete()) {
-      const code = Object.values(this.codeForm.value).join('');
-      this.router.navigate(['/change-password']);
-      console.log("Entered Code:", code);
-      // Logique de vérification ici...
+    if (this.isCodeComplete && this.code!=undefined) {
+      console.log(this.code);
+      if (this.which == true) {
+        this.authService.verifyEmailCode(this.token!, this.code).subscribe({
+          next: (res) => {
+            let auth_conf: auth_conf = res;
+            this.authService.saveToken(auth_conf.token);
+            this.router.navigate(['/']);
+          },
+          error: (err) => {
+            console.error(err);
+            this.showAlert=true;
+          },
+        });
+      } else if (this.which == false) {
+        this.authService.verifyResetCode(this.token!, this.code).subscribe({
+          next: (res) => {
+            let auth_conf: auth_conf = res;
+            this.router.navigate(['/Change-Password'], {
+              queryParams: { Token: auth_conf.token },
+            });
+          },
+          error: (err) => {
+            console.error(err);
+          },
+        });
+      }
     }
   }
 
@@ -128,7 +136,36 @@ export class VerifyCodeComponent implements OnInit, OnDestroy {
   }
 
   resendCode() {
-    console.log("Resending code...");
+
+    let token:TokenVerif = this.authService.decodeVerifToken(this.token!);
+    if(token.email){
+      this.authService.resendCode(token.email).subscribe({
+        next : (res)=>{
+          let result:auth_conf = res;
+          console.log(result.token);
+          this.router.navigate(["/Verify-Code"], { queryParams: { verifToken:result.token } });
+        },
+        error : (err)=>{
+          console.error(err);
+        }
+      })
+    }
+
+
     this.startResendTimer();
   }
+
+  // this called every time when user changed the code
+  onCodeChanged(code: string) {
+    this.isCodeComplete =false;
+    this.activebtn=this.isCodeComplete;
+  }
+
+  // this called only if user entered full code
+  onCodeCompleted(code: string) {
+    this.isCodeComplete=true;
+    this.activebtn=this.isCodeComplete;
+    this.code = code;
+  }
+
 }

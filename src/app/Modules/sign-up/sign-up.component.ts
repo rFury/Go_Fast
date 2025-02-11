@@ -61,11 +61,10 @@ export class SignUpComponent {
       };
       console.log(newUser)
       this.authService.AddUser(newUser).subscribe({
-        next: async (res) => {
+        next:  (res) => {
           let result:auth_conf = res;
           console.log(result.token);
-          localStorage.setItem("verif_email",result.token);
-          this.router.navigate(["/Verify-Code"]);
+          this.router.navigate(["/Verify-Code"], { queryParams: { verifToken:result.token } });
           
         },
         error: (err) => {
