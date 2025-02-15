@@ -7,63 +7,24 @@ import { LoaderService } from '../../Services/loader.service';
   template: `
     @if(loaderService.isLoading('global')){
     <div
-      class="fixed inset-0 flex items-center justify-center bg-white z-[1000] animate-fadeIn"
+      class="fixed inset-0 flex items-center justify-center bg-gray-100 z-[1000] animate-fadeIn"
     >
-      <div
-        class="loading-window fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[300px] h-[200px] bg-[#333] border-[3px] border-[#ffe4e1] rounded-[6px] z-[99] animate-fadeIn"
-      >
-        <div class="van absolute w-[150px] h-[60px] left-[75px] top-[70px]">
-          <!-- Strikes -->
-          <div
-            class="strike absolute w-[11px] h-[1px] bg-[#ffe4e1] animate-strikes"
-          ></div>
-          <div
-            class="strike strike2 absolute w-[11px] h-[1px] bg-[#ffe4e1] animate-strikes"
-            style="animation-delay: 0.05s;"
-          ></div>
-          <div
-            class="strike strike3 absolute w-[11px] h-[1px] bg-[#ffe4e1] animate-strikes"
-            style="animation-delay: 0.1s;"
-          ></div>
-          <div
-            class="strike strike4 absolute w-[11px] h-[1px] bg-[#ffe4e1] animate-strikes"
-            style="animation-delay: 0.15s;"
-          ></div>
-          <div
-            class="strike strike5 absolute w-[11px] h-[1px] bg-[#ffe4e1] animate-strikes"
-            style="animation-delay: 0.2s;"
-          ></div>
-
-          <!-- Van body parts -->
-          <div
-            class="van-detail back absolute h-[30px] w-[80px] top-[15px] left-0 rounded-l-[4px] animate-speed"
-          ></div>
-          <div
-            class="van-detail body absolute h-[30px] w-[90px] top-[15px] left-[10px] rounded-[4px] animate-speed"
-          ></div>
-          <div
-            class="van-detail front absolute h-[30px] w-[40px] top-[15px] left-[100px] rounded-r-[4px] animate-speed"
-          ></div>
-
-          <!-- Wheels -->
-          <div
-            class="van-detail wheel absolute h-[20px] w-[20px] rounded-full top-[40px] left-[20px] border-[3px] border-[#333] animate-spin custom-wheel"
-          ></div>
-          <div
-            class="van-detail wheel wheel2 absolute h-[20px] w-[20px] rounded-full top-[40px] left-[90px] border-[3px] border-[#333] animate-spin custom-wheel"
-          ></div>
-        </div>
-
-        <div class="text absolute text-[16px] top-[75%] left-[38%]">
-          <span>Loading</span>
-          <span
-            class="dots inline-block overflow-hidden align-bottom animate-dots"
-            >...</span
-          >
-        </div>
+      <div>
+        <img
+          src="logo.png"
+          alt="logo"
+          class="mx-auto h-48 w-48 p-8"
+        />
+      </div>
+      <div id="load">
+        <div>T</div>
+        <div>S</div>
+        <div>A</div>
+        <div>F</div>
+        <div>O</div>
+        <div>G</div>
       </div>
     </div>
-
     }
   `,
   styles: [
@@ -95,164 +56,180 @@ import { LoaderService } from '../../Services/loader.service';
       .animate-scaleIn {
         animation: scaleIn 0.3s ease-in-out;
       }
-      @keyframes spin {
-        0% {
-          transform: translate(2px, 1px) rotate(0deg);
-        }
-        10% {
-          transform: translate(-1px, -3px) rotate(36deg);
-        }
-        20% {
-          transform: translate(-2px, 0px) rotate(72deg);
-        }
-        30% {
-          transform: translate(1px, 2px) rotate(108deg);
-        }
-        40% {
-          transform: translate(1px, -1px) rotate(144deg);
-        }
-        50% {
-          transform: translate(-1px, 3px) rotate(180deg);
-        }
-        60% {
-          transform: translate(-1px, 1px) rotate(216deg);
-        }
-        70% {
-          transform: translate(3px, 1px) rotate(252deg);
-        }
-        80% {
-          transform: translate(-2px, -1px) rotate(288deg);
-        }
-        90% {
-          transform: translate(2px, 1px) rotate(324deg);
-        }
-        100% {
-          transform: translate(1px, -2px) rotate(360deg);
-        }
+      #load {
+        position: absolute;
+        width: 600px;
+        height: 36px;
+        left: 50%;
+        top: 40%;
+        margin-left: -300px;
+        overflow: visible;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        cursor: default;
       }
 
-      @keyframes speed {
-        0% {
-          transform: translate(2px, 1px) rotate(0deg);
-        }
-        10% {
-          transform: translate(-1px, -3px) rotate(-1deg);
-        }
-        20% {
-          transform: translate(-2px, 0px) rotate(1deg);
-        }
-        30% {
-          transform: translate(1px, 2px) rotate(0deg);
-        }
-        40% {
-          transform: translate(1px, -1px) rotate(1deg);
-        }
-        50% {
-          transform: translate(-1px, 3px) rotate(-1deg);
-        }
-        60% {
-          transform: translate(-1px, 1px) rotate(0deg);
-        }
-        70% {
-          transform: translate(3px, 1px) rotate(-1deg);
-        }
-        80% {
-          transform: translate(-2px, -1px) rotate(1deg);
-        }
-        90% {
-          transform: translate(2px, 1px) rotate(0deg);
-        }
-        100% {
-          transform: translate(1px, -2px) rotate(-1deg);
-        }
+      #load div {
+        font-size:5vh;
+        position: absolute;
+        width: 20px;
+        height: 36px;
+        opacity: 0;
+        font-family: Helvetica, Arial, sans-serif;
+        animation: move 2s linear infinite;
+        -o-animation: move 2s linear infinite;
+        -moz-animation: move 2s linear infinite;
+        -webkit-animation: move 2s linear infinite;
+        transform: rotate(180deg);
+        -o-transform: rotate(180deg);
+        -moz-transform: rotate(180deg);
+        -webkit-transform: rotate(180deg);
+        color: black;
       }
 
-      @keyframes strikes {
-        from {
-          left: 25px;
-        }
-        to {
-          left: -80px;
+      #load div:nth-child(2) {
+        animation-delay: 0.2s;
+        -o-animation-delay: 0.2s;
+        -moz-animation-delay: 0.2s;
+        -webkit-animation-delay: 0.2s;
+      }
+      #load div:nth-child(3) {
+        animation-delay: 0.4s;
+        -o-animation-delay: 0.4s;
+        -webkit-animation-delay: 0.4s;
+        -webkit-animation-delay: 0.4s;
+      }
+      #load div:nth-child(4) {
+        animation-delay: 0.6s;
+        -o-animation-delay: 0.6s;
+        -moz-animation-delay: 0.6s;
+        -webkit-animation-delay: 0.6s;
+      }
+      #load div:nth-child(5) {
+        animation-delay: 0.8s;
+        -o-animation-delay: 0.8s;
+        -moz-animation-delay: 0.8s;
+        -webkit-animation-delay: 0.8s;
+      }
+      #load div:nth-child(6) {
+        animation-delay: 1s;
+        -o-animation-delay: 1s;
+        -moz-animation-delay: 1s;
+        -webkit-animation-delay: 1s;
+      }
+      #load div:nth-child(7) {
+        animation-delay: 1.2s;
+        -o-animation-delay: 1.2s;
+        -moz-animation-delay: 1.2s;
+        -webkit-animation-delay: 1.2s;
+      }
+
+      @keyframes move {
+        0% {
+          left: 0;
           opacity: 0;
         }
-      }
-
-      @keyframes dots {
-        from {
-          width: 0;
-        }
-        to {
-          width: 15px;
-        }
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-        }
-        to {
+        35% {
+          left: 41%;
+          -moz-transform: rotate(0deg);
+          -webkit-transform: rotate(0deg);
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
           opacity: 1;
         }
+        65% {
+          left: 59%;
+          -moz-transform: rotate(0deg);
+          -webkit-transform: rotate(0deg);
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          left: 100%;
+          -moz-transform: rotate(-180deg);
+          -webkit-transform: rotate(-180deg);
+          -o-transform: rotate(-180deg);
+          transform: rotate(-180deg);
+          opacity: 0;
+        }
       }
 
-      /* Custom animation utility classes */
-      .animate-spin {
-        animation: spin 1s linear infinite;
+      @-moz-keyframes move {
+        0% {
+          left: 0;
+          opacity: 0;
+        }
+        35% {
+          left: 41%;
+          -moz-transform: rotate(0deg);
+          transform: rotate(0deg);
+          opacity: 1;
+        }
+        65% {
+          left: 59%;
+          -moz-transform: rotate(0deg);
+          transform: rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          left: 100%;
+          -moz-transform: rotate(-180deg);
+          transform: rotate(-180deg);
+          opacity: 0;
+        }
       }
 
-      .animate-speed {
-        animation: speed 0.5s linear infinite;
+      @-webkit-keyframes move {
+        0% {
+          left: 0;
+          opacity: 0;
+        }
+        35% {
+          left: 41%;
+          -webkit-transform: rotate(0deg);
+          transform: rotate(0deg);
+          opacity: 1;
+        }
+        65% {
+          left: 59%;
+          -webkit-transform: rotate(0deg);
+          transform: rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          left: 100%;
+          -webkit-transform: rotate(-180deg);
+          transform: rotate(-180deg);
+          opacity: 0;
+        }
       }
 
-      .animate-strikes {
-        animation: strikes 0.2s linear infinite;
-      }
-
-      .animate-dots {
-        animation: dots 1.5s linear infinite;
-      }
-
-      .animate-fadeIn {
-        animation: fadeIn 0.4s both;
-      }
-
-      /* Custom wheel background similar to the SASS version */
-      .custom-wheel {
-        background: linear-gradient(
-            45deg,
-            transparent 45%,
-            #ffe4e1 46%,
-            #ffe4e1 54%,
-            transparent 55%
-          ),
-          linear-gradient(
-            -45deg,
-            transparent 45%,
-            #ffe4e1 46%,
-            #ffe4e1 54%,
-            transparent 55%
-          ),
-          linear-gradient(
-            90deg,
-            transparent 45%,
-            #ffe4e1 46%,
-            #ffe4e1 54%,
-            transparent 55%
-          ),
-          linear-gradient(
-            0deg,
-            transparent 45%,
-            #ffe4e1 46%,
-            #ffe4e1 54%,
-            transparent 55%
-          ),
-          radial-gradient(
-            #ffe4e1 29%,
-            transparent 30%,
-            transparent 50%,
-            #ffe4e1 51%
-          ),
-          #333;
+      @-o-keyframes move {
+        0% {
+          left: 0;
+          opacity: 0;
+        }
+        35% {
+          left: 41%;
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+          opacity: 1;
+        }
+        65% {
+          left: 59%;
+          -o-transform: rotate(0deg);
+          transform: rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          left: 100%;
+          -o-transform: rotate(-180deg);
+          transform: rotate(-180deg);
+          opacity: 0;
+        }
       }
     `,
   ],
