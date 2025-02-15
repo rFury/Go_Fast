@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -17,6 +17,7 @@ import { auth_conf } from '../../Shared/Models/auth-confirmation.model';
 import { AlertComponent } from '../../Shared/Components/alert/alert.component';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
+import { LoaderService } from '../../Shared/Services/loader.service';
 
 @Component({
   selector: 'app-sign-in',
@@ -38,11 +39,13 @@ import { MatIcon } from '@angular/material/icon';
   styleUrl: './sign-in.component.css',
 })
 export class SignInComponent {
+  protected _authService=inject(AuthService);
+  protected _router=inject(Router);
+  protected _loader=inject(LoaderService);
+
   showAlert: boolean = false;
   error: string = '';
   showNotif:boolean = false;
-
-  constructor(protected authService: AuthService, private router: Router) {}
 
   userForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -54,13 +57,14 @@ export class SignInComponent {
 
   onSubmit() {
     if (this.userForm.valid) {
-      this.authService
+      this._loader.show();
+      this._authService
         .SignIn(this.userForm.value.email!, this.userForm.value.password!)
         .subscribe({
           next: (res) => {
             let auth_conf: auth_conf = res;
-            this.authService.saveToken(auth_conf.token);
-            this.router.navigate(['/']);
+            this._authService.saveToken(auth_conf.token);
+            this._router.navigate(['/']);
           },
           error: (err) => {
             if (err.status == 426) {
@@ -70,19 +74,21 @@ export class SignInComponent {
               this.error = err.error.message;
               console.error(err)
             }
-          },
+          },complete: ()=>{
+            this._loader.hide();
+          }
         });
     }
   }
 
   verif(){
-    this.authService
+    this._authService
     .resendCode(this.userForm.value.email!)
     .subscribe({
       next: (res) => {
         let result: auth_conf = res;
         console.log(result.token);
-        this.router.navigate(['/Verify-Code'], {
+        this._router.navigate(['/Verify-Code'], {
           queryParams: { verifToken: result.token },
         });
       },
