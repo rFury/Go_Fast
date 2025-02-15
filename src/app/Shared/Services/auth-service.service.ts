@@ -5,6 +5,7 @@ import { HttpClient, HttpHeaders, HttpParams } from'@angular/common/http';
 import { Observable } from 'rxjs';
 import { auth_conf } from '../Models/auth-confirmation.model';
 import { JwtHelperService } from '@auth0/angular-jwt';
+import { setLoaderType } from '../Interceptors/interceptors/http.context';
 
 
 @Injectable({
@@ -29,7 +30,11 @@ export class AuthService {
         email :email,
         password :password
       }
-      return this.http.post<auth_conf>(this.apiUrl+"/login",params)
+      return this.http.post<auth_conf>(this.apiUrl+"/login",params,
+        {
+          context: setLoaderType('global')
+        }
+      )
   }
 
     requestResetPassword(email: string): Observable<auth_conf> {
