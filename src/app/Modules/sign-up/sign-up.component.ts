@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormControl,FormGroup,Validators,ReactiveFormsModule,AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { User } from '../../Shared/Models/User.model';
 import { AuthService } from '../../Shared/Services/auth-service.service';
@@ -29,7 +29,7 @@ import { auth_conf } from '../../Shared/Models/auth-confirmation.model';
 })
 export class SignUpComponent {
 
-  constructor (protected authService : AuthService,private cdr: ChangeDetectorRef){
+  constructor (protected authService : AuthService,private cdr: ChangeDetectorRef,private router:Router){
 
   }
 
@@ -61,8 +61,10 @@ export class SignUpComponent {
       };
       console.log(newUser)
       this.authService.AddUser(newUser).subscribe({
-        next: (res) => {
+        next:  (res) => {
           let result:auth_conf = res;
+          console.log(result.token);
+          this.router.navigate(["/Verify-Code"], { queryParams: { verifToken:result.token } });
           
         },
         error: (err) => {
