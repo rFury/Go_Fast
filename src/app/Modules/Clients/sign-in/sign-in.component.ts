@@ -12,12 +12,12 @@ import {
   ReactiveFormsModule,
   FormsModule,
 } from '@angular/forms';
-import { AuthService } from '../../Shared/Services/auth-service.service';
-import { auth_conf } from '../../Shared/Models/auth-confirmation.model';
-import { AlertComponent } from '../../Shared/Components/alert/alert.component';
+import { AuthService } from '../../../Shared/Services/auth-service.service';
+import { auth_conf } from '../../../Shared/Models/auth-confirmation.model';
+import { AlertComponent } from '../../../Shared/Components/alert/alert.component';
 import { CommonModule } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
-import { LoaderService } from '../../Shared/Services/loader.service';
+import { LoaderService } from '../../../Shared/Services/loader.service';
 
 @Component({
   selector: 'app-sign-in',
@@ -65,6 +65,7 @@ export class SignInComponent {
             let auth_conf: auth_conf = res;
             this._authService.saveToken(auth_conf.token);
             this._router.navigate(['/']);
+            this._loader.hide();
           },
           error: (err) => {
             if (err.status == 426) {
@@ -72,10 +73,8 @@ export class SignInComponent {
             } else {
               this.showAlert = true;
               this.error = err.error.message;
-              console.error(err)
+              this._loader.hide();
             }
-          },complete: ()=>{
-            this._loader.hide();
           }
         });
     }

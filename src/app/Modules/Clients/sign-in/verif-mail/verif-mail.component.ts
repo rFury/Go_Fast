@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {VerifyCodeComponent} from '../../../Shared/Components/verify-code/verify-code.component'
+import { VerifyCodeComponent } from '../../../../Shared/Components/verify-code/verify-code.component';
 
 @Component({
   selector: 'app-verif-mail',
