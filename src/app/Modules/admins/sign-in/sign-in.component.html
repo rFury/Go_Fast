@@ -12,9 +12,16 @@
             <h1 class="text-2xl text-white font-bold mb-2">Welcome back</h1>
 
             <form [formGroup]="signinForm" class="space-y-6" (ngSubmit)="submit()">
-                <mat-form-field class="w-full">
+                @if (showAlert) {
+                    <app-alert [Data]="{
+                      alert_class: 'text-red-800 bg-red-50 dark:bg-gray-800 dark:text-red-400',
+                      message: error
+                    }"
+                    (close)="showAlert = false"/>
+                    }
+                <mat-form-field class="w-full" >
                     <mat-label>Email</mat-label>
-                    <input matInput type="email" required formControlName="email">
+                    <input matInput type="email" required formControlName="email" [readonly]="verify">
                     <mat-error *ngIf="signinForm.get('email')?.invalid && signinForm.get('email')?.touched">
                         Invalid email address.
                     </mat-error>
@@ -35,7 +42,7 @@
                     }
                 <div class="flex items-center justify-center">
                     <button mat-raised-button type="submit" color="primary" class="w-1/2 py-4" [disabled]="activeBtn">
-                        Sign in to your account
+                        {{btnText}}
                     </button>
                 </div>
             </form>
