@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, Provider } from '@angular/core';
+import { provideRouter, RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-admins',
   imports: [
-    RouterOutlet
-  ],
+    RouterOutlet],
   templateUrl: './admins.component.html',
   styleUrl: './admins.component.css'
 })

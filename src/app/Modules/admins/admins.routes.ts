@@ -1,11 +1,13 @@
-import { Routes } from '@angular/router';
+import { Route, Routes } from '@angular/router';
 import { AdminsComponent } from './admins.component';
 import { BackOfficeComponent } from './back-office/back-office.component';
-import { adminSignInRoutes } from './sign-in/sign-in.admin.routes';
 import { authGuard } from '../../Shared/Guards/auth.guard';
+import { SignInComponent } from '../admins/sign-in/sign-in.component';
 
 
-export const adminRoutes: Routes = [
-    {path:'sign-in',loadChildren:()=>adminSignInRoutes},
-    {path:'',component:BackOfficeComponent,canActivate:[authGuard]}
-];
+export default[
+    {path:'',component:AdminsComponent,children:[
+        {path:'',component:BackOfficeComponent,/*canActivate:[authGuard]*/},
+        {path:'sign-in',component:SignInComponent}
+    ]}
+] satisfies Route[];

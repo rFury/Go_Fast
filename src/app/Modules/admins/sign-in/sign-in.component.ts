@@ -18,21 +18,22 @@ import { SuperAuthService } from '../../../Shared/Services/super-auth-service.se
 import { AlertComponent } from '../../../Shared/Components/alert/alert.component';
 import { auth_conf } from '../../../Shared/Models/auth-confirmation.model';
 import { Router } from '@angular/router';
+import { LoaderService } from '../../../Shared/Services/loader.service';
+
 
   @Component({
     selector: 'app-sign-in',
     imports: [
-      MatFormFieldModule,
-      MatIconModule,
-      MatCheckboxModule,
-      CommonModule,
-      ReactiveFormsModule,
-      MatInputModule,
-      MatButtonModule,
-      CodeInputModule,
-      AlertComponent
-  
-    ],
+    MatFormFieldModule,
+    MatIconModule,
+    MatCheckboxModule,
+    CommonModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatButtonModule,
+    CodeInputModule,
+    AlertComponent,
+],
     templateUrl: './sign-in.component.html',
     styleUrls: ['./sign-in.component.css'],
   })
@@ -47,6 +48,7 @@ import { Router } from '@angular/router';
     protected btnText:string = 'Sign in to your account';
     private _authService=inject(SuperAuthService);
     private _router=inject(Router);
+    private _loaderService=inject(LoaderService);
 
     signinForm = new FormGroup({
       email: new FormControl('', [Validators.required, Validators.email]),
@@ -58,6 +60,7 @@ import { Router } from '@angular/router';
     
 
     submit(){;
+      this._loaderService.show('auth');
       if(this.signinForm.valid && !this.verify){
         this._authService.SignIn(this.signinForm.value.email!,this.signinForm.value.password!).subscribe({
           next:(res)=>{

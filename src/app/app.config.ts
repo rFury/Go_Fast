@@ -13,7 +13,5 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(),
     provideNativeDateAdapter(),
-    { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true }
-
   ],
 };

@@ -1,0 +1,11 @@
+.bar{
+    --mat-sys-surface:gray-800;
+}
+.form{
+    --mat-sys-surface-variant:#374151;
+    --mat-sys-on-surface-variant:#9ca3af;
+    --mat-sys-primary:
+}
+.example-spacer {
+    flex: 1 1 auto;
+  }
