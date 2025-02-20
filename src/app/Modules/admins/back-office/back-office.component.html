@@ -1,0 +1,73 @@
+<div class="antialiased">
+    <mat-toolbar class="bar">
+        <!-- logo -->
+        <div class="rounded-lg pt-4 pr-2 block sm:hidden">
+            <div class="flex items-center gap-2 mb-6">
+                <div
+                    class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
+                    <button mat-icon-button class="flex justify-center items-center"
+                        (click)="snav.toggle()"><mat-icon>view_list</mat-icon></button>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-lg pt-4">
+            <div class="flex items-center gap-2 mb-6">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center">
+                    <img src="logo-white.png" alt="logo" class="text-white">
+                </div>
+                <span class="text-white text-xl font-semibold">GoFast</span>
+            </div>
+        </div>
+        <!-- Search -->
+        <form class="form pt-6 pb-2 pl-4 hidden sm:block md:pl-2" [formGroup]="searchForm" (ngSubmit)="search()">
+            <mat-form-field appearance="outline">
+                <mat-icon class="text-gray-400" matPrefix>search</mat-icon>
+                <input matInput placeholder="Search" formControlName="search">
+            </mat-form-field>
+        </form>
+
+        <span class="example-spacer"></span>
+
+
+        <div class="rounded-lg pt-4">
+            <div class="flex items-center gap-2 mb-6">
+                <div
+                    class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
+                    <mat-icon>notifications</mat-icon>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-lg pt-4">
+            <div class="flex items-center gap-2 mb-6">
+                <div
+                    class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
+                    <mat-icon>menu</mat-icon>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-lg pt-4">
+            <div class="flex items-center gap-2 mb-6">
+                <div
+                    class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
+                    <mat-icon>supervisor_account</mat-icon>
+                </div>
+            </div>
+        </div>
+    </mat-toolbar>
+
+
+    <div class="example-container" [class.example-is-mobile]="isMobile()" class="fixed top-relative left-0 z-40 w-64 h-screen transition-transform -translate-x-full bg-black border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700">
+        <mat-sidenav-container class="w-64 bg-gray-800 border-r border-gray-700">
+            <mat-sidenav #snav [mode]="isMobile() ? 'over' : 'side'" [fixedInViewport]="isMobile()" [opened]="!isMobile()">
+            </mat-sidenav>
+
+            <mat-sidenav-content class="relative" >
+                <h1 class="text-red">hello side</h1>
+            </mat-sidenav-content>
+        </mat-sidenav-container>
+    </div>
+
+
+
+
+</div>

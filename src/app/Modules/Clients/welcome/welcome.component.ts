@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
-import { AuthService } from '../../Shared/Services/auth-service.service';
+import { AuthService } from '../../../Shared/Services/auth-service.service';
 @Component({
   selector: 'app-welcome',
   imports: [MatButtonModule,

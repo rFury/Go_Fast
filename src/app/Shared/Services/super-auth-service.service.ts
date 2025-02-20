@@ -10,21 +10,17 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class SuperAuthService {
+  private apiUrl = "http://127.0.0.1:3000/api/super-auth";
   private readonly STORAGE_KEY = 'myAppUserDataKey';
   private helper = new JwtHelperService();
   private token=signal<string>('');
+  private isloggedin=signal<boolean>(false);
   private http=inject(HttpClient);
 
   constructor() {
     this.loadToken();
   }
-
-    private apiUrl = "http://127.0.0.1:3000/api/auth";
-    AddUser(val:User): Observable<auth_conf> {
-        return this.http.post<auth_conf>(this.apiUrl+"/registery",val
-        )
-    }
 
     SignIn(email:string,password:string): Observable<auth_conf> {
       const params = {
@@ -33,36 +29,33 @@ export class AuthService {
       }
       return this.http.post<auth_conf>(this.apiUrl+"/login",params
       )
-  }
+    }
 
-    requestResetPassword(email: string): Observable<auth_conf> {
+    /*requestResetPassword(email: string): Observable<auth_conf> {
       return this.http.post<auth_conf>(`${this.apiUrl}/reset-password`, { email });
-    }
+    }*/
     
-    verifyResetCode(token: string, code: string): Observable<auth_conf> {
+    /*verifyResetCode(token: string, code: string): Observable<auth_conf> {
       return this.http.post<auth_conf>(`${this.apiUrl}/verify-reset-code`, { token, code });
-    }
+    }*/
 
-    verifyEmailCode(token: string, code: string): Observable<auth_conf> {
-      return this.http.post<auth_conf>(`${this.apiUrl}/verify-mail`, { token, code });
-    }
-
-    resetPassword(token: string,newPassword: string): Observable<auth_conf> {
-      return this.http.post<auth_conf>(`${this.apiUrl}/update-password`, { token, newPassword });
-    }
-
-    resendCode(email:string): Observable<auth_conf>{
-      return this.http.post<auth_conf>(`${this.apiUrl}/resend-mail`,{email:email});
+    verifyEmailCode(email: string, code: string): Observable<auth_conf> {
+      return this.http.post<auth_conf>(`${this.apiUrl}/verify-mail`, { email, code });
     }
 
     //TOKEN WISE
 
     loadToken(){
       this.token.set(localStorage.getItem('jwt')!);
+      if(this.isTokenExpired()){
+        this.isloggedin.set(false);
+        this.token.set('');
+      }
     }
     saveToken(jwt: string) {
       localStorage.setItem('jwt', jwt);
       this.token.set(jwt);
+      this.isloggedin.set(true);
     }
 
     getToken() {
@@ -82,6 +75,9 @@ export class AuthService {
     }
     isTokenExpired(): Boolean {
       return this.helper.isTokenExpired(this.token().toString());
+    }
+    isLoggedIn():Boolean{
+      return this.isloggedin();
     }
 }
 

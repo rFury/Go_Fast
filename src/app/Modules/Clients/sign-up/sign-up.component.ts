@@ -1,15 +1,18 @@
-import { Component,signal,ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component,signal,ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { Router, RouterModule } from '@angular/router';
 import { FormControl,FormGroup,Validators,ReactiveFormsModule,AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { User } from '../../Shared/Models/User.model';
-import { AuthService } from '../../Shared/Services/auth-service.service';
+import { User } from '../../../Shared/Models/User.model';
+import { AuthService } from '../../../Shared/Services/auth-service.service';
 import { CommonModule } from '@angular/common';
-import { AlertComponent } from '../../Shared/Components/alert/alert.component';
-import { auth_conf } from '../../Shared/Models/auth-confirmation.model';
+import { AlertComponent } from '../../../Shared/Components/alert/alert.component';
+import { auth_conf } from '../../../Shared/Models/auth-confirmation.model';
+import { ContainerLoaderComponent } from "../../../Shared/Components/loader/container-loader.component";
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { LoaderService } from '../../../Shared/Services/loader.service';
 
 @Component({
   selector: 'app-sign-up',
@@ -22,7 +25,10 @@ import { auth_conf } from '../../Shared/Models/auth-confirmation.model';
     MatInputModule,
     RouterModule,
     CommonModule,
-  AlertComponent],
+    AlertComponent,
+    ContainerLoaderComponent,
+    MatProgressSpinnerModule
+],
   templateUrl: './sign-up.component.html',
   styleUrl: './sign-up.component.css',
   changeDetection:ChangeDetectionStrategy.OnPush,
@@ -32,7 +38,7 @@ export class SignUpComponent {
   constructor (protected authService : AuthService,private cdr: ChangeDetectorRef,private router:Router){
 
   }
-
+  _loaderService=inject(LoaderService);
   protected readonly value = signal('');
   protected error!:string;
   protected showAlert = false;
@@ -53,6 +59,7 @@ export class SignUpComponent {
 
   onSubmit() {
     if (this.userForm.valid) {
+      this._loaderService.show('auth');
       const newUser: User = {
         first_name: this.userForm.value.first_name!,
         last_name: this.userForm.value.last_name!,
@@ -64,13 +71,16 @@ export class SignUpComponent {
         next:  (res) => {
           let result:auth_conf = res;
           console.log(result.token);
-          this.router.navigate(["/Verify-Code"], { queryParams: { verifToken:result.token } });
+          this.router.navigate(["Sign-Up/Verif-Code"], { queryParams: { verifToken:result.token } });
           
         },
         error: (err) => {
           this.error = err.error.message;
           this.showAlert=true;
           this.cdr.detectChanges();
+        },
+        complete: ()=>{
+          this._loaderService.hide('auth')
         }
       });
     }
