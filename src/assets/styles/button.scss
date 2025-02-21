@@ -1,0 +1,16 @@
+@use '@angular/material' as mat;
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+:root {
+  @include mat.button-overrides((
+  ));
+}
+button.mdc-button {
+
+  &.btn-admin {
+    color: red;
+  }
+  &.btn-user {
+    color: green;
+  }
+}

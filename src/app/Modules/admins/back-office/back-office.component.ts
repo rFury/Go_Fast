@@ -1,5 +1,4 @@
-// back-office.component.ts
-import { Component, inject, signal, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, signal, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,6 +8,11 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MediaMatcher } from '@angular/cdk/layout';
+import { MatDrawer } from '@angular/material/sidenav';
+import {MatDividerModule} from '@angular/material/divider';
+import {MatListModule} from '@angular/material/list';
+import { RouterOutlet} from '@angular/router';
+
 
 @Component({
   selector: 'app-back-office',
@@ -21,13 +25,17 @@ import { MediaMatcher } from '@angular/cdk/layout';
     ReactiveFormsModule,
     MatIconModule,
     MatInputModule,
-    MatButtonModule
+    MatButtonModule,
+    MatDividerModule,
+    MatListModule,
+    RouterOutlet
   ],
   templateUrl: './back-office.component.html',
   styleUrls: ['./back-office.component.css']
 })
 export class BackOfficeComponent implements OnDestroy, OnInit {
   protected readonly isMobile = signal(false);
+  protected expanded=false;
   
   searchForm = new FormGroup({
     search: new FormControl('', [Validators.required])
@@ -36,6 +44,8 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
   private readonly _mobileQuery: MediaQueryList;
   private readonly _mobileQueryListener: () => void;
 
+  @ViewChild('drawer') drawer!: MatDrawer;
+
   constructor() {
     const media = inject(MediaMatcher);
     this._mobileQuery = media.matchMedia('(max-width: 639px)');
@@ -43,6 +53,7 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
     this._mobileQueryListener = () => this.isMobile.set(this._mobileQuery.matches);
     this._mobileQuery.addEventListener('change', this._mobileQueryListener);
   }
+
   ngOnInit(): void {
     console.log('ngOnInit');
   }
@@ -54,6 +65,16 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
   search() {
     if (this.searchForm.valid) {
       console.log('Search value:', this.searchForm.value.search);
+    }
+  }
+
+  searchToggle(){
+    console.log("Search toggle clicked");
+  }
+
+  toggleDrawer() {
+    if (this.drawer) {
+      this.drawer.toggle();
     }
   }
 }

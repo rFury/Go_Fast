@@ -1,52 +1,57 @@
-<div class="antialiased">
-    <mat-toolbar class="bar">
-        <!-- logo -->
-        <div class="rounded-lg pt-4 pr-2 block sm:hidden">
-            <div class="flex items-center gap-2 mb-6">
-                <div
-                    class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
-                    <button mat-icon-button class="flex justify-center items-center"
-                        (click)="snav.toggle()"><mat-icon>view_list</mat-icon></button>
+<div class="antialiased w-full h-full flex flex-col">
+    <!-- Navbar -->
+    <mat-toolbar class="toolbarNav flex-shrink-0 ">
+        <!-- Mobile Menu Toggle -->
+        <div class="rounded-lg pr-2 block sm:hidden">
+            <div class="flex items-center gap-2">
+                <div class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 flex items-center justify-center">
+                    <button mat-icon-button class="flex justify-center items-center hover:text-gray-50"
+                        (click)="toggleDrawer()">
+                        <mat-icon>view_list</mat-icon>
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="rounded-lg pt-4">
-            <div class="flex items-center gap-2 mb-6">
+
+        <div>
+            <div class="flex items-center gap-2 mr-4">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center">
                     <img src="logo-white.png" alt="logo" class="text-white">
                 </div>
                 <span class="text-white text-xl font-semibold">GoFast</span>
             </div>
         </div>
+
         <!-- Search -->
-        <form class="form pt-6 pb-2 pl-4 hidden sm:block md:pl-2" [formGroup]="searchForm" (ngSubmit)="search()">
-            <mat-form-field appearance="outline">
-                <mat-icon class="text-gray-400" matPrefix>search</mat-icon>
-                <input matInput placeholder="Search" formControlName="search">
-            </mat-form-field>
+        <form class="form ml-4 hidden sm:block sm:pl-2" [formGroup]="searchForm" (ngSubmit)="search()">
+            <label for="topbar-search" class="sr-only">Search</label>
+            <div class="relative md:w-64 md:w-96">
+                <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
+                    <mat-icon>search</mat-icon>
+                </div>
+                <input formControlName="search" type="text" name="text" id="topbar-search"
+                    class="bg-gray-700 border border-gray-600 text-gray-400 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5"
+                    placeholder="Search" />
+            </div>
         </form>
 
         <span class="example-spacer"></span>
 
-
-        <div class="rounded-lg pt-4">
-            <div class="flex items-center gap-2 mb-6">
+        <!-- Icons -->
+        <div class="flex gap-2">
+            <div class="flex items-center">
                 <div
                     class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
                     <mat-icon>notifications</mat-icon>
                 </div>
             </div>
-        </div>
-        <div class="rounded-lg pt-4">
-            <div class="flex items-center gap-2 mb-6">
+            <div class="flex items-center">
                 <div
                     class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
                     <mat-icon>menu</mat-icon>
                 </div>
             </div>
-        </div>
-        <div class="rounded-lg pt-4">
-            <div class="flex items-center gap-2 mb-6">
+            <div class="flex items-center">
                 <div
                     class="text-gray-500 w-8 h-8 rounded-md hover:bg-gray-500 hover:text-gray-50 flex items-center justify-center">
                     <mat-icon>supervisor_account</mat-icon>
@@ -54,20 +59,66 @@
             </div>
         </div>
     </mat-toolbar>
+    <mat-divider></mat-divider>
+    <!-- Main Layout -->
+
+    <mat-drawer-container class="flex top-relative h-screen overflow-hidden">
+        <mat-drawer #drawer [mode]="isMobile() ? 'over' : 'side'" [opened]="!isMobile()"
+        class="w-64 h-full bg-gray-800 flex-shrink-0 transition-all duration-300">
+            <div class="container bg-gray-800">
+                @if(isMobile()){
+                <form class="form px-2 pt-2" [formGroup]="searchForm" (ngSubmit)="search()">
+                    <label for="topbar-search" class="sr-only">Search</label>
+                    <div class="relative md:w-64 md:w-96">
+                        <div class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none">
+                            <mat-icon>search</mat-icon>
+                        </div>
+                        <input formControlName="search" type="text" name="text" id="topbar-search"
+                            class="bg-gray-700 border border-gray-600 text-gray-400 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2.5"
+                            placeholder="Search" />
+                    </div>
+                </form>
+                }
+            <mat-nav-list class="space-y-2">
+                <!-- Overview Item -->
+                <mat-list-item>
+                    <mat-icon>donut_small</mat-icon>
+                    <span>Overview</span>
+                </mat-list-item>
+
+                <!-- Expandable Pages Section -->
+                <mat-list-item (click)="expanded=!expanded">
+                    <mat-icon>find_in_page</mat-icon>
+                    <span>Pages</span>
+                    @if (expanded) {
+                    <mat-icon class="expand-icon">expand_less</mat-icon>
+                    }@else {
+                    <mat-icon class="expand-icon">expand_more</mat-icon>
+                    }
+                </mat-list-item>
+
+                @if(expanded){
+                <mat-nav-list class="nested">
+                    <a mat-list-item href="#">Settings</a>
+                    <a mat-list-item href="#">Kanban</a>
+                    <a mat-list-item href="#">Calendar</a>
+                </mat-nav-list>
+                }
+
+            </mat-nav-list>
+        </div>
+
+        </mat-drawer>
+
+        <mat-drawer-content>
+            <div class="bg-gray-50 p-6 h-full overflow-auto">
+                <h1>Main Content</h1>
+                <router-outlet>
+
+                </router-outlet>
+            </div>
+        </mat-drawer-content>
+    </mat-drawer-container>
 
 
-    <div class="example-container" [class.example-is-mobile]="isMobile()" class="fixed top-relative left-0 z-40 w-64 h-screen transition-transform -translate-x-full bg-black border-r border-gray-200 sm:translate-x-0 dark:bg-gray-800 dark:border-gray-700">
-        <mat-sidenav-container class="w-64 bg-gray-800 border-r border-gray-700">
-            <mat-sidenav #snav [mode]="isMobile() ? 'over' : 'side'" [fixedInViewport]="isMobile()" [opened]="!isMobile()">
-            </mat-sidenav>
-
-            <mat-sidenav-content class="relative" >
-                <h1 class="text-red">hello side</h1>
-            </mat-sidenav-content>
-        </mat-sidenav-container>
-    </div>
-
-
-
-
-</div>
+    
