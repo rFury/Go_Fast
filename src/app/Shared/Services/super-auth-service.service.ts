@@ -11,7 +11,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
   providedIn: 'root'
 })
 export class SuperAuthService {
-  private apiUrl = "http://127.0.0.1:3000/api/super-auth";
+  private apiUrl = "http://127.0.0.1:3000/api/auth";
   private readonly STORAGE_KEY = 'myAppUserDataKey';
   private helper = new JwtHelperService();
   private token=signal<string>('');
@@ -40,7 +40,7 @@ export class SuperAuthService {
     }*/
 
     verifyEmailCode(email: string, code: string): Observable<auth_conf> {
-      return this.http.post<auth_conf>(`${this.apiUrl}/verify-mail`, { email, code });
+      return this.http.post<auth_conf>(`${this.apiUrl}/verif-account`, { email, code });
     }
 
     //TOKEN WISE

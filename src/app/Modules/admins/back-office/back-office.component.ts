@@ -12,6 +12,8 @@ import { MatDrawer } from '@angular/material/sidenav';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatListModule} from '@angular/material/list';
 import { RouterOutlet} from '@angular/router';
+import { NotificationsComponent } from "../../../Shared/Components/notifications/notifications.component";
+import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 
 
 @Component({
@@ -28,8 +30,10 @@ import { RouterOutlet} from '@angular/router';
     MatButtonModule,
     MatDividerModule,
     MatListModule,
-    RouterOutlet
-  ],
+    RouterOutlet,
+    NotificationsComponent,
+    MatDialogModule,
+],
   templateUrl: './back-office.component.html',
   styleUrls: ['./back-office.component.css']
 })
@@ -76,5 +80,11 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
     if (this.drawer) {
       this.drawer.toggle();
     }
+  }
+
+  readonly dialog = inject(MatDialog);
+
+  openDialog(): void {
+    const dialogRef = this.dialog.open(NotificationsComponent);
   }
 }

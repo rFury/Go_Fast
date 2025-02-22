@@ -1,0 +1,54 @@
+<mat-card class="w-full max-w-md">
+    <mat-card-header class="border-b border-gray-700 flex items-center justify-center bg-gray-700 rounded-t-xl">
+      <mat-card-title class="text-xl font-semibold text-gray-200 p-2">
+        Notifications
+      </mat-card-title>
+    </mat-card-header>
+    <mat-divider></mat-divider>
+
+    <mat-card-content class="divide-y divide-gray-700">
+      <div *ngFor="let notification of notifications" 
+           class="p-4 hover:bg-gray-700 transition-colors cursor-pointer">
+        <div class="flex items-start gap-3">
+          <div class="relative">
+            <img [src]="notification.avatar" 
+                 [alt]="notification.author"
+                 class="w-12 h-12 rounded-full" />
+            
+            <div [ngSwitch]="notification.type" 
+                 class="absolute bottom-0 right-0 rounded-md">
+              <mat-icon *ngSwitchCase="'video'"
+                       class=" absolute text-white bg-purple-500 rounded-md bottom-0 right-0">
+                videocam
+              </mat-icon>
+              <mat-icon *ngSwitchCase="'message'"
+                       class="absolute text-white bg-blue-500 rounded-md  bottom-0 right-0">
+                message
+              </mat-icon>
+              <mat-icon *ngSwitchCase="'like'"
+                       class="absolute text-white bg-red-500 rounded-md bottom-0 right-0">
+                favorite
+              </mat-icon>
+            </div>
+          </div>
+
+          <div class="flex-1">
+            <p class="text-gray-200">
+              <span class="font-semibold">{{notification.author}}</span>
+              <span class="text-gray-400">{{notification.content}}</span>
+            </p>
+            <p class="text-sm text-blue-400 mt-1">{{notification.time}}</p>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-divider></mat-divider>
+
+    <mat-card-actions class="p-4 bg-gray-700 rounded-b-xl flex justify-center items-center gap-1">
+        <mat-icon class="text-gray-200">remove_red_eye</mat-icon>
+      <button mat-button class="btn-notification">
+        View all
+      </button>
+    </mat-card-actions>
+  </mat-card>
