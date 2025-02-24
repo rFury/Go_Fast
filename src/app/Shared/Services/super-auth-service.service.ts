@@ -50,6 +50,8 @@ export class SuperAuthService {
       if(this.isTokenExpired()){
         this.isloggedin.set(false);
         this.token.set('');
+      }else{
+        this.isloggedin.set(true);
       }
     }
     saveToken(jwt: string) {

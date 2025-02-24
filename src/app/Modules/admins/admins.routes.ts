@@ -14,7 +14,7 @@ export default [
         path: '',
         component: BackOfficeComponent,
         loadChildren: () => backOfficeRoutes,
-        /*canActivate: [authGuard],*/
+        canActivate: [authGuard],
       },
       { path: 'sign-in', component: SignInComponent },
     ],

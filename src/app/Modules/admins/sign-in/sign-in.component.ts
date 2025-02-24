@@ -61,11 +61,12 @@ export class SignInComponent {
   submit() {
     this._loaderService.show('auth');
     if (this.signinForm.valid && !this.verify) {
-      console.log('in');
+      console.log('in first if');
       this._authService
         .SignIn(this.signinForm.value.email!, this.signinForm.value.password!)
         .subscribe({
           next: (res) => {
+            console.log('in first res');
             this.verify = true;
             this.activeBtn = true;
             this.btnText = 'Verify Code';
@@ -75,6 +76,7 @@ export class SignInComponent {
           error: (err) => {
             console.error(err);
             this.error = err.error.message;
+            this.showAlert=true;
             this._loaderService.hide('auth');
           },
         });
@@ -84,24 +86,27 @@ export class SignInComponent {
       this.isCodeComplete &&
       this.attempts != 0
     ) {
-      console.log('in verif')
+      console.log('in seconde if')
       this._authService
         .verifyEmailCode(this.signinForm.value.email!, this.code)
         .subscribe({
           next: (res) => {
-            console.log(res);
+            console.log('if seconde res');
             let auth_conf: auth_conf = res;
             this._authService.saveToken(auth_conf.token);
-            this._router.navigate(['back-office']);
+            this._router.navigate(['admin']);
             this._loaderService.hide('auth');
           },
           error: (err) => {
+            console.error(err)
             if(err.status== 401){
               this.showAlert = true;
               this.error = err.error.message;
               this.attempts--;
             }
             else if(err.status== 402 || err.status==403){
+              this.showAlert = true;
+              this.error = err.error.message;
               this.verify = false;
               this.btnText = 'Sign in';
               this.title = 'Welcome Back';

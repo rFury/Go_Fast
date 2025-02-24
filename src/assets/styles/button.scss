@@ -7,26 +7,6 @@
 
 // Override Material styles but keep button functionality
 button.mdc-button {
-  background: none;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;
-  min-width: unset;
-  height: auto;
-  color: unset;
-
-  &:hover{
-    background: none;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    margin: 0;
-    min-width: unset;
-    height: auto;
-    color: unset;
-  }
-
   &.btn-admin {
     color: red; // Keep your custom styles
   }
@@ -35,11 +15,28 @@ button.mdc-button {
     color: green; // Keep your custom styles
   }
   &.btn-notification{
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    min-width: unset;
+    height: auto;
+    color: unset;
+
     background-color: none !important;
     color:#e5e7eb ;
     font: bold;
   }
   &.btn-notification:hover{
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    min-width: unset;
+    height: auto;
+    color: #e5e7eb;
     background-color: none !important;
   }
 }
