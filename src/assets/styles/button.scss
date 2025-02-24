@@ -1,0 +1,42 @@
+@use '@angular/material' as mat;
+
+// Remove Material styles while keeping the button functional
+:root {
+  @include mat.button-overrides(()); // Empty overrides
+}
+
+// Override Material styles but keep button functionality
+button.mdc-button {
+  &.btn-admin {
+    color: red; // Keep your custom styles
+  }
+
+  &.btn-user {
+    color: green; // Keep your custom styles
+  }
+  &.btn-notification{
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    min-width: unset;
+    height: auto;
+    color: unset;
+
+    background-color: none !important;
+    color:#e5e7eb ;
+    font: bold;
+  }
+  &.btn-notification:hover{
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+    min-width: unset;
+    height: auto;
+    color: #e5e7eb;
+    background-color: none !important;
+  }
+}
