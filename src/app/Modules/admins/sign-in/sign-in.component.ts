@@ -1,130 +1,113 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, viewChild } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { FormsModule, NgForm, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { CodeInputModule } from 'angular-code-input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Animations } from '../../../Shared/Animations/public-api';
+import { FuseAlertComponent } from '../../../Shared/Components/alert/alert.component';
+import { User } from '../../../Shared/Models/User.model';
+import { UserService } from '../../../Shared/Services/user.service';
+import { AlertType } from '../../../Shared/Components/alert/alert.types';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
-import { AlertComponent } from '../../../Shared/Components/alert/alert.component';
-import { auth_conf } from '../../../Shared/Models/auth-confirmation.model';
-import { Router } from '@angular/router';
-import { LoaderService } from '../../../Shared/Services/loader.service';
 
 @Component({
-  selector: 'app-sign-in',
-  imports: [
-    MatFormFieldModule,
-    MatIconModule,
-    MatCheckboxModule,
-    CommonModule,
-    ReactiveFormsModule,
-    MatInputModule,
-    MatButtonModule,
-    CodeInputModule,
-    AlertComponent,
-  ],
-  templateUrl: './sign-in.component.html',
-  styleUrls: ['./sign-in.component.css'],
+    selector: 'auth-sign-in',
+    templateUrl: './sign-in.component.html',
+    encapsulation: ViewEncapsulation.None,
+    animations: Animations,
+    standalone: true,
+    imports: [RouterLink, FuseAlertComponent, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatCheckboxModule, MatProgressSpinnerModule]
 })
-export class SignInComponent {
-  protected title: string = 'Welcome back';
-  protected attempts: number = 3;
-  protected showAlert = false;
-  protected error: string = '';
-  protected verify: boolean = false;
-  protected isCodeComplete: boolean = false;
-  private code: string = '';
-  protected activeBtn: boolean = false;
-  protected btnText: string = 'Sign in to your account';
-  private _authService = inject(SuperAuthService);
-  private _router = inject(Router);
-  private _loaderService = inject(LoaderService);
+export class SignInComponent implements OnInit
+{
+    @ViewChild('signInNgForm') signInNgForm!: NgForm;
 
-  signinForm = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [
-      Validators.required,
-      Validators.minLength(8),
-    ]),
-  });
+    alert: { type: AlertType; message: string } = {
+        type   : 'success',
+        message: '',
+    };
+    signInForm!: UntypedFormGroup;
+    showAlert: boolean = false;
+    user!: User | undefined;
 
-  submit() {
-    this._loaderService.show('auth');
-    if (this.signinForm.valid && !this.verify) {
-      console.log('in first if');
-      this._authService
-        .SignIn(this.signinForm.value.email!, this.signinForm.value.password!)
-        .subscribe({
-          next: (res) => {
-            console.log('in first res');
-            this.verify = true;
-            this.activeBtn = true;
-            this.btnText = 'Verify Code';
-            this.title = 'Code sent to :';
-            this._loaderService.hide('auth');
-          },
-          error: (err) => {
-            console.error(err);
-            this.error = err.error.message;
-            this.showAlert=true;
-            this._loaderService.hide('auth');
-          },
-        });
-    } else if (
-      this.signinForm.valid &&
-      this.verify &&
-      this.isCodeComplete &&
-      this.attempts != 0
-    ) {
-      console.log('in seconde if')
-      this._authService
-        .verifyEmailCode(this.signinForm.value.email!, this.code)
-        .subscribe({
-          next: (res) => {
-            console.log('if seconde res');
-            let auth_conf: auth_conf = res;
-            this._authService.saveToken(auth_conf.token);
-            this._router.navigate(['admin']);
-            this._loaderService.hide('auth');
-          },
-          error: (err) => {
-            console.error(err)
-            if(err.status== 401){
-              this.showAlert = true;
-              this.error = err.error.message;
-              this.attempts--;
-            }
-            else if(err.status== 402 || err.status==403){
-              this.showAlert = true;
-              this.error = err.error.message;
-              this.verify = false;
-              this.btnText = 'Sign in';
-              this.title = 'Welcome Back';
-            }
-            this._loaderService.hide('auth');
-          },
+    /**
+     * Constructor
+     */
+    constructor(
+        private _activatedRoute: ActivatedRoute,
+        private _authService: SuperAuthService,
+        private _userService: UserService,
+        private _formBuilder: UntypedFormBuilder,
+        private _router: Router,
+    )
+    {
+    }
+
+    // -----------------------------------------------------------------------------------------------------
+    // @ Lifecycle hooks
+    // -----------------------------------------------------------------------------------------------------
+
+    /**
+     * On init
+     */
+    ngOnInit(): void
+    {
+        // Create the form
+        this.signInForm = this._formBuilder.group({
+            email     : ['ala@travelease.com', [Validators.required, Validators.email]],
+            password  : ['Test123', Validators.required],
+            rememberMe: [''],
         });
     }
-  }
 
-  onCodeChanged(code: string) {
-    this.isCodeComplete = false;
-  }
+    // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
 
-  // this called only if user entered full code
-  onCodeCompleted(code: string) {
-    this.isCodeComplete = true;
-    this.activeBtn = false;
-    this.code = code;
-  }
+    /**
+     * Sign in
+     */
+    signIn(): void
+    {
+        // Return if the form is invalid
+        if ( this.signInForm.invalid )
+        {
+            return;
+        }
+
+        // Disable the form
+        this.signInForm.disable();
+
+        // Hide the alert
+        this.showAlert = false;
+
+        // Sign in
+        /*this._authService.signIn(this.signInForm?.value).subscribe(
+            () => {
+                // Set the redirect url.
+                // The '/signed-in-redirect' is a dummy url to catch the internationalization and redirect the user
+                // to the correct page after a successful sign in. This way, that url can be set via
+                // routing file and we don't have to touch here.
+                this._userService.get().subscribe((user: User) => {
+                    this.user = user;
+                });
+                const redirectURL =
+                    this._activatedRoute.snapshot.queryParamMap.get('redirectURL') ||
+                    this._userService._defaultLink.getValue() ||
+                    '/signed-in-redirect';
+                localStorage.setItem('email', this.signInForm?.get('email')?.value);
+                // Navigate to the redirect url
+                this._router.navigateByUrl(redirectURL);
+            },
+            () => {
+                // Re-enable the form
+                this.signInForm?.enable();
+            },
+        );*/
+    }
 }
