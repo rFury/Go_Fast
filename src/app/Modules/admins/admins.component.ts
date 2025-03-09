@@ -7,11 +7,12 @@ import { FuseMediaWatcherService } from '../../Shared/Services/media-watcher/med
 import { FusePlatformService } from '../../Shared/Services/platform/platform.service';
 import { FuseConfig } from '../../Shared/Services/config/config.types';
 import { DOCUMENT } from '@angular/common';
+import { EmptyLayoutComponent } from './layout/layouts/empty/empty.component';
 
 @Component({
   selector: 'app-admins',
   encapsulation: ViewEncapsulation.None,
-  imports: [ClassyLayoutComponent],
+  imports: [ClassyLayoutComponent,EmptyLayoutComponent],
   templateUrl: './admins.component.html',
   styleUrl: './admins.component.scss'
 })
@@ -23,9 +24,6 @@ export class AdminsComponent
     theme!: string;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-    /**
-     * Constructor
-     */
     constructor(
         private _activatedRoute: ActivatedRoute,
         @Inject(DOCUMENT) private _document: any,
@@ -38,13 +36,6 @@ export class AdminsComponent
     {
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
     ngOnInit(): void
     {
         // Set the theme and scheme based on the configuration
@@ -115,14 +106,6 @@ export class AdminsComponent
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Private methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Update the selected layout
-     */
     private _updateLayout(): void
     {
         // Get the current activated route
@@ -147,22 +130,6 @@ export class AdminsComponent
             }
         }
 
-        // 3. Iterate through the paths and change the layout as we find
-        // a config for it.
-        //
-        // The reason we do this is that there might be empty grouping
-        // paths or componentless routes along the path. Because of that,
-        // we cannot just assume that the layout configuration will be
-        // in the last path's config or in the first path's config.
-        //
-        // So, we get all the paths that matched starting from root all
-        // the way to the current activated route, walk through them one
-        // by one and change the layout as we find the layout config. This
-        // way, layout configuration can live anywhere within the path and
-        // we won't miss it.
-        //
-        // Also, this will allow overriding the layout in any time so we
-        // can have different layouts for different routes.
         const paths = route.pathFromRoot;
         paths.forEach((path) =>
         {

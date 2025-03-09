@@ -1,5 +1,5 @@
 
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import {  Router, RouterOutlet } from '@angular/router';
@@ -12,6 +12,7 @@ import { Navigation, NavigationService } from '../../../../../../Shared/Services
 import { FuseNavigationService } from '../../../../../../Shared/Components/navigation/navigation.service';
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
+import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
 
 @Component({
     selector: 'classy-layout',
@@ -22,6 +23,7 @@ import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.m
 })
 export class ClassyLayoutComponent implements OnInit, OnDestroy
 {
+    protected _authService=inject(SuperAuthService);
     isScreenSmall!: boolean;
     navigation!: FuseNavigationItem[];
     user!: User;

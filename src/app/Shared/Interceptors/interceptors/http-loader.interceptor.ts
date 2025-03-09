@@ -1,7 +1,30 @@
-// loader.interceptor.ts
-import { inject, Injectable } from '@angular/core';
+import { HttpEvent, HttpHandlerFn, HttpRequest } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { finalize, Observable, take } from 'rxjs';
+import { LoadingService } from '../../Services/loading.service';
 
+export const fuseLoadingInterceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> =>
+{
+    const loadingService = inject(LoadingService);
+    let handleRequestsAutomatically = false;
 
-@Injectable()
-export class LoaderInterceptor {
-}
+    loadingService.auto$
+        .pipe(take(1))
+        .subscribe((value) =>
+        {
+            handleRequestsAutomatically = value;
+        });
+
+    if ( !handleRequestsAutomatically )
+    {
+        return next(req);
+    }
+
+    loadingService._setLoadingStatus(true, req.url);
+
+    return next(req).pipe(
+        finalize(() =>
+        {
+            loadingService._setLoadingStatus(false, req.url);
+        }));
+};

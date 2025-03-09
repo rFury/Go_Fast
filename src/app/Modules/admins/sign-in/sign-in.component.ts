@@ -34,10 +34,6 @@ export class SignInComponent implements OnInit
     signInForm!: UntypedFormGroup;
     showAlert: boolean = false;
     user!: User | undefined;
-
-    /**
-     * Constructor
-     */
     constructor(
         private _activatedRoute: ActivatedRoute,
         private _authService: SuperAuthService,
@@ -47,52 +43,32 @@ export class SignInComponent implements OnInit
     )
     {
     }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
     ngOnInit(): void
     {
         // Create the form
         this.signInForm = this._formBuilder.group({
-            email     : ['ala@travelease.com', [Validators.required, Validators.email]],
-            password  : ['Test123', Validators.required],
+            email     : ['', [Validators.required, Validators.email]],
+            password  : ['', Validators.required],
             rememberMe: [''],
         });
     }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Sign in
-     */
     signIn(): void
     {
-        // Return if the form is invalid
+        console.log('1',this.signInForm.value);
         if ( this.signInForm.invalid )
         {
+            console.log('2');
             return;
+
         }
 
-        // Disable the form
         this.signInForm.disable();
 
-        // Hide the alert
         this.showAlert = false;
 
-        // Sign in
-        /*this._authService.signIn(this.signInForm?.value).subscribe(
-            () => {
-                // Set the redirect url.
-                // The '/signed-in-redirect' is a dummy url to catch the internationalization and redirect the user
-                // to the correct page after a successful sign in. This way, that url can be set via
-                // routing file and we don't have to touch here.
+        this._authService.signIn(this.signInForm?.value).subscribe(
+            (res) => {
+                console.log('3');
                 this._userService.get().subscribe((user: User) => {
                     this.user = user;
                 });
@@ -101,13 +77,13 @@ export class SignInComponent implements OnInit
                     this._userService._defaultLink.getValue() ||
                     '/signed-in-redirect';
                 localStorage.setItem('email', this.signInForm?.get('email')?.value);
-                // Navigate to the redirect url
                 this._router.navigateByUrl(redirectURL);
             },
-            () => {
-                // Re-enable the form
+            (err) => {
+                console.log('4');
+                console.error(err);
                 this.signInForm?.enable();
             },
-        );*/
+        );
     }
 }

@@ -46,7 +46,6 @@ export class UserService {
     const featuresAuth: FeatureAuth[] | null = this.features$?.getValue();
     let permission: FeatureAuth;
     for (permission of permissions) {
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
       const fa = featuresAuth?.find((fau: FeatureAuth) => fau.code === permission.code);
       if (!fa) {
         return false;
