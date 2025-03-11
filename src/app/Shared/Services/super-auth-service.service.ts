@@ -1,85 +1,143 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '../Models/User.model';
-import { HttpClient, HttpHeaders, HttpParams } from'@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { Observable, of, switchMap, throwError } from 'rxjs';
 import { auth_conf } from '../Models/auth-confirmation.model';
 import { JwtHelperService } from '@auth0/angular-jwt';
-
+import { environment } from '../../../environments/environment';
+import { UserService } from './user.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SuperAuthService {
-  private apiUrl = "http://127.0.0.1:3000/api/auth";
-  private readonly STORAGE_KEY = 'myAppUserDataKey';
+  private apiUrl = `${environment.api}/auth`;
   private helper = new JwtHelperService();
-  private token=signal<string>('');
-  private isloggedin=signal<boolean>(false);
-  private http=inject(HttpClient);
+  private token = signal<string>('');
+  private isloggedin = signal<boolean>(false);
+  private _httpClient = inject(HttpClient);
+  private _userService=inject(UserService);
 
   constructor() {
     this.loadToken();
   }
 
-    SignIn(email:string,password:string): Observable<auth_conf> {
-      const params = {
-        email :email,
-        password :password
-      }
-      return this.http.post<auth_conf>(this.apiUrl+"/login",params
-      )
-    }
+  forgotPassword(email: string): Observable<any> {
+    return this._httpClient.post(`${this.apiUrl}/forgot-password`, {
+      email,
+      resetUrl: `${
+        environment.api
+      }/confirmation-required?email=${encodeURIComponent(
+        email.toLowerCase()
+      )}&type=forgot`,
+    });
+  }
 
-    /*requestResetPassword(email: string): Observable<auth_conf> {
+  /**
+   * Reset password
+   *
+   * @param password
+   */
+  resetPassword(password: string): Observable<any> {
+    return this._httpClient.post(
+      `${this.apiUrl}/reset-password`,
+      password
+    );
+  }
+
+  signIn(credentials: { email: string; password: string }): Observable<any> {
+    if (this.isloggedin()) {
+        return throwError('User is already logged in.');
+    }
+    return this._httpClient
+        .post(`${this.apiUrl}/login`, {...credentials})
+}
+verifCode(elems: { code: string; email: string }): Observable<any> {
+
+  return this._httpClient
+      .post(`${this.apiUrl}/verif-account`, {...elems})
+      .pipe(
+        switchMap((response: any) => {
+            this.saveToken(response.token);
+            const connectedUser = this.decodeToken();
+            this._userService._defaultLink.next(connectedUser?.defaultLink);
+            return of(response);
+        }),
+      );
+}
+
+signOut(): Observable<any> {
+  this.removeToken();
+  return of(true);
+}
+  /*requestResetPassword(email: string): Observable<auth_conf> {
       return this.http.post<auth_conf>(`${this.apiUrl}/reset-password`, { email });
     }*/
-    
-    /*verifyResetCode(token: string, code: string): Observable<auth_conf> {
+
+
+  /*verifyResetCode(token: string, code: string): Observable<auth_conf> {
       return this.http.post<auth_conf>(`${this.apiUrl}/verify-reset-code`, { token, code });
     }*/
 
-    verifyEmailCode(email: string, code: string): Observable<auth_conf> {
-      return this.http.post<auth_conf>(`${this.apiUrl}/verif-account`, { email, code });
-    }
 
-    //TOKEN WISE
 
-    loadToken(){
-      this.token.set(localStorage.getItem('jwt')!);
-      if(this.isTokenExpired()){
-        this.isloggedin.set(false);
-        this.token.set('');
-      }else{
-        this.isloggedin.set(true);
-      }
-    }
-    saveToken(jwt: string) {
-      localStorage.setItem('jwt', jwt);
-      this.token.set(jwt);
+  //TOKEN WISE
+
+  loadToken() {
+    this.token.set(localStorage.getItem('jwt')!);
+    if (this.isTokenExpired()) {
+      this.isloggedin.set(false);
+      this.token.set('');
+    } else {
       this.isloggedin.set(true);
     }
+  }
+  saveToken(jwt: string) {
+    localStorage.setItem('jwt', jwt);
+    this.token.set(jwt);
+    this.isloggedin.set(true);
+  }
 
-    getToken() {
-      return this.token().toString();
+  getToken() {
+    return this.token().toString();
+  }
+
+  removeToken() {
+    localStorage.removeItem('jwt');
+    this.token.set('');
+    this.isloggedin.set(false);
+  }
+
+  decodeToken() {
+    return this.helper.decodeToken(this.token().toString());
+  }
+  decodeVerifToken(Token: string) {
+    return this.helper.decodeToken(Token);
+  }
+  isTokenExpired(): Boolean {
+    return this.helper.isTokenExpired(this.token());
+  }
+  isLoggedIn(): Boolean {
+    return this.isloggedin();
+  }
+
+  check(): Observable<boolean> {
+    // Check if the user is logged in
+    if (this.isloggedin()) {
+        return of(true);
     }
 
-    removeToken() {
-      localStorage.removeItem('jwt');
-      this.token.set('');
+    // Check the access token availability
+    if (!this.token() || this.token() === '') {
+        localStorage.removeItem('jwt');
+        return of(false);
     }
 
-    decodeToken(){
-      return this.helper.decodeToken(this.token().toString());
+    // Check the access token expire date
+    if (this.isTokenExpired()) {
+        return of(false);
     }
-    decodeVerifToken(Token:string){
-      return this.helper.decodeToken(Token);
-    }
-    isTokenExpired(): Boolean {
-      return this.helper.isTokenExpired(this.token().toString());
-    }
-    isLoggedIn():Boolean{
-      return this.isloggedin();
-    }
+    return of(true);
 }
-
+}

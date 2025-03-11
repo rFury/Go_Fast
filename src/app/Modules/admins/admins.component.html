@@ -1,5 +1,7 @@
-<div class="relative bg-gray-900">
-  <router-outlet>
-    
-  </router-outlet>
-</div>
+@if (layout === 'empty') {
+    <empty-layout></empty-layout>
+  }
+  @if (layout === 'classy') {
+      <classy-layout></classy-layout>
+  }
+  

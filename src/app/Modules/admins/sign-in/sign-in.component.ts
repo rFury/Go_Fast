@@ -1,11 +1,16 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject, viewChild } from '@angular/core';
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
+  Component,
+  inject,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
+import {
   FormsModule,
+  NgForm,
   ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   Validators,
 } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,118 +18,182 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { CodeInputModule } from 'angular-code-input';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Animations } from '../../../Shared/Animations/public-api';
+import { FuseAlertComponent } from '../../../Shared/Components/alert/alert.component';
+import { User } from '../../../Shared/Models/User.model';
+import { UserService } from '../../../Shared/Services/user.service';
+import { AlertType } from '../../../Shared/Components/alert/alert.types';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
-import { AlertComponent } from '../../../Shared/Components/alert/alert.component';
-import { auth_conf } from '../../../Shared/Models/auth-confirmation.model';
-import { Router } from '@angular/router';
-import { LoaderService } from '../../../Shared/Services/loader.service';
+import { CodeInputModule } from 'angular-code-input';
 
 @Component({
-  selector: 'app-sign-in',
+  selector: 'auth-sign-in',
+  templateUrl: './sign-in.component.html',
+  encapsulation: ViewEncapsulation.None,
+  animations: Animations,
+  standalone: true,
   imports: [
-    MatFormFieldModule,
-    MatIconModule,
-    MatCheckboxModule,
-    CommonModule,
+    CodeInputModule,
+    RouterLink,
+    FuseAlertComponent,
+    FormsModule,
     ReactiveFormsModule,
+    MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    CodeInputModule,
-    AlertComponent,
+    MatIconModule,
+    MatCheckboxModule,
+    MatProgressSpinnerModule,
   ],
-  templateUrl: './sign-in.component.html',
-  styleUrls: ['./sign-in.component.css'],
+  styleUrl: './sign-in.component.scss'
 })
-export class SignInComponent {
-  protected title: string = 'Welcome back';
+export class SignInComponent implements OnInit {
+  protected btn:boolean = true;
+  protected missingCode: boolean = false;
+  protected emailText: string = 'Email address';
   protected attempts: number = 3;
-  protected showAlert = false;
-  protected error: string = '';
   protected verify: boolean = false;
   protected isCodeComplete: boolean = false;
   private code: string = '';
   protected activeBtn: boolean = false;
-  protected btnText: string = 'Sign in to your account';
-  private _authService = inject(SuperAuthService);
-  private _router = inject(Router);
-  private _loaderService = inject(LoaderService);
+  protected btnText: string = 'Sign in';
+  @ViewChild('signInNgForm') signInNgForm!: NgForm;
 
-  signinForm = new FormGroup({
-    email: new FormControl('', [Validators.required, Validators.email]),
-    password: new FormControl('', [
-      Validators.required,
-      Validators.minLength(8),
-    ]),
-  });
+  alert: { type: AlertType; message: string } = {
+    type: 'error',
+    message: '',
+  };
+  signInForm!: UntypedFormGroup;
+  showAlert: boolean = false;
+  user!: User | undefined;
+  private route = inject(ActivatedRoute);
+  constructor(
+    private _activatedRoute: ActivatedRoute,
+    private _authService: SuperAuthService,
+    private _userService: UserService,
+    private _formBuilder: UntypedFormBuilder,
+    private _router: Router
+  ) {}
+  ngOnInit(): void {
+    // Create the form
+    this.signInForm = this._formBuilder.group({
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+      rememberMe: [''],
+    });
 
-  submit() {
-    this._loaderService.show('auth');
-    if (this.signinForm.valid && !this.verify) {
-      console.log('in first if');
-      this._authService
-        .SignIn(this.signinForm.value.email!, this.signinForm.value.password!)
-        .subscribe({
-          next: (res) => {
-            console.log('in first res');
-            this.verify = true;
-            this.activeBtn = true;
-            this.btnText = 'Verify Code';
-            this.title = 'Code sent to :';
-            this._loaderService.hide('auth');
-          },
-          error: (err) => {
-            console.error(err);
-            this.error = err.error.message;
-            this.showAlert=true;
-            this._loaderService.hide('auth');
-          },
-        });
-    } else if (
-      this.signinForm.valid &&
-      this.verify &&
-      this.isCodeComplete &&
-      this.attempts != 0
+    const verification = this.route.snapshot.queryParamMap.get('verif');
+    const email = this.route.snapshot.queryParamMap.get('email');
+    if (
+      verification &&
+      Boolean(verification) == true &&
+      email &&
+      email.length > 0
     ) {
-      console.log('in seconde if')
-      this._authService
-        .verifyEmailCode(this.signinForm.value.email!, this.code)
-        .subscribe({
-          next: (res) => {
-            console.log('if seconde res');
-            let auth_conf: auth_conf = res;
-            this._authService.saveToken(auth_conf.token);
-            this._router.navigate(['admin']);
-            this._loaderService.hide('auth');
-          },
-          error: (err) => {
-            console.error(err)
-            if(err.status== 401){
-              this.showAlert = true;
-              this.error = err.error.message;
-              this.attempts--;
+      this.verify = true;
+      this.btnText = 'Verify Code';
+      this.emailText = 'Code sent to';
+      this.signInForm.get('email')?.disable();
+      this.signInForm.get('email')?.setValue(email);
+      this.signInForm.get('password')?.setValue(' ');
+    } else {
+      this._router.navigate(['/admin/sign-in']);
+    }
+
+
+  }
+  signIn(): void {
+    console.log('1', this.signInForm.value);
+    if (this.signInForm.invalid) {
+      console.log('2');
+      return;
+    } else if (this.code.length != 6 && this.verify) {
+      this.missingCode = true;
+      return;
+    }
+
+    this.signInForm.disable();
+    this.btn=false;
+    this.showAlert = false;
+
+    if (!this.verify) {
+      this._authService.signIn(this.signInForm?.value).subscribe(
+        (res) => {
+          console.log('3');
+          this._router.navigate(['/admin/sign-in/verif-code'], {
+            queryParams: {
+              email: this.signInForm.get('email')?.value,
+              verif: true,
+            },
+          });
+        },
+        (err) => {
+            if(err.status === 400){
+                console.log('4');
+                this.alert.message = 'Wrong Credentials. Please try again';
+                this.showAlert = true;
+                this.signInForm?.enable();
+                this.btn=true;
+            }else if(err.status === 401){
+                this._router.navigate(['/admin/sign-in/verif-code'], {
+                    queryParams: {
+                      email: this.signInForm.get('email')?.value,
+                      verif: true,
+                    },
+                  });
             }
-            else if(err.status== 402 || err.status==403){
-              this.showAlert = true;
-              this.error = err.error.message;
-              this.verify = false;
-              this.btnText = 'Sign in';
-              this.title = 'Welcome Back';
+        }
+      );
+    } else {
+      if (this.attempts != 0) {
+        this._authService
+          .verifCode({ email: this.signInForm.value.email, code: this.code })
+          .subscribe(
+            (res) => {
+              this._userService.get().subscribe((user: User) => {
+                this.user = user;
+              });
+              const redirectURL =
+                this._activatedRoute.snapshot.queryParamMap.get(
+                  'redirectURL'
+                ) ||
+                this._userService._defaultLink.getValue() ||
+                '/admin/signed-in-redirect';
+              localStorage.setItem(
+                'email',
+                this.signInForm?.get('email')?.value
+              );
+              this._router.navigateByUrl(redirectURL);
+            },
+            (err) => {
+              if (err.status == 401) {
+                this.showAlert = true;
+                this.attempts = Number.parseInt(err.error.message);
+                this.alert.message = 'Wrong code, ' + this.attempts + ' left !';
+                this.btn=true;
+              }else if(err.status == 403 || err.status == 402) {
+                this._router.navigate(['/admin/sign-in']);
+              }
+              else{
+                console.error(err);
+              }
             }
-            this._loaderService.hide('auth');
-          },
-        });
+          );
+      } else {
+        this._router.navigate(['/admin/sign-in']);
+      }
     }
   }
 
   onCodeChanged(code: string) {
     this.isCodeComplete = false;
+    this.missingCode = false;
   }
 
-  // this called only if user entered full code
   onCodeCompleted(code: string) {
     this.isCodeComplete = true;
-    this.activeBtn = false;
     this.code = code;
   }
 }
