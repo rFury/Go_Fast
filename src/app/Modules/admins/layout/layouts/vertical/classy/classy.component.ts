@@ -13,12 +13,16 @@ import { FuseNavigationService } from '../../../../../../Shared/Components/navig
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
+import { NotificationsComponent } from "../../../common/notifications/notifications.component";
+import { UserComponent } from "../../../common/user/user.component";
+import { ShortcutsComponent } from "../../../common/shortcuts/shortcuts.component";
+import { SearchComponent } from "../../../common/search/search.component";
 
 @Component({
     selector: 'classy-layout',
     templateUrl: './classy.component.html',
     encapsulation: ViewEncapsulation.None,
-    imports: [ FuseVerticalNavigationComponent,  MatIconModule, MatButtonModule,     RouterOutlet],
+    imports: [FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, UserComponent, ShortcutsComponent, SearchComponent],
     standalone: true,
 })
 export class ClassyLayoutComponent implements OnInit, OnDestroy
@@ -103,6 +107,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
         {
             // Toggle the opened status
             navigation.toggle();
+
         }
     }
 }

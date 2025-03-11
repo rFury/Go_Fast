@@ -50,17 +50,21 @@ export class SuperAuthService {
     if (this.isloggedin()) {
         return throwError('User is already logged in.');
     }
-
     return this._httpClient
         .post(`${this.apiUrl}/login`, {...credentials})
-        .pipe(
-            switchMap((response: any) => {
-                this.saveToken(response);
-                const connectedUser = this.decodeToken();
-                this._userService._defaultLink.next(connectedUser?.defaultLink);
-                return of(response);
-            }),
-        );
+}
+verifCode(elems: { code: string; email: string }): Observable<any> {
+
+  return this._httpClient
+      .post(`${this.apiUrl}/verif-account`, {...elems})
+      .pipe(
+        switchMap((response: any) => {
+            this.saveToken(response.token);
+            const connectedUser = this.decodeToken();
+            this._userService._defaultLink.next(connectedUser?.defaultLink);
+            return of(response);
+        }),
+      );
 }
 
 signOut(): Observable<any> {

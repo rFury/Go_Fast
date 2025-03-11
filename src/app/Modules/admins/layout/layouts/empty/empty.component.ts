@@ -8,7 +8,7 @@ import { Subject } from 'rxjs';
     selector: 'empty-layout',
     templateUrl: './empty.component.html',
     encapsulation: ViewEncapsulation.None,
-    imports: [RouterOutlet]
+    imports: [RouterOutlet,FuseLoadingBarComponent]
 })
 export class EmptyLayoutComponent implements OnDestroy
 {

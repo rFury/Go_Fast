@@ -13,6 +13,7 @@ export class User {
   phone?: string;
   password?: string;
   groupsId?: Group;
+  status?: string;
 }
 
 export class ResToken {

@@ -32,15 +32,15 @@ import { Animations } from '../../../../../Shared/Animations/public-api';
 })
 export class SearchComponent implements OnChanges, OnInit, OnDestroy
 {
-    @Input() appearance: 'basic' | 'bar' = 'basic';
+    @Input() appearance: 'basic' | 'bar' = 'bar';
     @Input() debounce: number = 300;
     @Input() minLength: number = 2;
     @Output() search: EventEmitter<any> = new EventEmitter<any>();
 
     opened: boolean = false;
-    resultSets: any[] | null;
+    resultSets!: any[] | null;
     searchControl: UntypedFormControl = new UntypedFormControl();
-    private _matAutocomplete: MatAutocomplete;
+    private _matAutocomplete!: MatAutocomplete;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**

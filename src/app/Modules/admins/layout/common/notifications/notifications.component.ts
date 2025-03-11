@@ -20,12 +20,12 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class NotificationsComponent implements OnInit, OnDestroy
 {
-    @ViewChild('notificationsOrigin') private _notificationsOrigin: MatButton;
-    @ViewChild('notificationsPanel') private _notificationsPanel: TemplateRef<any>;
+    @ViewChild('notificationsOrigin') private _notificationsOrigin!: MatButton;
+    @ViewChild('notificationsPanel') private _notificationsPanel!: TemplateRef<any>;
 
-    notifications: Notification[];
+    notifications!: Notification[];
     unreadCount: number = 0;
-    private _overlayRef: OverlayRef;
+    private _overlayRef!: OverlayRef;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
     /**
