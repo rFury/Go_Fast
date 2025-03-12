@@ -132,11 +132,12 @@ export class SignInComponent implements OnInit {
         (err) => {
             if(err.status === 400){
                 console.log('4');
+                console.error(err);
                 this.alert.message = 'Wrong Credentials. Please try again';
                 this.showAlert = true;
                 this.signInForm?.enable();
                 this.btn=true;
-            }else if(err.status === 401){
+            }else if(err.status === 405){
                 this._router.navigate(['/admin/sign-in/verif-code'], {
                     queryParams: {
                       email: this.signInForm.get('email')?.value,
@@ -154,6 +155,7 @@ export class SignInComponent implements OnInit {
             (res) => {
               this._userService.get().subscribe((user: User) => {
                 this.user = user;
+                console.log(user)
               });
               const redirectURL =
                 this._activatedRoute.snapshot.queryParamMap.get(
@@ -168,7 +170,7 @@ export class SignInComponent implements OnInit {
               this._router.navigateByUrl(redirectURL);
             },
             (err) => {
-              if (err.status == 401) {
+              if (err.status == 405) {
                 this.showAlert = true;
                 this.attempts = Number.parseInt(err.error.message);
                 this.alert.message = 'Wrong code, ' + this.attempts + ' left !';

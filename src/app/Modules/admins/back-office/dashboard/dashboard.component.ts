@@ -1,9 +1,8 @@
 import { Component } from '@angular/core';
-import { NotificationsComponent } from "../../../../Shared/Components/notifications/notifications.component";
 
 @Component({
   selector: 'app-dashboard',
-  imports: [NotificationsComponent],
+  imports: [],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

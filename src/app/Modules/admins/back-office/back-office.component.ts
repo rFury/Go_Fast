@@ -15,6 +15,7 @@ import { RouterOutlet} from '@angular/router';
 import { NotificationsComponent } from "../../../Shared/Components/notifications/notifications.component";
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
+import { UserService } from '../../../Shared/Services/user.service';
 
 
 @Component({
@@ -31,7 +32,6 @@ import { SuperAuthService } from '../../../Shared/Services/super-auth-service.se
     MatButtonModule,
     MatDividerModule,
     MatListModule,
-    RouterOutlet,
     MatDialogModule,
 ],
   templateUrl: './back-office.component.html',
@@ -41,6 +41,7 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
   protected readonly isMobile = signal(false);
   protected expanded=false;
   private _authService=inject(SuperAuthService);
+  private _userService=inject(UserService);
   
   searchForm = new FormGroup({
     search: new FormControl('', [Validators.required])
@@ -62,6 +63,16 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
   ngOnInit(): void {
     console.log('ngOnInit');
     console.log(this._authService.getToken());
+    this._userService.get().subscribe(
+      {
+        next : (user)=>{
+          console.log(user);
+        },
+        error : (err)=>{
+          console.error(err);
+        }
+      }
+    )
   }
 
   ngOnDestroy(): void {

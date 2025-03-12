@@ -1,5 +1,5 @@
-import { provideHttpClient } from '@angular/common/http';
-import { APP_INITIALIZER, ApplicationConfig, inject } from '@angular/core';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { APP_INITIALIZER, ApplicationConfig, ENVIRONMENT_INITIALIZER, inject } from '@angular/core';
 import { LuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -8,6 +8,9 @@ import { firstValueFrom } from 'rxjs';
 import { routes } from './app.routes'
 import { provideIcons } from './Modules/admins/icons/icons.provider';
 import { provideFuse } from './Shared/Services/fuse.provider';
+import { authInterceptor } from './Shared/Interceptors/http-request.interceptor';
+import { SuperAuthService } from './Shared/Services/super-auth-service.service';
+import { LoadingInterceptor } from './Shared/Interceptors/interceptors/http-loader.interceptor';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -18,7 +21,6 @@ export const appConfig: ApplicationConfig = {
             withInMemoryScrolling({scrollPositionRestoration: 'enabled'}),
         ),
 
-        // Material Date Adapter
         {
             provide : DateAdapter,
             useClass: LuxonDateAdapter,
@@ -37,8 +39,12 @@ export const appConfig: ApplicationConfig = {
                 },
             },
         },
-
-        // Fuse
+        provideHttpClient(withInterceptors([authInterceptor,LoadingInterceptor])),
+        {
+            provide : ENVIRONMENT_INITIALIZER,
+            useValue: () => [inject(SuperAuthService)],
+            multi   : true,
+        },
         provideIcons(),
         provideFuse({
             fuse   : {
