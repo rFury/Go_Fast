@@ -17,10 +17,11 @@ export class SuperAuthService {
   private token = signal<string>('');
   private isloggedin = signal<boolean>(false);
   private _httpClient = inject(HttpClient);
-  private _userService=inject(UserService);
+  private _userService = inject(UserService);
 
   constructor() {
     this.loadToken();
+    
   }
 
   forgotPassword(email: string): Observable<any> {
@@ -34,61 +35,47 @@ export class SuperAuthService {
     });
   }
 
-  /**
-   * Reset password
-   *
-   * @param password
-   */
   resetPassword(password: string): Observable<any> {
-    return this._httpClient.post(
-      `${this.apiUrl}/reset-password`,
-      password
-    );
+    return this._httpClient.post(`${this.apiUrl}/reset-password`, password);
   }
 
   signIn(credentials: { email: string; password: string }): Observable<any> {
     if (this.isloggedin()) {
-        return throwError('User is already logged in.');
+      return throwError('User is already logged in.');
     }
+    return this._httpClient.post(`${this.apiUrl}/login`, { ...credentials });
+  }
+  verifCode(elems: { code: string; email: string }): Observable<any> {
     return this._httpClient
-        .post(`${this.apiUrl}/login`, {...credentials})
-}
-verifCode(elems: { code: string; email: string }): Observable<any> {
-
-  return this._httpClient
-      .post(`${this.apiUrl}/verif-account`, {...elems})
+      .post(`${this.apiUrl}/verif-account`, { ...elems })
       .pipe(
         switchMap((response: any) => {
-            this.saveToken(response.token);
-            const connectedUser = this.decodeToken();
-            this._userService._defaultLink.next(connectedUser?.defaultLink);
-            return of(response);
-        }),
+          this.saveToken(response.token);
+          const connectedUser = this.decodeToken();
+          this._userService._defaultLink.next(connectedUser?.defaultLink);
+          return of(response);
+        })
       );
-}
+  }
 
-signOut(): Observable<any> {
-  this.removeToken();
-  return of(true);
-}
+  signOut(): Observable<any> {
+    this.removeToken();
+    return of(true);
+  }
   /*requestResetPassword(email: string): Observable<auth_conf> {
       return this.http.post<auth_conf>(`${this.apiUrl}/reset-password`, { email });
     }*/
 
-
   /*verifyResetCode(token: string, code: string): Observable<auth_conf> {
       return this.http.post<auth_conf>(`${this.apiUrl}/verify-reset-code`, { token, code });
     }*/
-
-
 
   //TOKEN WISE
 
   loadToken() {
     this.token.set(localStorage.getItem('jwt')!);
     if (this.isTokenExpired()) {
-      this.isloggedin.set(false);
-      this.token.set('');
+      this.removeToken();
     } else {
       this.isloggedin.set(true);
     }
@@ -105,6 +92,7 @@ signOut(): Observable<any> {
 
   removeToken() {
     localStorage.removeItem('jwt');
+    localStorage.removeItem('email');
     this.token.set('');
     this.isloggedin.set(false);
   }
@@ -125,19 +113,19 @@ signOut(): Observable<any> {
   check(): Observable<boolean> {
     // Check if the user is logged in
     if (this.isloggedin()) {
-        return of(true);
+      return of(true);
     }
 
     // Check the access token availability
     if (!this.token() || this.token() === '') {
-        localStorage.removeItem('jwt');
-        return of(false);
+      localStorage.removeItem('jwt');
+      return of(false);
     }
 
     // Check the access token expire date
     if (this.isTokenExpired()) {
-        return of(false);
+      return of(false);
     }
     return of(true);
-}
+  }
 }

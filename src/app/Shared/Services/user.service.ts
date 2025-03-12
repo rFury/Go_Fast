@@ -1,10 +1,10 @@
-import {inject, Injectable} from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User } from '../Models/User.model';
-import { map, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { FeatureAuth } from '../Models/FeatureAuth.model';
 import { Pagination } from '../Models/Pagination.model';
 
@@ -15,11 +15,14 @@ export class UserService {
   endpointAuth = `${environment.api}/users`;
   _user = new BehaviorSubject<User | null>(null);
   _defaultLink = new BehaviorSubject<string | null>(null);
-  _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<FeatureAuth[] | null>(
-    null,
-  );
-    http = inject(HttpClient)
-    router = inject(Router)
+  _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<
+    FeatureAuth[] | null
+  >(null);
+  http = inject(HttpClient);
+  router = inject(Router);
+
+  constructor() {
+  }
 
   set user(value: User) {
     this._user.next(value);
@@ -46,7 +49,9 @@ export class UserService {
     const featuresAuth: FeatureAuth[] | null = this.features$?.getValue();
     let permission: FeatureAuth;
     for (permission of permissions) {
-      const fa = featuresAuth?.find((fau: FeatureAuth) => fau.code === permission.code);
+      const fa = featuresAuth?.find(
+        (fau: FeatureAuth) => fau.code === permission.code
+      );
       if (!fa) {
         return false;
       }
@@ -67,13 +72,17 @@ export class UserService {
       tap((user) => {
         this._user.next(user);
       }),
+      catchError((error) => {
+        return throwError(() => error); // Propagate the error
+      })
     );
   }
+
   changePassword(
     password: string,
     newPassword: string,
     code: string,
-    id: string,
+    id: string
   ): Observable<null> {
     return this.http.post<null>(`${this.endpointAuth}/${id}/change-password`, {
       password,
@@ -86,7 +95,11 @@ export class UserService {
       password,
     });
   }
-  sendCode(id: string, password: string, newPassword: string): Observable<null> {
+  sendCode(
+    id: string,
+    password: string,
+    newPassword: string
+  ): Observable<null> {
     return this.http.post<null>(`${this.endpointAuth}/${id}/send-code`, {
       password,
       newPassword,
@@ -108,7 +121,7 @@ export class UserService {
     return this.http.post<User>(`${this.endpointAuth}/my-avatar`, data).pipe(
       tap((user) => {
         this._user.next(user);
-      }),
+      })
     );
   }
 
@@ -120,7 +133,7 @@ export class UserService {
   getUsers(
     limit: string,
     page: string,
-    search: string,
+    search: string
   ): Observable<Pagination<User>> {
     let searchParams = new HttpParams();
     searchParams = searchParams.append('limit', limit);
@@ -142,23 +155,21 @@ export class UserService {
   enableAccount(id: string): Observable<User> {
     return this.http.get<User>(`${this.endpointAuth}/${id}/enable-disable`);
   }
-   deleteOne(id: string): Observable<null> {
+  deleteOne(id: string): Observable<null> {
     return this.http.delete<null>(`${this.endpointAuth}/${id}`);
   }
   updateAvatar(data: FormData, id: string): Observable<User> {
     return this.http.post<User>(`${this.endpointAuth}/${id}/avatar`, data).pipe(
       tap((user) => {
         this._user.next(user);
-      }),
+      })
     );
   }
   updateState(user: User): Observable<any> {
     return this.http.patch<User>(`${this.endpointAuth}/state`, { user }).pipe(
       map((response) => {
         this._user.next(response);
-      }),
+      })
     );
   }
-
-
 }
