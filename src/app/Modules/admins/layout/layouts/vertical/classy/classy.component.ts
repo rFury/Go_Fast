@@ -28,6 +28,8 @@ import { SearchComponent } from "../../../common/search/search.component";
 export class ClassyLayoutComponent implements OnInit, OnDestroy
 {
     protected _authService=inject(SuperAuthService);
+    protected _userService=inject(UserService);
+
     isScreenSmall!: boolean;
     navigation!: FuseNavigationItem[];
     user!: User;
@@ -41,7 +43,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
         private menuService: MenuService,
         private _router: Router,
         private _navigationService: NavigationService,
-        private _userService: UserService,
         private _fuseMediaWatcherService: FuseMediaWatcherService,
         private _fuseNavigationService: FuseNavigationService,
     )
@@ -49,13 +50,15 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     }
     ngOnInit(): void
     {
-        /*this.menuService.getMenu().subscribe({
+
+        this.user = this._userService.user;
+        this.menuService.getMenu().subscribe({
             next: (data) => {
                 this.navigation = data.menu;
                 console.log('this.navigation', this.navigation)
             },
             error: () => {},
-        });*/
+        });
 
 
         // Subscribe to the user service

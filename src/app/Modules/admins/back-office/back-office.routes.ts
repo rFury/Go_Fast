@@ -1,9 +1,21 @@
-import { Routes } from '@angular/router';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { FeatureGroupComponent } from './feature-group/feature-group.component';
+import { Route } from '@angular/router';
+import { BackOfficeComponent } from './back-office.component';
+import featuresRouting from './apps/features/features.routing';
+import groupsRouting from './apps/groups/groups.routing';
 
-
-
-export const backOfficeRoutes: Routes = [
-
-];
+export default [
+  {
+    path: '',
+    component: BackOfficeComponent,
+    children: [
+      {
+        path: '/features',
+        loadChildren: () => featuresRouting,
+      },
+      {
+        path: '/groups',
+        loadChildren: () => groupsRouting,
+      },
+    ]
+    }
+    ] satisfies Route[];

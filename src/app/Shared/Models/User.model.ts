@@ -3,7 +3,6 @@ import { Group } from "./Group.model";
 
 
 export class User {
-  id?: string;
   _id?: string;
   companyId!: Company;
   name?: string;
