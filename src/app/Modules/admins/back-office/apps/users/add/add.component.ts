@@ -1,27 +1,28 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { NgForm, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { User } from '../../../../../shared/models/user';
-import { fuseAnimations } from '../../../../../../@fuse/animations';
+
 import { ActivatedRoute, Router } from '@angular/router';
-import { FuseConfirmationService } from '../../../../../../@fuse/services/confirmation';
-import { UserService } from '../../../../../shared/services/user.service';
+
 import { MatInput } from '@angular/material/input';
 import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
 import { MatButton } from '@angular/material/button';
-import {TranslocoPipe} from "@ngneat/transloco";
-import {LoadingService} from "../../../../../shared/services/loading.service";
 import {forkJoin} from "rxjs";
-import {GroupService} from "../../../../../shared/services/group.service";
-import {Group} from "../../../../../shared/models/group";
-import {listFeatureType} from "../../../../../shared/enums/featureType";
 import {MatOption} from "@angular/material/autocomplete";
 import {MatSelect} from "@angular/material/select";
+import { Animations } from '../../../../../../Shared/Animations/public-api';
+import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
+import { listFeatureType } from '../../../../../../Shared/enums/featureType';
+import { Group } from '../../../../../../Shared/Models/Group.model';
+import { User } from '../../../../../../Shared/Models/User.model';
+import { GroupService } from '../../../../../../Shared/Services/group.service';
+import { LoadingService } from '../../../../../../Shared/Services/loading.service';
+import { UserService } from '../../../../../../Shared/Services/user.service';
 
 @Component({
   selector: 'app-details',
   templateUrl: './add.component.html',
   styleUrls: ['./add.component.scss'],
-  animations: fuseAnimations,
+  animations: Animations,
     imports: [
         FormsModule,
         MatButton,
@@ -30,7 +31,6 @@ import {MatSelect} from "@angular/material/select";
         MatInput,
         MatError,
         ReactiveFormsModule,
-        TranslocoPipe,
         MatOption,
         MatSelect,
     ],

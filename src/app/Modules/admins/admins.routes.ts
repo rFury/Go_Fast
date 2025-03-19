@@ -15,13 +15,18 @@ export default [
     component: AdminsComponent,
     children: [
       {
-        path: '',
+        path: 'dashboard',
         component: BackOfficeComponent,
         loadChildren: () => backOfficeRoutes,
         canActivate: [authGuard],
-        data:{
-          layout:'classy'
-        }
+        data: {
+          layout: 'classy',
+        },
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
       },
       {
         path: 'sign-in',
@@ -36,8 +41,8 @@ export default [
         component: SignInComponent,
         data: {
           layout: 'empty',
-          verif:true,
-          email:'',
+          verif: true,
+          email: '',
         },
         canActivate: [noAuthGuard],
       },

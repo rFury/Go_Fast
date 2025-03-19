@@ -3,7 +3,7 @@
 >
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:gap-4 items-center px-4 h-fit md:h-14  border-b bg-gray-900">
-      <div class="w-full text-center md:text-left md:w-1/4 text-4xl font-extrabold text-white ">{{ 'Users' | transloco }}</div>
+      <div class="w-full text-center md:text-left md:w-1/4 text-4xl font-extrabold text-white ">{{ 'Users' }}</div>
       <div class="flex w-full md:w-3/4 items-start md:items-center justify-between">
          <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript md:mt-5 w-3/4">
               <mat-icon class="icon-size-5" matPrefix [svgIcon]="'feather:search'"></mat-icon>
@@ -12,14 +12,14 @@
                   [(ngModel)]="filterSearch"
                   (ngModelChange)="updateSearch()"
                   [autocomplete]="'off'"
-                  placeholder="{{ 'Search' | transloco }}"
+                  placeholder="{{ 'Search' }}"
               />
          </mat-form-field>
          <button
              class="mr-2 text-blue-500 hover:bg-blue-500 hover:text-gray-900 transition-all duration-400"
              mat-stroked-button
              (click)="addOne()">
-            <span class="mx-1.5 block">{{ 'Add' | transloco }}</span>
+            <span class="mx-1.5 block">{{ 'Add' }}</span>
          </button>
       </div>
   </div>
@@ -30,9 +30,9 @@
             <!-- Header -->
             <div class="row-grid grid z-10 top-0 shadow items-center gap-4 py-2 px-4 md:px-6 text-md font-semibold text-secondary bg-gray-50 dark:bg-black dark:bg-opacity-5">
               <div class="hidden sm:flex">N°</div>
-              <div class="flex">{{ 'name' | transloco }}</div>
-              <div class="flex">{{ 'email' | transloco }}</div>
-              <div class="hidden sm:flex ">{{ 'group' | transloco }}</div>
+              <div class="flex">{{ 'username' }}</div>
+              <div class="flex">{{ 'email' }}</div>
+              <div class="hidden sm:flex ">{{ 'group' }}</div>
               <div class="flex ">
                   <button mat-icon-button (click)="openFilter = true">
                       <mat-icon
@@ -61,11 +61,11 @@
                       </button>
                       <mat-menu #budgetMenu="matMenu">
                         <button mat-menu-item class="flex justify-between" (click)="openShow(row)">
-                          <span class="ml-2 mr-1  block">{{ 'Show' | transloco }}</span>
+                          <span class="ml-2 mr-1  block">{{ 'Show' }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
                         </button>
                         <button mat-menu-item class="flex justify-between" (click)="openEdit(row)">
-                          <span class="ml-2 mr-1  block">{{ 'Edit' | transloco }}</span>
+                          <span class="ml-2 mr-1  block">{{ 'Edit' }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
                         </button>
                         <button
@@ -73,7 +73,7 @@
                           class="flex justify-between"
                           (click)="deleteOne(row)"
                         >
-                          <span class="ml-2 mr-1 block">{{ 'Delete' | transloco }}</span>
+                          <span class="ml-2 mr-1 block">{{ 'Delete' }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
                         </button>
                       </mat-menu>

@@ -1,18 +1,17 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FuseConfirmationService } from '../../../../../../../../@fuse/services/confirmation';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import {MatError, MatOption, MatSelect} from '@angular/material/select';
 import { MatInput } from '@angular/material/input';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
 import { MatButton } from '@angular/material/button';
-import {TranslocoPipe} from "@ngneat/transloco";
-import {LoadingService} from "../../../../../../../shared/services/loading.service";
 import {forkJoin} from "rxjs";
-import {UserService} from "../../../../../../../shared/services/user.service";
-import {GroupService} from "../../../../../../../shared/services/group.service";
-import {User} from "../../../../../../../shared/models/user";
-import {Group} from "../../../../../../../shared/models/group";
+import { FuseConfirmationService } from '../../../../../../../../Shared/Components/confirmation/confirmation.service';
+import { Group } from '../../../../../../../../Shared/Models/Group.model';
+import { User } from '../../../../../../../../Shared/Models/User.model';
+import { GroupService } from '../../../../../../../../Shared/Services/group.service';
+import { LoadingService } from '../../../../../../../../Shared/Services/loading.service';
+import { UserService } from '../../../../../../../../Shared/Services/user.service';
  @Component({
     selector: 'app-details',
     templateUrl: './details.component.html',
@@ -26,7 +25,6 @@ import {Group} from "../../../../../../../shared/models/group";
          MatInput,
          ReactiveFormsModule,
          MatError,
-         TranslocoPipe,
          MatOption,
          MatSelect,
      ],
@@ -53,7 +51,7 @@ export class DetailsComponent implements OnInit {
                  next: (result:[User, Group[]]) => {
                      this.user = result[0];
                      this.listGroups = result[1];
-                     this.user.groupsId = this.listGroups.filter((el)=>el._id === this.user.groupsId._id)[0];
+                     this.user.groupsId = this.listGroups.filter((el)=>el._id === this.user.groupsId!._id)[0];
                      this._loadingService.hide()
                  },
                  error: () => {
@@ -84,7 +82,7 @@ export class DetailsComponent implements OnInit {
         confirmation.afterClosed().subscribe((result) => {
             // If the confirm button pressed...
             if (result === 'confirmed') {
-                this._userService.deleteOne(this.user._id).subscribe(() => {});
+                this._userService.deleteOne(this.user._id!).subscribe(() => {});
                 this._router.navigate(['/home/users']).then();
             }
         });

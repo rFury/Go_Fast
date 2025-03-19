@@ -66,21 +66,19 @@
       }
     }
 
-    <!-- Content footer -->
+    <!-- Content footer
     <div class="fuse-vertical-navigation-content-footer">
       <ng-content select="[fuseVerticalNavigationContentFooter]"></ng-content>
     </div>
 
   </div>
 
-  <!-- Footer -->
   <div class="fuse-vertical-navigation-footer">
     <ng-content select="[fuseVerticalNavigationFooter]"></ng-content>
   </div>
 
 </div>
 
-<!-- Aside -->
 @if (activeAsideItemId) {
   <div
     class="fuse-vertical-navigation-aside-wrapper"
@@ -90,11 +88,8 @@
     [@fadeInRight]="position === 'right'"
     [@fadeOutLeft]="position === 'left'"
     [@fadeOutRight]="position === 'right'">
-    <!-- Items -->
     @for (item of navigation; track trackByFn($index, item)) {
-      <!-- Skip the hidden items -->
       @if ((item.hidden && !item.hidden(item)) || !item.hidden) {
-        <!-- Aside -->
         @if (item.type === 'aside' && item.id === activeAsideItemId) {
           <fuse-vertical-navigation-aside-item
             [item]="item"
@@ -104,4 +99,5 @@
       }
     }
   </div>
-}
+}-->
+</div>

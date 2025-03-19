@@ -1,7 +1,6 @@
-@if (!_loadingService.show$) {
-    <div
-        class="sm:absolute sm:inset-0 flex flex-col flex-auto min-w-0 sm:overflow-hidden bg-card dark:bg-transparent"
-    >
+@if (!_loadingService.isloading()) {
+    <div class="flex flex-col flex-1 min-w-0 bg-card dark:bg-transparent">
+
         <form class="w-full" #myForm="ngForm" ngForm="ngForm">
         <!-- Header -->
             <div class="flex flex-row md:gap-4 items-center px-4 h-fit md:h-14  border-b bg-gray-900">

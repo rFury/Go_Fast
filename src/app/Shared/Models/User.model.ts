@@ -5,7 +5,10 @@ import { Group } from "./Group.model";
 export class User {
   _id?: string;
   companyId!: Company;
+  username?: string;
   name?: string;
+  first_name?: string;
+  last_name?: string;
   avatar?: string;
   email?: string;
   password?: string;

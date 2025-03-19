@@ -62,18 +62,6 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    console.log('ngOnInit');
-    console.log(this._authService.getToken());
-    this._userService.get().subscribe(
-      {
-        next : (user)=>{
-          console.log(user);
-        },
-        error : (err)=>{
-          console.error(err);
-        }
-      }
-    )
   }
 
   ngOnDestroy(): void {
