@@ -3,6 +3,7 @@ import { BackOfficeComponent } from './back-office.component';
 import featuresRouting from './apps/features/features.routing';
 import groupsRouting from './apps/groups/groups.routing';
 import usersRouting from './apps/users/users.routing';
+import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 
 export default [
   {
@@ -12,14 +13,27 @@ export default [
       {
         path: 'features',
         loadChildren: () => featuresRouting,
+        data: {
+          breadcrumb: 'Features',
+          feature: FeatureCodes.features,
+      },
       },
       {
         path: 'groups',
         loadChildren: () => groupsRouting,
+        data: {
+          breadcrumb: 'Groups',
+          feature: FeatureCodes.groups,
       },
+      },
+      
       {
         path: 'users',
         loadChildren: () => usersRouting,
+        data: {
+          breadcrumb: 'Users',
+          feature: FeatureCodes.users,
+      },
       },
     ],
   },

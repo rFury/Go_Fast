@@ -15,9 +15,9 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../../../../Shared/Models/User.model';
 import { UserService } from '../../../../../Shared/Services/user.service';
-import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'user',
@@ -35,39 +35,47 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class UserComponent implements OnInit, OnDestroy {
   static ngAcceptInputType_showAvatar: BooleanInput;
-
-  @Input() showAvatar: boolean = false;
-  user!: User;
+  @Input() showAvatar: boolean = true;
+  private _cdr = inject(ChangeDetectorRef);
+  private _userService = inject(UserService);
+  private _router=inject(Router);
+  user:User | null = this._userService._user();
 
   private _unsubscribeAll: Subject<any> = new Subject<any>();
 
-  private _changeDetectorRef = inject(ChangeDetectorRef);
-  private _router = inject(Router);
-  private _userService = inject(UserService);
-
-   ngOnInit() {
-    this.user =  this._userService._user()!;
-    console.log("in user component");
-
+  ngOnInit(): void {
     console.log(this.user);
-    this._changeDetectorRef.markForCheck();
+    this._cdr.markForCheck();
   }
+
+  /**
+   * On destroy
+   */
   ngOnDestroy(): void {
+    // Unsubscribe from all subscriptions
     this._unsubscribeAll.next(null);
     this._unsubscribeAll.complete();
   }
+
   updateUserStatus(status: string): void {
+    // Return if user is not available
     if (!this.user) {
       return;
     }
     this.user.status = status;
+    // Update the user
     this._userService
       .updateOne({
         ...this.user,
       })
       .subscribe();
+      console.log(this.user);
+
   }
 
+  /**
+   * Sign out
+   */
   signOut(): void {
     this._router.navigate(['/admin/sign-out']);
   }

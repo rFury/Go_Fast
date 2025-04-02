@@ -14,12 +14,15 @@ import { Pagination } from '../../../../../../Shared/Models/Pagination.model';
 import { User } from '../../../../../../Shared/Models/User.model';
 import { LoadingService } from '../../../../../../Shared/Services/loading.service';
 import { UserService } from '../../../../../../Shared/Services/user.service';
+import { CommonModule } from '@angular/common';
+import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 
 @Component({
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
   imports: [
+    CommonModule,
         MatFormField,
         MatIcon,
         MatPrefix,
@@ -35,6 +38,7 @@ import { UserService } from '../../../../../../Shared/Services/user.service';
 })
 export class ListComponent implements OnInit {
   //********* INJECT SERVICES ***********//
+    _sideNavService = inject(SideNavService);
   _userService= inject(UserService);
   _router= inject(Router);
   _fuseConfirmationService= inject(FuseConfirmationService);
@@ -79,6 +83,7 @@ export class ListComponent implements OnInit {
       )
       .subscribe({
           next: results => {
+            console.log(results);
               this.displayedList = results;
               this.openFilter = false;
               this._loadingService.hide();

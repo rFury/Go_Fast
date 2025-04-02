@@ -14,6 +14,7 @@ import { Pagination } from '../../../../../../Shared/Models/Pagination.model';
 import { GroupService } from '../../../../../../Shared/Services/group.service';
 import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
 import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.model';
+import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 
 
 @Component({
@@ -36,6 +37,7 @@ import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.mode
 })
 export class ListComponent implements OnInit {
   //********* INJECT SERVICES ***********//
+    _sideNavService = inject(SideNavService);
   _groupService= inject(GroupService);
   _router= inject(Router);
   _fuseConfirmationService= inject(FuseConfirmationService);

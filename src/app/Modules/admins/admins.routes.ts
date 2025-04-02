@@ -21,6 +21,12 @@ export default [
         canActivate: [authGuard],
         data: {
           layout: 'classy',
+          data: {
+            breadcrumb: {
+                label: 'Dashboard',
+                info: { myData: { icon: 'home', iconType: 'material' } },
+            },
+        },
         },
       },
       {
@@ -51,8 +57,7 @@ export default [
         component: AuthSignOutComponent,
         data: {
           layout: 'empty',
-        },
-        canActivate: [noAuthGuard],
+        }
       },
       {
         path: 'forgot-password',

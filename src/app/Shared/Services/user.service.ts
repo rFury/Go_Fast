@@ -13,6 +13,7 @@ import { Pagination } from '../Models/Pagination.model';
 })
 export class UserService {
   endpointAuth = `${environment.api}/users`;
+  obsUser = new BehaviorSubject<User | null>(null);
   _user =signal<User | null>(null);
   _defaultLink = new BehaviorSubject<string | null>(null);
   _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<
@@ -26,6 +27,10 @@ export class UserService {
 
   get user$(){
     return this._user()
+  }
+
+  get obsUser$(): Observable<User | null> {
+    return this.obsUser.asObservable();
   }
 
   set defaultLink(value: string) {
@@ -68,6 +73,7 @@ export class UserService {
     return this.http.get<User>(`${this.endpointAuth}/me`).pipe(
       tap((user) => {
         this._user.set(user);
+        this.obsUser.next(user);
       }),
       catchError((error) => {
         return throwError(() => error); // Propagate the error

@@ -4,7 +4,7 @@ import { Group } from "./Group.model";
 
 export class User {
   _id?: string;
-  companyId!: Company;
+  companyId?: Company;
   username?: string;
   name?: string;
   first_name?: string;

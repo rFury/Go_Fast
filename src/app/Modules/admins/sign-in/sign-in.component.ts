@@ -197,5 +197,6 @@ export class SignInComponent implements OnInit {
   onCodeCompleted(code: string) {
     this.isCodeComplete = true;
     this.code = code;
+    this.signIn();
   }
 }

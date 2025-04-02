@@ -18,6 +18,7 @@ import { UserComponent } from "../../../common/user/user.component";
 import { ShortcutsComponent } from "../../../common/shortcuts/shortcuts.component";
 import { SearchComponent } from "../../../common/search/search.component";
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
+import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 
 @Component({
     selector: 'classy-layout',
@@ -30,16 +31,14 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
 {
     protected _authService=inject(SuperAuthService);
     protected _userService=inject(UserService);
+    protected _sideNavService=inject(SideNavService);
     showUser:boolean = false;
     isScreenSmall!: boolean;
     navigation!: FuseNavigationItem[];
     user!: User;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
     isLoading: boolean = true;
-
-    /**
-     * Constructor
-     */
+    email : string = "";
     constructor(
         private menuService: MenuService,
         private _fuseMediaWatcherService: FuseMediaWatcherService,
@@ -55,6 +54,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
             next : (user)=>{
               this.user = this._userService.user$!;
               this.showUser=true;
+              this.email=this.user.email!;
               
               console.log(this.user);
 
@@ -77,6 +77,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
             .subscribe(({matchingAliases}) =>
             {
                 this.isScreenSmall = !matchingAliases.includes('md');
+                this._sideNavService.setOpen(!this.isScreenSmall);
             });
     }
 
@@ -93,8 +94,10 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
 
         if ( navigation )
         {
-            // Toggle the opened status
             navigation.toggle();
+            if(!this.isScreenSmall){
+                this._sideNavService.toggle();
+            }
 
         }
     }

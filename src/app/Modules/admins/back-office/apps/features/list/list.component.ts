@@ -21,6 +21,7 @@ import { Pagination } from '../../../../../../Shared/Models/Pagination.model';
 import { FeatureService } from '../../../../../../Shared/Services/feature.service';
 import { LoadingService } from '../../../../../../Shared/Services/loading.service';
 import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.model';
+import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 
 
 @Component({
@@ -51,6 +52,7 @@ export class ListComponent implements OnInit {
   _fuseConfirmationService= inject(FuseConfirmationService);
   _route= inject(ActivatedRoute);
   _loadingService = inject(LoadingService)
+  _sideNavService = inject(SideNavService);
   @ViewChild(MatPaginator) paginator: MatPaginator;
   filterOptions: FilterOptions = new FilterOptions();
   feature: Feature;
@@ -69,6 +71,7 @@ export class ListComponent implements OnInit {
 
   ngOnInit(): void {
     this.getList();
+    console.log(this._sideNavService.getOpen());
   }
   pageChanged(event: PageEvent ): void {
     let { pageIndex } = event;
