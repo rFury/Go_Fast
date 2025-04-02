@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
@@ -13,7 +13,8 @@ import { Pagination } from '../Models/Pagination.model';
 })
 export class UserService {
   endpointAuth = `${environment.api}/users`;
-  _user = new BehaviorSubject<User | null>(null);
+  obsUser = new BehaviorSubject<User | null>(null);
+  _user =signal<User | null>(null);
   _defaultLink = new BehaviorSubject<string | null>(null);
   _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<
     FeatureAuth[] | null
@@ -24,11 +25,12 @@ export class UserService {
   constructor() {
   }
 
-  set user(value: User) {
-    this._user.next(value);
+  get user$(){
+    return this._user()
   }
-  get user$(): Observable<User | null> {
-    return this._user.asObservable();
+
+  get obsUser$(): Observable<User | null> {
+    return this.obsUser.asObservable();
   }
 
   set defaultLink(value: string) {
@@ -70,7 +72,8 @@ export class UserService {
   get(): Observable<User> {
     return this.http.get<User>(`${this.endpointAuth}/me`).pipe(
       tap((user) => {
-        this._user.next(user);
+        this._user.set(user);
+        this.obsUser.next(user);
       }),
       catchError((error) => {
         return throwError(() => error); // Propagate the error
@@ -120,7 +123,7 @@ export class UserService {
   updateMyAvatar(data: FormData): Observable<User> {
     return this.http.post<User>(`${this.endpointAuth}/my-avatar`, data).pipe(
       tap((user) => {
-        this._user.next(user);
+        this._user.set(user);
       })
     );
   }
@@ -161,14 +164,14 @@ export class UserService {
   updateAvatar(data: FormData, id: string): Observable<User> {
     return this.http.post<User>(`${this.endpointAuth}/${id}/avatar`, data).pipe(
       tap((user) => {
-        this._user.next(user);
+        this._user.set(user);
       })
     );
   }
   updateState(user: User): Observable<any> {
     return this.http.patch<User>(`${this.endpointAuth}/state`, { user }).pipe(
       map((response) => {
-        this._user.next(response);
+        this._user.set(response);
       })
     );
   }

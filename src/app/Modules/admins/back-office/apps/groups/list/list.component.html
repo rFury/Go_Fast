@@ -1,0 +1,148 @@
+<div class="flex flex-col flex-1 min-w-0 bg-card dark:bg-transparent">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:gap-4 items-center px-4 h-fit md:h-14  border-b bg-gray-900">
+      <div class="w-full text-center md:text-left md:w-1/4 text-4xl font-extrabold text-white ">{{ 'Groups' }}</div>
+      <div class="flex w-full md:w-3/4 items-start md:items-center justify-between">
+         <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript md:mt-5 w-3/4">
+              <mat-icon class="icon-size-5" matPrefix [svgIcon]="'feather:search'"></mat-icon>
+              <input
+                  matInput
+                  [(ngModel)]="filterSearch"
+                  (ngModelChange)="updateSearch()"
+                  [autocomplete]="'off'"
+                  placeholder="{{ 'Search' }}"
+              />
+         </mat-form-field>
+         <button
+             class="mr-2 text-blue-500 hover:bg-blue-500 hover:text-gray-900 transition-all duration-400"
+             mat-stroked-button
+             (click)="addGroup()">
+            <span class="mx-1.5 block">{{ 'Add' }}</span>
+         </button>
+      </div>
+  </div>
+    <!-- Main -->
+    <div class="flex flex-auto overflow-hidden">
+        <div class="flex flex-col flex-auto sm:mb-18">
+            @if (displayedList?.data?.length! > 0) {
+            <!-- Header -->
+            <div class="group-grid grid z-10 top-0 shadow items-center gap-4 py-2 px-4 md:px-6 text-md font-semibold text-secondary bg-gray-50 dark:bg-black dark:bg-opacity-5">
+              <div class="flex">N°</div>
+              <div class="flex">{{ 'code' }}</div>
+              <div class="flex">{{ 'label' }}</div>
+              <div class="flex ">
+                  <button mat-icon-button (click)="openFilter = true">
+                      <mat-icon
+                          class="icon-size-5"
+                          [svgIcon]="'feather:filter'"></mat-icon>
+                  </button>
+              </div>
+            </div>
+            <div class="flex-1 overflow-hidden sm:overflow-y-auto">
+              <div class="flex-1 sm:grid sm:flex-0">
+                <!-- Rows -->
+                <ng-container>
+                  @for (row of displayedList?.data; track row) {
+                  <div class="group-grid grid items-center gap-4 py-1  px-4 md:px-6 border-b" (click)="isScreenSmall ? openShow(row) : null" >
+                    <div class="flex">{{ $index + 1 }}</div>
+                    <div class="flex truncate">{{ row.code }}</div>
+                    <div class="flex truncate">{{ row.label }}</div>
+                    <div class="flex">
+                      <button class="mr-4" mat-icon-button [matMenuTriggerFor]="budgetMenu">
+                        <mat-icon
+                          class="icon-size-5"
+                          [svgIcon]="'heroicons_solid:ellipsis-vertical'"
+                        ></mat-icon>
+
+                      </button>
+                      <mat-menu #budgetMenu="matMenu">
+                        <button mat-menu-item class="flex justify-between" (click)="openShow(row)">
+                          <span class="ml-2 mr-1  block">{{ 'Show' }}</span>
+                          <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
+                        </button>
+                        <button mat-menu-item class="flex justify-between" (click)="openEdit(row)">
+                          <span class="ml-2 mr-1  block">{{ 'Edit' }}</span>
+                          <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                        </button>
+                        <button
+                          mat-menu-item
+                          class="flex justify-between"
+                          (click)="deleteGroup(row)"
+                        >
+                          <span class="ml-2 mr-1 block">{{ 'Delete' }}</span>
+                          <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                        </button>
+                      </mat-menu>
+                    </div>
+                  </div>
+                  }
+                </ng-container>
+              </div>
+            </div>
+            <mat-paginator
+            class="sm:fixed sm:bottom-0 border-b sm:border-t sm:border-b-0 w-full bg-gray-50 dark:bg-transparent"
+            [showFirstLastButtons]="true"
+            (page)="pageChanged($event)"
+            [length]="displayedList?.total"
+            [pageSize]="currentSize"
+            [pageSizeOptions]="[5, 10, 20, 50, 100]"
+            [class.left-64]="this._sideNavService.getOpen()"
+            [class.pl-4]="this._sideNavService.getOpen()"
+            [class.left-0]="!this._sideNavService.getOpen()">    
+            ></mat-paginator>
+            }@else {
+              <div class="flex flex-1 flex-col items-center justify-center p-8 text-center">
+                <div class="max-w-md space-y-4">
+                  <!-- Icon -->
+                  <div class="mx-auto text-gray-400 dark:text-gray-500">
+                    <mat-icon class="icon-size-20" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                  </div>
+                  
+                  <!-- Text -->
+                  <div class="space-y-2">
+                    <h3 class="text-2xl font-bold tracking-tight text-gray-800 dark:text-gray-200">
+                      No groups found
+                    </h3>
+                    <p class="text-gray-500 dark:text-gray-400">
+                      Start by creating a new group or adjust your filters
+                    </p>
+                  </div>
+            
+                  <!-- Action Button -->
+                  <button 
+                    class="mx-auto inline-flex items-center justify-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                    mat-raised-button
+                    (click)="addGroup()">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'" class="mr-2"></mat-icon>
+                    Create New Feature
+                  </button>
+                </div>
+              </div>
+            }
+        </div>
+    </div>
+    <!-- Filter -->
+    <div class="h-[calc(100vh-8.5rem)] md:h-[calc(100vh-7.5rem)] fixed top-17 md:top-14 right-0 flex flex-col flex-1 justify-start items-center  z-99 bg-gray-400 transition-all duration-500" 
+    [class.w-relative]="openFilter" 
+    [class.w-0]="!openFilter"
+    [class.left-64]="this._sideNavService.getOpen()"
+    [class.pl-4]="this._sideNavService.getOpen()"
+    [class.left-0]="!this._sideNavService.getOpen()">   
+     @if(openFilter)   {
+         <div class="text-white text-2xl font-bold uppercase flex items-center py-2 gap-2">
+
+             <button mat-stroked-button (click)="getList()" >
+                 <span>Activate filters</span>
+             </button>
+             <button mat-icon-button (click)="openFilter = false" >
+                <mat-icon [svgIcon]="'heroicons_outline:x-circle'"></mat-icon>
+             </button>
+         </div>
+         <div class="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
+
+
+         </div>
+     }
+    </div>
+</div>

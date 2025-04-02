@@ -11,7 +11,7 @@ import { MediaMatcher } from '@angular/cdk/layout';
 import { MatDrawer } from '@angular/material/sidenav';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatListModule} from '@angular/material/list';
-import { RouterOutlet} from '@angular/router';
+import { Router, RouterOutlet} from '@angular/router';
 import { NotificationsComponent } from "../../../Shared/Components/notifications/notifications.component";
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
@@ -33,6 +33,7 @@ import { UserService } from '../../../Shared/Services/user.service';
     MatDividerModule,
     MatListModule,
     MatDialogModule,
+    RouterOutlet
 ],
   templateUrl: './back-office.component.html',
   styleUrls: ['./back-office.component.css']
@@ -61,18 +62,6 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit(): void {
-    console.log('ngOnInit');
-    console.log(this._authService.getToken());
-    this._userService.get().subscribe(
-      {
-        next : (user)=>{
-          console.log(user);
-        },
-        error : (err)=>{
-          console.error(err);
-        }
-      }
-    )
   }
 
   ngOnDestroy(): void {

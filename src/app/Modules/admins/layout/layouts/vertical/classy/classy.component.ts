@@ -17,87 +17,76 @@ import { NotificationsComponent } from "../../../common/notifications/notificati
 import { UserComponent } from "../../../common/user/user.component";
 import { ShortcutsComponent } from "../../../common/shortcuts/shortcuts.component";
 import { SearchComponent } from "../../../common/search/search.component";
+import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
+import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 
 @Component({
     selector: 'classy-layout',
     templateUrl: './classy.component.html',
     encapsulation: ViewEncapsulation.None,
-    imports: [FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, UserComponent, ShortcutsComponent, SearchComponent],
+    imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, ShortcutsComponent, SearchComponent, UserComponent],
     standalone: true,
 })
 export class ClassyLayoutComponent implements OnInit, OnDestroy
 {
     protected _authService=inject(SuperAuthService);
+    protected _userService=inject(UserService);
+    protected _sideNavService=inject(SideNavService);
+    showUser:boolean = false;
     isScreenSmall!: boolean;
     navigation!: FuseNavigationItem[];
     user!: User;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
     isLoading: boolean = true;
-
-    /**
-     * Constructor
-     */
+    email : string = "";
     constructor(
         private menuService: MenuService,
-        private _router: Router,
-        private _navigationService: NavigationService,
-        private _userService: UserService,
         private _fuseMediaWatcherService: FuseMediaWatcherService,
         private _fuseNavigationService: FuseNavigationService,
     )
     {
     }
-    ngOnInit(): void
+    async ngOnInit()
     {
-        /*this.menuService.getMenu().subscribe({
+
+         this._userService.get().subscribe(
+          {
+            next : (user)=>{
+              this.user = this._userService.user$!;
+              this.showUser=true;
+              this.email=this.user.email!;
+              
+              console.log(this.user);
+
+            },
+            error : (err)=>{
+              console.error(err);
+            }
+          }
+        )
+         this.menuService.getMenu().subscribe({
             next: (data) => {
                 this.navigation = data.menu;
                 console.log('this.navigation', this.navigation)
             },
             error: () => {},
-        });*/
+        });
 
-
-        // Subscribe to the user service
-        /*this._userService.user$
-            .pipe((takeUntil(this._unsubscribeAll)))
-            .subscribe((user: User | null) =>
-            {
-                if(user != null){
-                    this.user = user;
-                }
-            });*/
-
-        // Subscribe to media changes
         this._fuseMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(({matchingAliases}) =>
             {
-                // Check if the screen is small
                 this.isScreenSmall = !matchingAliases.includes('md');
+                this._sideNavService.setOpen(!this.isScreenSmall);
             });
     }
 
-
-    /**
-     * On destroy
-     */
     ngOnDestroy(): void
     {
-        // Unsubscribe from all subscriptions
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Toggle navigation
-     *
-     * @param name
-     */
     toggleNavigation(name: string): void
     {
         // Get the navigation
@@ -105,8 +94,10 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
 
         if ( navigation )
         {
-            // Toggle the opened status
             navigation.toggle();
+            if(!this.isScreenSmall){
+                this._sideNavService.toggle();
+            }
 
         }
     }

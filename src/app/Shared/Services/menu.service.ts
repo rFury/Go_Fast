@@ -7,7 +7,7 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root',
 })
 export class MenuService {
-  endpoint = `${environment.api}/menus`;
+  endpoint = `${environment.api}/menu`;
 
   http = inject(HttpClient)
 

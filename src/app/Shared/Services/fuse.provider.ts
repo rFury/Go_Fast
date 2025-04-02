@@ -8,6 +8,7 @@ import { FuseConfig } from './config/config.types';
 import { FuseMediaWatcherService } from './media-watcher/media-watcher.service';
 import { FusePlatformService } from './platform/platform.service';
 import { UtilsService } from './utils.service';
+import { FuseSplashScreenService } from './splash-screen.service';
 
 
 export type FuseProviderConfig = {
@@ -58,6 +59,11 @@ export const provideFuse = (config: FuseProviderConfig): Array<Provider | Enviro
         {
             provide : ENVIRONMENT_INITIALIZER,
             useValue: () => inject(UtilsService),
+            multi   : true,
+        },
+        {
+            provide : ENVIRONMENT_INITIALIZER,
+            useValue: () => inject(FuseSplashScreenService),
             multi   : true,
         },
     ];

@@ -21,10 +21,12 @@ export const LoadingInterceptor = (req: HttpRequest<unknown>, next: HttpHandlerF
     }
 
     loadingService._setLoadingStatus(true, req.url);
+    loadingService.isloading.set(true);
 
     return next(req).pipe(
         finalize(() =>
         {
             loadingService._setLoadingStatus(false, req.url);
+            loadingService.isloading.set(false);
         }));
 };
