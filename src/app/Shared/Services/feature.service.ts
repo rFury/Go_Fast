@@ -48,7 +48,7 @@ export class FeatureService {
     return this.http.get<Feature>(`${this.endpoint}/${id}`);
   }
   updateFeature(feature: Feature): Observable<null> {
-    return this.http.patch<null>(`${this.endpoint}/${feature._id}`, { feature });
+    return this.http.put<null>(`${this.endpoint}/${feature._id}`, { feature });
   }
   createFeature(feature: Feature): Observable<null> {
     return this.http.post<null>(`${this.endpoint}`, { feature });

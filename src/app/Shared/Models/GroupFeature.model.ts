@@ -4,7 +4,7 @@ export class GroupFeature {
   id?: string;
   // tslint:disable-next-line:variable-name
   _id?: string;
-  featuresId?: Feature;
+  featureId?: Feature;
   status?: boolean;
   create?: boolean;
   read?: boolean;

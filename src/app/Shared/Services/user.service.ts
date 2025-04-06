@@ -118,7 +118,7 @@ export class UserService {
     return this.http.get<User>(`${this.endpointAuth}/me`);
   }
   updatePersonalInfo(user: User): Observable<User> {
-    return this.http.post<User>(`${this.endpointAuth}/personal-info`, user);
+    return this.http.put<User>(`${this.endpointAuth}/update-my-account`, user);
   }
   updateMyAvatar(data: FormData): Observable<User> {
     return this.http.post<User>(`${this.endpointAuth}/my-avatar`, data).pipe(
@@ -169,7 +169,7 @@ export class UserService {
     );
   }
   updateState(user: User): Observable<any> {
-    return this.http.patch<User>(`${this.endpointAuth}/state`, { user }).pipe(
+    return this.http.patch<User>(`${this.endpointAuth}/status`, { user }).pipe(
       map((response) => {
         this._user.set(response);
       })

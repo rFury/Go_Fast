@@ -55,7 +55,7 @@ export class SuperAuthService {
   }
   verifCode(elems: { code: string; email: string }): Observable<any> {
     return this._httpClient
-      .post(`${this.apiUrl}/verif-account`, { ...elems })
+      .post(`${this.apiUrl}/verify-login-super`, { ...elems })
       .pipe(
         switchMap((response: any) => {
           this.saveToken(response.token);

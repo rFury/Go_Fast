@@ -1,5 +1,10 @@
 export class Pagination<T> {
-    data!: T[];
-    total!: number;
-  }
-  
+  /*totalElement!: number;
+  totalPages!: number;
+  currentPageNumber!: number;
+  currentPageSize!: number;
+  data!: T[];*/
+
+  data!: T[];
+  totalElement!: number;
+}
