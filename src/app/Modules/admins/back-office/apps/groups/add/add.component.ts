@@ -74,7 +74,7 @@ export class AddComponent implements OnInit {
   }
     createGroup(myForm: NgForm): void {
         if (myForm.valid) {
-            if (!this.groupFeature[0].featuresId?._id) {
+            if (!this.groupFeature[0].featureId?._id) {
                 console.log('Feature is required', 'error');
             } else {
                 if (!this.groupFeature[this.groupFeature.length]) {
@@ -149,7 +149,7 @@ export class AddComponent implements OnInit {
     addRow(index, value): void {
         if (value) {
             this.featureId[index] = value;
-            this.groupFeature[index].featuresId = value;
+            this.groupFeature[index].featureId = value;
             this.filteredList.push(this.listFeature);
             if (
                 this.groupFeature[index] &&
@@ -198,7 +198,7 @@ export class AddComponent implements OnInit {
         this.featureId = [];
         this.groupFeature = [
             {
-                featuresId: null!,
+                featureId: null!,
                 list: true,
                 create: true,
                 update: true,
@@ -283,8 +283,8 @@ export class AddComponent implements OnInit {
     }
     checkDefault(index) {
         if (
-            !this.groupFeature[index].featuresId ||
-            !this.groupFeature[index].featuresId.link ||
+            !this.groupFeature[index].featureId ||
+            !this.groupFeature[index].featureId.link ||
             !this.groupFeature[index].status
         ) {
             this.groupFeature[index].defaultFeature = false;

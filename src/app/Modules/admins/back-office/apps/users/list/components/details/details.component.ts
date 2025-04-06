@@ -51,7 +51,7 @@ export class DetailsComponent implements OnInit {
                  next: (result:[User, Group[]]) => {
                      this.user = result[0];
                      this.listGroups = result[1];
-                     this.user.groupsId = this.listGroups.filter((el)=>el._id === this.user.groupsId!._id)[0];
+                     this.user.groupId = this.listGroups.filter((el)=>el._id === this.user.groupId!._id)[0];
                      this._loadingService.hide()
                  },
                  error: () => {

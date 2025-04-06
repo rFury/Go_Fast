@@ -84,7 +84,7 @@
             class="sm:fixed sm:bottom-0 border-b sm:border-t sm:border-b-0 w-full bg-gray-50 dark:bg-transparent"
             [showFirstLastButtons]="true"
             (page)="pageChanged($event)"
-            [length]="displayedList?.total"
+            [length]="displayedList?.totalElement"
             [pageSize]="currentSize"
             [pageSizeOptions]="[5, 10, 20, 50, 100]"
             [class.left-64]="this._sideNavService.getOpen()"
