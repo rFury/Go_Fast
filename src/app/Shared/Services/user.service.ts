@@ -14,7 +14,7 @@ import { Pagination } from '../Models/Pagination.model';
 export class UserService {
   endpointAuth = `${environment.api}/users`;
   obsUser = new BehaviorSubject<User | null>(null);
-  _user =signal<User | null>(null);
+  _user=signal<User | null>(null);
   _defaultLink = new BehaviorSubject<string | null>(null);
   _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<
     FeatureAuth[] | null
