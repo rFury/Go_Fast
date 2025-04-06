@@ -74,12 +74,12 @@ export class EditComponent implements OnInit {
                     this.filteredList.push(this.listFeature);
                     this.filteredList = this.listFeature.map(() => this.listFeature);
                     this.featureId = this.groupFeature
-                    .map((value) => value.featuresId)
+                    .map((value) => value.featureId)
                     .filter((feature): feature is Feature => feature !== undefined);
                                     this.testGroup = this.groupFeature;
                     this.filteredList = this.listFeature.map(() => this.listFeature);
                     this.featureId = this.groupFeature
-                    .map((value) => value.featuresId)
+                    .map((value) => value.featureId)
                     .filter((feature): feature is Feature => feature !== undefined);
                     this.featureWithId = this.featureId
                     .map((site) => site?._id)
@@ -87,7 +87,7 @@ export class EditComponent implements OnInit {
                                     
                     if (this.groupFeature.length !== this.listFeature.length) {
                         this.groupFeature.push({
-                            featuresId: null!,
+                            featureId: null!,
                             list: true,
                             create: true,
                             update: true,
@@ -169,7 +169,7 @@ export class EditComponent implements OnInit {
         //this.featureId = this.listFeature.map((value) => value);
         let i = 0;
         for (const group of this.groupFeature) {
-            if (group.featuresId === null) {
+            if (group.featureId === null) {
                 this.groupFeature.splice(i, 1);
             }
             i++;
@@ -179,7 +179,7 @@ export class EditComponent implements OnInit {
             if (!this.featureId.map((value) => value._id).includes(feature._id) && feature._id) {
                 this.featureId.push(feature);
                 this.groupFeature.push({
-                    featuresId: feature,
+                    featureId: feature,
                     list: true,
                     create: true,
                     update: true,
@@ -201,7 +201,7 @@ export class EditComponent implements OnInit {
         this.featureId = [];
         this.groupFeature = [
             {
-                featuresId: null!,
+                featureId: null!,
                 list: true,
                 create: true,
                 update: true,
@@ -218,9 +218,9 @@ export class EditComponent implements OnInit {
         this.featureId.splice(index, 1);
         this.groupFeature[index] = this.groupFeature[index + 1];
         this.groupFeature.splice(index, 1);
-        if (this.groupFeature[this.groupFeature.length - 1].featuresId) {
+        if (this.groupFeature[this.groupFeature.length - 1].featureId) {
             this.groupFeature.push({
-                featuresId: null!,
+                featureId: null!,
                 list: true,
                 create: true,
                 update: true,
@@ -236,7 +236,7 @@ export class EditComponent implements OnInit {
         if (value !== null) {
             this.featureId[index] = this.listFeature.filter((val) => val._id === value)[0];
             this.featureWithId[index] = value;
-            this.groupFeature[index].featuresId = this.listFeature.filter((val) => val._id === value)[0];
+            this.groupFeature[index].featureId = this.listFeature.filter((val) => val._id === value)[0];
             this.filteredList.push(this.listFeature);
             if (
                 this.groupFeature[index] &&
@@ -244,7 +244,7 @@ export class EditComponent implements OnInit {
                 this.groupFeature.length !== this.listFeature.length
             ) {
                 this.groupFeature.push({
-                    featuresId: null!,
+                    featureId: null!,
                     list: true,
                     create: true,
                     read: true,
@@ -331,8 +331,8 @@ export class EditComponent implements OnInit {
     }
     checkDefault(index) {
         if (
-            !this.groupFeature[index].featuresId ||
-            !this.groupFeature[index].featuresId.link ||
+            !this.groupFeature[index].featureId ||
+            !this.groupFeature[index].featureId.link ||
             !this.groupFeature[index].status
         ) {
             this.groupFeature[index].defaultFeature = false;

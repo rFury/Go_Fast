@@ -49,7 +49,7 @@ export class GroupService {
     return this.http.post<null>(`${this.endpoint}`, { group, groupFeature });
   }
   updateOne(group: Group, groupFeature: GroupFeature[]): Observable<null> {
-    return this.http.patch<null>(`${this.endpoint}/${group._id}`, { group, groupFeature });
+    return this.http.put<null>(`${this.endpoint}/${group._id}`, { group, groupFeature });
   }
   getFeatureGroup(id: string): Observable<GroupFeature[]> {
         return this.http.get<GroupFeature[]>(`${this.endpoint}/${id}/group-feature`);

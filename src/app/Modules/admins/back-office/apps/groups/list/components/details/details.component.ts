@@ -69,8 +69,9 @@ export class DetailsComponent implements OnInit {
                     this.groupFeature = result[1];
                     this.filteredList = this.listFeature.map(() => this.listFeature);
                     this.featureId = this.groupFeature
-                    .map((value) => value.featuresId)
+                    .map((value) => value.featureId)
                     .filter((feature): feature is Feature => feature !== undefined);
+                console.log(this.groupFeature);
                 
                     this._loadingService.hide()
                 },
