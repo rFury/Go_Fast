@@ -36,7 +36,15 @@ export class SuperAuthService {
   }
 
   resetPassword(password: string): Observable<any> {
-    return this._httpClient.post(`${this.apiUrl}/reset-password`, password);
+    return this._httpClient.post(`${this.apiUrl}/reset-password`, password)
+    .pipe(
+      switchMap((response: any) => {
+        this.saveToken(response.token);
+        const connectedUser = this.decodeToken();
+        this._userService._defaultLink.next(connectedUser?.defaultLink);
+        return of(response);
+      })
+    );;
   }
 
   signIn(credentials: { email: string; password: string }): Observable<any> {

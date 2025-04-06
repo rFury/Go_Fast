@@ -7,6 +7,7 @@ export class User {
   companyId?: Company;
   username?: string;
   name?: string;
+  type?: string;
   first_name?: string;
   last_name?: string;
   avatar?: string;
