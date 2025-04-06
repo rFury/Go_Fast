@@ -54,7 +54,7 @@ export class DetailsComponent implements OnInit {
                      this.listGroups = result[1];
                      console.log(this.user);
                      if(this.user.type !== 'super'){
-                        this.user.groupsId = this.listGroups.filter((el)=>el._id === this.user.groupsId!._id)[0];
+                        this.user.groupId = this.listGroups.filter((el)=>el._id === this.user.groupId!._id)[0];
                      }
                      this._loadingService.hide()
                  },
@@ -65,7 +65,7 @@ export class DetailsComponent implements OnInit {
          }
      }
     updateOne() {
-        this._router.navigate([`/home/users/${this.user._id}/edit`]).then();
+        this._router.navigate([`/admin/dashboard/users/${this.user._id}/edit`]).then();
     }
     deleteOne() {
         // Open the confirmation dialog
@@ -87,7 +87,7 @@ export class DetailsComponent implements OnInit {
             // If the confirm button pressed...
             if (result === 'confirmed') {
                 this._userService.deleteOne(this.user._id!).subscribe(() => {});
-                this._router.navigate(['/home/users']).then();
+                this._router.navigate(['/admin/dashboard/users']).then();
             }
         });
     }

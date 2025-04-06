@@ -168,11 +168,7 @@ export class UserService {
       })
     );
   }
-  updateState(user: User): Observable<any> {
-    return this.http.patch<User>(`${this.endpointAuth}/state`, { user }).pipe(
-      map((response) => {
-        this._user.set(response);
-      })
-    );
+  updateState(status: string): Observable<any> {
+    return this.http.patch<any>(`${this.endpointAuth}/status`, { status });
   }
 }
