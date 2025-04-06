@@ -13,7 +13,7 @@ export class User {
   avatar?: string;
   email?: string;
   password?: string;
-  groupId?: Group;
+  groupsId?: Group;
   status?: string;
 }
 
