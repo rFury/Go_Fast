@@ -14,7 +14,7 @@ import { Pagination } from '../Models/Pagination.model';
 export class UserService {
   endpointAuth = `${environment.api}/users`;
   obsUser = new BehaviorSubject<User | null>(null);
-  _user =signal<User | null>(null);
+  _user=signal<User | null>(null);
   _defaultLink = new BehaviorSubject<string | null>(null);
   _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<
     FeatureAuth[] | null
@@ -153,7 +153,7 @@ export class UserService {
     return this.http.get<User>(`${this.endpointAuth}/${id}`);
   }
   updateOne(user: User): Observable<User> {
-    return this.http.patch<User>(`${this.endpointAuth}/${user._id}`, { user });
+    return this.http.put<User>(`${this.endpointAuth}/${user._id}`, { user });
   }
   enableAccount(id: string): Observable<User> {
     return this.http.get<User>(`${this.endpointAuth}/${id}/enable-disable`);

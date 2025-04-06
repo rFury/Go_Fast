@@ -177,6 +177,12 @@ export class SignInComponent implements OnInit {
                 this.btn=true;
               }else if(err.status == 403 || err.status == 402) {
                 this._router.navigate(['/admin/sign-in']);
+              }else if (err.status ===455){
+                this._router.navigate(['/admin/reset-password'],{
+                  queryParams: {
+                    email: this.signInForm.get('email')?.value 
+                  }
+                })
               }
               else{
                 console.error(err);

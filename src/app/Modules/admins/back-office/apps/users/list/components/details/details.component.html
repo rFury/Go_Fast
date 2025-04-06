@@ -37,29 +37,29 @@
                         <div class="sm:col-span-3">
                             <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
                                 <mat-label class="capitalize">{{ 'name' }}</mat-label>
-                                <input [(ngModel)]="user.name" matInput name="name" type="text" readonly />
+                                <input [value]="user.first_name+' '+user.last_name" matInput name="name" type="text" readonly />
                             </mat-form-field>
-                            @if ( myForm.controls['name'] && (myForm.controls['name'].dirty || myForm.submitted) &&
-                            myForm.controls['name'].hasError('required') ) {
-                                <mat-error>
-                                    {{ 'This field is required' }}
-                                </mat-error>
-                            }
+
                         </div>
+                        
                         <!-- email -->
                         <div class="sm:col-span-3">
                             <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
                                 <mat-label class="capitalize">{{ 'email' }}</mat-label>
                                 <input [(ngModel)]="user.email" matInput name="email" type="text" readonly />
                             </mat-form-field>
-                            @if ( myForm.controls['email'] && (myForm.controls['email'].dirty || myForm.submitted)
-                            && myForm.controls['email'].hasError('required') ) {
-                                <mat-error>
-                                    {{ 'This field is required' }}
-                                </mat-error>
-                            }
+
                         </div>
                         <!-- group -->
+                        @if (this.user.type==='super') {
+                            <div class="sm:col-span-3">
+                                <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+                                    <mat-label class="capitalize">{{ 'group' }}</mat-label>
+                                    <input  matInput type="text" value="Super Admin" name="group" readonly />
+                                </mat-form-field>
+                            </div>
+
+                        }@else {
                         <div class="sm:col-span-3">
                             <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
                                 <mat-label class="capitalize">{{ 'group' }}</mat-label>
@@ -81,13 +81,9 @@
                                 </mat-select>
                             </mat-form-field>
 
-                            @if ( myForm.controls['groupsId'] && (myForm.controls['groupsId'].dirty || myForm.submitted)
-                            && myForm.controls['groupsId'].hasError('required') ) {
-                                <mat-error>
-                                    {{ 'This field is required' }}
-                                </mat-error>
-                            }
+
                         </div>
+                    }
                     </div>
                 </div>
             </div>

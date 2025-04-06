@@ -49,9 +49,11 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     async ngOnInit()
     {
 
+        console.log(this._authService.getToken())
+
          this._userService.get().subscribe(
           {
-            next : (user)=>{
+            next : (res)=>{
               this.user = this._userService.user$!;
               this.showUser=true;
               this.email=this.user.email!;
