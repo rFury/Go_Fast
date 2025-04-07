@@ -15,6 +15,8 @@ export class User {
   password?: string;
   groupId?: Group;
   status?: string;
+  previousStatus?: string;
+
 }
 
 export class ResToken {

@@ -4,10 +4,12 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   inject,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   ViewEncapsulation,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -38,42 +40,34 @@ export class UserComponent implements OnInit, OnDestroy {
   @Input() showAvatar: boolean = true;
   private _cdr = inject(ChangeDetectorRef);
   private _userService = inject(UserService);
-  private _router=inject(Router);
-  user:User | null = this._userService._user();
+  private _router = inject(Router);
+  user: User | null = this._userService._user();
 
-  private _unsubscribeAll: Subject<any> = new Subject<any>();
+  constructor(){
+    effect(() => {
+      this.user = this._userService.user();
+      this._cdr.markForCheck();
+    });
+  }
 
   ngOnInit(): void {
-    console.log(this.user);
-    this._cdr.markForCheck();
+
   }
 
-  /**
-   * On destroy
-   */
   ngOnDestroy(): void {
-    // Unsubscribe from all subscriptions
-    this._unsubscribeAll.next(null);
-    this._unsubscribeAll.complete();
   }
-
   updateUserStatus(status: string): void {
-    // Return if user is not available
-    if (!this.user) {
-      return;
-    }
-    this.user.status = status;
-    // Update the user
-    this._userService
-      .updateStatus(this.user.status)
-      .subscribe();
-      console.log(this.user);
-
+    console.log("hello");
+    
+    if (!this.user) return;
+      this._userService.updateState(status).subscribe({
+        error: () => {
+          this._userService._user.update(u => ({ ...u!, status:status }))
+          this._cdr.detectChanges();
+        },
+      });
   }
 
-  /**
-   * Sign out
-   */
   signOut(): void {
     this._router.navigate(['/admin/sign-out']);
   }

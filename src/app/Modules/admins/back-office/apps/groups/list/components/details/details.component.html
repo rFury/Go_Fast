@@ -86,27 +86,27 @@
                                     <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
                                         <mat-select
                                             placeholder="{{ 'select feature' }}"
-                                            [value]="featureId[index]"
+                                            [value]="features[index]"
                                             [disabled]="true"
                                         >
                                             <mat-select-trigger>
-                                                @if (featureId[index]) {
+                                                @if (features[index]) {
                                                     <div class="font-medium items-center flex flex-row">
                       <span class="">
-                        {{ featureId[index].title }}
+                        {{ features[index].title }}
                       </span>
                                                     </div>
                                                 }
                                             </mat-select-trigger>
-                                            {{ groupFeature[index].featureId!.title }}
+                                            {{ groupFeature[index].featureId    .title }}
 
                                             <mat-option [value]="null">
                                                 <div class="font-medium items-center flex flex-row">
                                                     <span> {{ '-- None --' }} </span>
                                                 </div>
                                             </mat-option>
-                                            @for (item of featureId; track item) {
-                                                <mat-option [value]="item" [disabled]="featureId.includes(item)">
+                                            @for (item of features; track item) {
+                                                <mat-option [value]="item" [disabled]="features.includes(item)">
                                                     <div class="font-medium items-center flex flex-row">
                                                         <span class=""> {{ item.title }}</span>
                                                     </div>
