@@ -59,7 +59,7 @@
                                               'bg-amber-500': row.status === 'away',
                                               'bg-red-500': row.status === 'busy',
                                               'bg-gray-400': row.status === 'not-visible'}"></span>{{ row.status}}</div>
-                  <div class="hidden sm:flex truncate">{{ row.groupsId?.label }}</div>
+                  <div class="hidden sm:flex truncate">{{ row.groupId?.label }}</div>
                   <div class="flex">
                     <button class="mr-4" mat-icon-button [matMenuTriggerFor]="budgetMenu">
                       <mat-icon

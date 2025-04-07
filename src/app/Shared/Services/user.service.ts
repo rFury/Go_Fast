@@ -168,7 +168,7 @@ export class UserService {
       })
     );
   }
-  updateState(status: string): Observable<any> {
+  updateStatus(status: string): Observable<any> {
     return this.http.patch<any>(`${this.endpointAuth}/status`, { status });
   }
 }

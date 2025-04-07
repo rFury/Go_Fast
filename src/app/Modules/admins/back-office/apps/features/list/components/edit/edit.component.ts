@@ -101,7 +101,7 @@ export class EditComponent implements OnInit {
       }
     cancelEdit(myForm: NgForm) {
         if (myForm.pristine) {
-          this._router.navigate([`../`], { relativeTo: this._route }).then();
+          this._router.navigate([`../../`], { relativeTo: this._route }).then();
         } else {
           // Open the confirmation dialog
           const confirmation = this._fuseConfirmationService.open({
@@ -120,7 +120,7 @@ export class EditComponent implements OnInit {
           confirmation.afterClosed().subscribe((result) => {
             // If the confirm button pressed...
             if (result === 'confirmed') {
-              this._router.navigate([`../`], { relativeTo: this._route }).then();
+              this._router.navigate([`../../`], { relativeTo: this._route }).then();
             }
           });
         }
@@ -145,7 +145,7 @@ export class EditComponent implements OnInit {
           // If the confirm button pressed...
           if (result === 'confirmed') {
             this._featureService.deleteFeature(feature._id).subscribe(() => {
-              this._router.navigate(['/home/features']).then();
+              this._router.navigate(['/admin/dashboard/features']).then();
             });
           }
         });
