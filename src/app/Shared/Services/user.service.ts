@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { ChangeDetectorRef, inject, Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
@@ -13,8 +13,9 @@ import { Pagination } from '../Models/Pagination.model';
 })
 export class UserService {
   endpointAuth = `${environment.api}/users`;
-  obsUser = new BehaviorSubject<User | null>(null);
   _user=signal<User | null>(null);
+  private _statusTimeout: any;
+  private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
   _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<
     FeatureAuth[] | null
@@ -22,16 +23,30 @@ export class UserService {
   http = inject(HttpClient);
   router = inject(Router);
 
-  constructor() {
-  }
+  
+    user = this._user.asReadonly();
+
+    private _trackActivity() {
+      window.addEventListener('mousemove', this._resetInactivityTimer.bind(this));
+      window.addEventListener('keydown', this._resetInactivityTimer.bind(this));
+    }
+    private _resetInactivityTimer() {      
+        clearTimeout(this._inactivityTimeout);
+        if(this._user()?.status==="away"){
+          this._user.update(u => ({ ...u!, status:"online" }));
+          console.log(this._user());
+          
+          this.updateState("online").subscribe()
+        }
+        this._inactivityTimeout = setTimeout(() => {
+          this.updateState('away').subscribe();
+        }, 300000); // 5 minutes inactivity
+    }
 
   get user$(){
     return this._user()
   }
 
-  get obsUser$(): Observable<User | null> {
-    return this.obsUser.asObservable();
-  }
 
   set defaultLink(value: string) {
     this._defaultLink.next(value);
@@ -73,7 +88,6 @@ export class UserService {
     return this.http.get<User>(`${this.endpointAuth}/me`).pipe(
       tap((user) => {
         this._user.set(user);
-        this.obsUser.next(user);
       }),
       catchError((error) => {
         return throwError(() => error); // Propagate the error
@@ -168,7 +182,18 @@ export class UserService {
       })
     );
   }
-  updateStatus(status: string): Observable<any> {
-    return this.http.patch<any>(`${this.endpointAuth}/status`, { status });
+
+  initializeUser(user: User) {
+    this._user.set(user);
+    this._trackActivity();
+  }
+  updateState(status: string): Observable<User> {
+    console.log("hello service");
+    
+    return this.http.patch<User>(`${this.endpointAuth}/status`, { status }).pipe(
+      tap(updatedUser => {
+        this._user.update(u => ({ ...u!, status }));
+      })
+    );
   }
 }

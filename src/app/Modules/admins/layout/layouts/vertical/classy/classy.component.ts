@@ -1,5 +1,5 @@
 
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import {  Router, RouterOutlet } from '@angular/router';
@@ -25,7 +25,6 @@ import { SideNavService } from '../../../../../../Shared/Services/sideNav.servic
     templateUrl: './classy.component.html',
     encapsulation: ViewEncapsulation.None,
     imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, ShortcutsComponent, SearchComponent, UserComponent],
-    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
 })
 export class ClassyLayoutComponent implements OnInit, OnDestroy
@@ -48,36 +47,32 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     )
     {
     }
+
+    @HostListener('window:beforeunload', ['$event'])
+    onBeforeUnload(event: BeforeUnloadEvent) {
+      // Synchronous “offline” ping so the browser doesn’t cancel it
+      const url = `${this._userService.endpointAuth}/status`;
+      const data = JSON.stringify({ status: 'not-visible' });
+      navigator.sendBeacon(url, data);
+    }
     async ngOnInit()
     {
 
         console.log(this._authService.getToken())
 
-         this._userService.get().subscribe(
-          {
-            next : (res)=>{
-              this.user = this._userService.user$!;
-              this.showUser=true;
-              this.email=this.user.email!;
-
-              if(this.user.status != "online"){
-                this._userService.updateStatus("online").subscribe(
-                    (res)=>{
-                        this.user.status = "online";
-                        this._cdr.markForCheck();
-
-                    }
-                )
-              }
-              
-              console.log(this.user);
-
+        this._userService.get().subscribe({
+            next: (res) => {
+              this._userService.initializeUser(res);
+              this.showUser = true;
+              this._userService.updateState('online').subscribe(
+                (res) => {
+                    this._cdr.markForCheck();
+                }
+              );
             },
-            error : (err)=>{
-              console.error(err);
-            }
-          }
-        )
+            error: (err) => console.error(err)
+          });
+
          this.menuService.getMenu().subscribe({
             next: (data) => {
                 this.navigation = data.menu;

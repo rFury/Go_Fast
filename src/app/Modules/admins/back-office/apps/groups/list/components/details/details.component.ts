@@ -54,7 +54,7 @@ export class DetailsComponent implements OnInit {
     group = new Group();
     filteredList:Feature[][] = [];
     groupFeature: GroupFeature[];
-    featureId: Feature[] = [];
+    features: Feature[] = [];
     listFeature: Feature[] = [];
     ngOnInit(): void {
         if (this.id) {
@@ -67,8 +67,10 @@ export class DetailsComponent implements OnInit {
                 next: (result:[Group, GroupFeature[], Feature[] ]) => {
                     this.group = result[0];
                     this.groupFeature = result[1];
+                    console.log(result[1]);
+                    
                     this.filteredList = this.listFeature.map(() => this.listFeature);
-                    this.featureId = this.groupFeature
+                    this.features = this.groupFeature
                     .map((value) => value.featureId)
                     .filter((feature): feature is Feature => feature !== undefined);
                 console.log(this.groupFeature);
