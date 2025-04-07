@@ -65,7 +65,7 @@ export class UserComponent implements OnInit, OnDestroy {
     this.user.status = status;
     // Update the user
     this._userService
-      .updateState(this.user.status)
+      .updateStatus(this.user.status)
       .subscribe();
       console.log(this.user);
 

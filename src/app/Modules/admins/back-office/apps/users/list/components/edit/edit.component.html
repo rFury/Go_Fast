@@ -44,16 +44,28 @@
                         <!-- name -->
                         <div class="sm:col-span-3">
                             <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                                <mat-label class="capitalize">{{ 'name' }}</mat-label>
-                                <input [(ngModel)]="user.name" matInput name="name" type="text" required />
+                              <mat-label class="capitalize">{{ 'First Name' }}</mat-label>
+                              <input [(ngModel)]="user.first_name" matInput name="first_name" type="text" required />
                             </mat-form-field>
-                            @if ( myForm.controls['name'] && (myForm.controls['name'].dirty || myForm.submitted) &&
-                            myForm.controls['name'].hasError('required') ) {
-                                <mat-error>
-                                    {{ 'This field is required' }}
-                                </mat-error>
+                            @if ( myForm.controls['first_name'] && (myForm.controls['first_name'].dirty || myForm.submitted) &&
+                            myForm.controls['first_name'].hasError('required') ) {
+                            <mat-error>
+                              {{ 'This field is required' }}
+                            </mat-error>
                             }
-                        </div>
+                          </div>
+                          <div class="sm:col-span-3">
+                            <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+                              <mat-label class="capitalize">{{ 'Last Name' }}</mat-label>
+                              <input [(ngModel)]="user.last_name" matInput name="last_name" type="text" required />
+                            </mat-form-field>
+                            @if ( myForm.controls['last_name'] && (myForm.controls['last_name'].dirty || myForm.submitted) &&
+                            myForm.controls['last_name'].hasError('required') ) {
+                            <mat-error>
+                              {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                          </div>
                         <!-- email -->
                         <div class="sm:col-span-3">
                             <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">

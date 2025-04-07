@@ -1,5 +1,5 @@
 
-import { Component, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import {  Router, RouterOutlet } from '@angular/router';
@@ -25,6 +25,7 @@ import { SideNavService } from '../../../../../../Shared/Services/sideNav.servic
     templateUrl: './classy.component.html',
     encapsulation: ViewEncapsulation.None,
     imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, ShortcutsComponent, SearchComponent, UserComponent],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     standalone: true,
 })
 export class ClassyLayoutComponent implements OnInit, OnDestroy
@@ -32,6 +33,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     protected _authService=inject(SuperAuthService);
     protected _userService=inject(UserService);
     protected _sideNavService=inject(SideNavService);
+    private _cdr = inject(ChangeDetectorRef);
     showUser:boolean = false;
     isScreenSmall!: boolean;
     navigation!: FuseNavigationItem[];
@@ -57,6 +59,16 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
               this.user = this._userService.user$!;
               this.showUser=true;
               this.email=this.user.email!;
+
+              if(this.user.status != "online"){
+                this._userService.updateStatus("online").subscribe(
+                    (res)=>{
+                        this.user.status = "online";
+                        this._cdr.markForCheck();
+
+                    }
+                )
+              }
               
               console.log(this.user);
 

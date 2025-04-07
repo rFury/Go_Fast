@@ -53,13 +53,13 @@ export class AddComponent implements OnInit {
     listFeatureType = listFeatureType;
     filteredListIcons : icon[] = [];
     filteredListFeature : icon[] = [];
-    listIcons = [];
+    listIcons :icon[] = [];
     divider: string;
     iconFilterControl: FormControl<any> = new FormControl();
 
   ngOnInit(): void {
-    this.listIcons != material;
-    this.filteredListIcons != material;
+    this.listIcons = material;
+    this.filteredListIcons = material;
     this._loadingService.show();
     forkJoin([
         this._featureService.getFeatureParent()
