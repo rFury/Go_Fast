@@ -8,6 +8,7 @@ import { AuthForgotPasswordComponent } from './forgot-password/forgot-password.c
 import { AuthResetPasswordComponent } from './reset-password/reset-password.component';
 import { noAuthGuard } from '../../Shared/Guards/noAuth.guard';
 import backOfficeRoutes from './back-office/back-office.routes';
+import { tokenGuard } from '../../Shared/Guards/token.guard';
 
 export default [
   {
@@ -73,7 +74,7 @@ export default [
         data: {
           layout: 'empty',
         },
-        canActivate: [noAuthGuard],
+        canActivate: [noAuthGuard,tokenGuard],
       },
     ],
   },

@@ -54,6 +54,8 @@ export class AddComponent implements OnInit{
         ]).subscribe({
             next:(result: [Group[]]) => {
                 this.listGroups = result[0];
+                console.log(this.listGroups);
+                
                 this._loadingService.hide();
             },
             error: () => {

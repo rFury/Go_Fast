@@ -27,6 +27,7 @@ import { UserService } from '../../../Shared/Services/user.service';
 import { AlertType } from '../../../Shared/Components/alert/alert.types';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
 import { CodeInputModule } from 'angular-code-input';
+import { query } from '@angular/animations';
 
 @Component({
   selector: 'auth-sign-in',
@@ -177,10 +178,12 @@ export class SignInComponent implements OnInit {
                 this.btn=true;
               }else if(err.status == 403 || err.status == 402) {
                 this._router.navigate(['/admin/sign-in']);
-              }else if (err.status ===455){
+              }else if (err.status ===455){                
                 this._router.navigate(['/admin/reset-password'],{
                   queryParams: {
-                    email: this.signInForm.get('email')?.value 
+                    email: this.signInForm.get('email')?.value, 
+                    token : err.error.token,
+                    type : true
                   }
                 })
               }
