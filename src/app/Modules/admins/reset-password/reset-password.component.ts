@@ -49,6 +49,8 @@ export class AuthResetPasswordComponent implements OnInit {
   resetPasswordForm!: UntypedFormGroup;
   showAlert: boolean = false;
   email: string = '';
+  token : string = '';
+  type : boolean = false;
 
   constructor(
     private _authService: SuperAuthService,
@@ -60,6 +62,8 @@ export class AuthResetPasswordComponent implements OnInit {
 
   ngOnInit(): void {
     this.email = this._route.snapshot.queryParamMap.get('email')!;
+    this.token = this._route.snapshot.queryParamMap.get('token')!;
+    this.type = Boolean(this._route.snapshot.queryParamMap.get('type'));
 
     this.resetPasswordForm = this._formBuilder.group(
       {
@@ -86,7 +90,7 @@ export class AuthResetPasswordComponent implements OnInit {
 
     // Send the request to the server
     this._authService
-      .resetPassword(this.resetPasswordForm.get('password')!.value)
+      .updatePassword(this.resetPasswordForm.get('password')!.value,this.token)
       .pipe(
         finalize(() => {
           // Re-enable the form
@@ -95,8 +99,6 @@ export class AuthResetPasswordComponent implements OnInit {
           // Reset the form
           this.resetPasswordNgForm.resetForm();
 
-          // Show the alert
-          this.showAlert = true;
         })
       )
       .subscribe(
@@ -115,6 +117,7 @@ export class AuthResetPasswordComponent implements OnInit {
             type: 'error',
             message: 'Something went wrong, please try again.',
           };
+          this.showAlert = true;
         }
       );
   }

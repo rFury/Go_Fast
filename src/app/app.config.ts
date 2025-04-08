@@ -10,7 +10,7 @@ import { provideIcons } from './Modules/admins/icons/icons.provider';
 import { provideFuse } from './Shared/Services/fuse.provider';
 import { authInterceptor } from './Shared/Interceptors/http-request.interceptor';
 import { SuperAuthService } from './Shared/Services/super-auth-service.service';
-import { LoadingInterceptor } from './Shared/Interceptors/interceptors/http-loader.interceptor';
+import { LoadingInterceptor } from './Shared/Interceptors/http-loader.interceptor';
 
 export const appConfig: ApplicationConfig = {
     providers: [

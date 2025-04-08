@@ -2,7 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '../Models/User.model';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, of, switchMap, throwError } from 'rxjs';
+import { map, Observable, of, switchMap, throwError } from 'rxjs';
 import { auth_conf } from '../Models/auth-confirmation.model';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
@@ -42,6 +42,18 @@ export class SuperAuthService {
         this.saveToken(response.token);
         const connectedUser = this.decodeToken();
         this._userService._defaultLink.next(connectedUser?.defaultLink);
+        return of(response);
+      })
+    );;
+  }
+
+  updatePassword(password: string,token:string): Observable<any> {
+    return this._httpClient.patch(`${this.apiUrl}/update-password`, {token,password})
+    .pipe(
+      switchMap((response: any) => {
+        this.saveToken(response.token);
+        const connectedUser = this.decodeToken();
+        this._userService._defaultLink.next("/admin/"+connectedUser?.defaultLink);
         return of(response);
       })
     );;
@@ -135,5 +147,11 @@ export class SuperAuthService {
       return of(false);
     }
     return of(true);
+  }
+
+  checkToken(token: string): Observable<boolean> {
+    return this._httpClient.post<{ valid: boolean }>(`${this.apiUrl}/check-token`,{token}).pipe(
+      map(response => response.valid)
+    );
   }
 }
