@@ -1,33 +1,36 @@
-    <div class="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
-      <mat-card class="max-w-md w-full text-center p-8 shadow-xl">
-        <div class="space-y-6">
-          <!-- Icon -->
-          <div class="text-red-500 mx-auto">
-            <mat-icon class="icon-size-20" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
-          </div>
-  
-          <!-- Content -->
-          <div class="space-y-2">
-            <h1 class="text-4xl font-bold text-gray-800 dark:text-gray-200">403</h1>
-            <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300">
-              Access Denied
-            </h2>
-            <p class="text-gray-500 dark:text-gray-400">
-              You don't have permission to view these features. Please contact your administrator 
-              or return to the previous page.
-            </p>
-          </div>
-  
-          <!-- Action Button -->
-          <button 
-            mat-raised-button
-            color="warn"
-            class="w-full sm:w-auto"
-            [routerLink]="['/']"
-          >
-            <mat-icon [svgIcon]="'heroicons_outline:arrow-left'" class="mr-2"></mat-icon>
-            Return to Safety
-          </button>
-        </div>
-      </mat-card>
+<div class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-purple-100 via-blue-100 to-pink-100 dark:from-gray-800 dark:via-gray-900 dark:to-black">
+  <mat-card class="max-w-md w-full text-center p-10 shadow-2xl rounded-3xl bg-white dark:bg-gray-800">
+    <div class="space-y-8">
+      
+      <!-- Icon -->
+      <div class="text-red-500 mx-auto">
+        <mat-icon class="icon-size-20 scale-110" [svgIcon]="'heroicons_outline:lock-closed'"></mat-icon>
+      </div>
+
+      <!-- Content -->
+      <div class="space-y-2">
+        <h1 class="text-5xl font-extrabold text-gray-800 dark:text-gray-100">403</h1>
+        <h2 class="text-2xl font-semibold text-red-600 dark:text-red-400">
+          Access Denied
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400 text-base">
+          You don't have permission to view this page. 
+          Please contact your administrator or return to safety.
+        </p>
+      </div>
+
+      <!-- Action Button -->
+      <button 
+        mat-raised-button
+        class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold rounded-xl shadow-md hover:from-red-600 hover:to-pink-600 transition-all duration-300"
+        [routerLink]="['/admin']"
+      >
+      <div class="flex">
+        <mat-icon [svgIcon]="'heroicons_outline:arrow-left'" class="mr-2"></mat-icon>
+        Return to Safety
+      </div>
+      </button>
+
     </div>
+  </mat-card>
+</div>

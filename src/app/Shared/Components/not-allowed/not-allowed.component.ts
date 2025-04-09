@@ -7,7 +7,6 @@ import {MatCardModule} from '@angular/material/card';
   selector: 'app-not-allowed',
   imports: [MatIcon,RouterLink,MatCardModule],
   templateUrl: './not-allowed.component.html',
-  styleUrl: './not-allowed.component.css'
 })
 export class NotAllowedComponent {
 

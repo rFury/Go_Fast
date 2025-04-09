@@ -7,6 +7,7 @@ import { User } from '../Models/User.model';
 import { catchError, map, tap } from 'rxjs/operators';
 import { FeatureAuth } from '../Models/FeatureAuth.model';
 import { Pagination } from '../Models/Pagination.model';
+import { FeatureActions } from '../enums/feature-actions';
 
 @Injectable({
   providedIn: 'root',
@@ -17,9 +18,7 @@ export class UserService {
   private _statusTimeout: any;
   private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
-  _features: BehaviorSubject<FeatureAuth[] | null> = new BehaviorSubject<
-    FeatureAuth[] | null
-  >(null);
+  features=signal<FeatureAuth[] | null>(null);
   http = inject(HttpClient);
   router = inject(Router);
 
@@ -55,15 +54,10 @@ export class UserService {
     return this._defaultLink;
   }
 
-  set features(value: FeatureAuth[]) {
-    this._features.next(value);
-  }
 
-  get features$(): BehaviorSubject<FeatureAuth[] | null> {
-    return this._features;
-  }
-  checkPermission(permissions: FeatureAuth[]): boolean {
-    const featuresAuth: FeatureAuth[] | null = this.features$?.getValue();
+
+  checkPermissions(permissions: FeatureAuth[]): boolean {
+    const featuresAuth: FeatureAuth[] | null = this.features();
     let permission: FeatureAuth;
     for (permission of permissions) {
       const fa = featuresAuth?.find(
@@ -83,6 +77,15 @@ export class UserService {
     }
     return true;
   }
+
+  checkPermission(code: string, action: string): boolean {
+    const featuresAuth = this.features();
+    return !!featuresAuth?.some(
+      (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
+    );
+  }
+  
+  
 
   get(): Observable<User> {
     return this.http.get<User>(`${this.endpointAuth}/me`).pipe(

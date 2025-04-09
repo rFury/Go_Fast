@@ -17,7 +17,7 @@
          <button
              class="mr-2 text-blue-500 hover:bg-blue-500 hover:text-gray-900 transition-all duration-400"
              mat-stroked-button
-             (click)="addGroup()">
+             (click)="addGroup()" *hasPermission="['groups','create']">
             <span class="mx-1.5 block">{{ 'Add' }}</span>
          </button>
       </div>
@@ -57,18 +57,18 @@
 
                       </button>
                       <mat-menu #budgetMenu="matMenu">
-                        <button mat-menu-item class="flex justify-between" (click)="openShow(row)">
+                        <button mat-menu-item class="flex justify-between" (click)="openShow(row)" *hasPermission="['groups','read']">
                           <span class="ml-2 mr-1  block">{{ 'Show' }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
                         </button>
-                        <button mat-menu-item class="flex justify-between" (click)="openEdit(row)">
+                        <button mat-menu-item class="flex justify-between" (click)="openEdit(row)" *hasPermission="['groups','update']">
                           <span class="ml-2 mr-1  block">{{ 'Edit' }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
                         </button>
                         <button
                           mat-menu-item
                           class="flex justify-between"
-                          (click)="deleteGroup(row)"
+                          (click)="deleteGroup(row)" *hasPermission="['groups','delete']"
                         >
                           <span class="ml-2 mr-1 block">{{ 'Delete' }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>

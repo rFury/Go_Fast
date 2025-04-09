@@ -9,6 +9,7 @@ import { AuthResetPasswordComponent } from './reset-password/reset-password.comp
 import { noAuthGuard } from '../../Shared/Guards/noAuth.guard';
 import backOfficeRoutes from './back-office/back-office.routes';
 import { tokenGuard } from '../../Shared/Guards/token.guard';
+import { NotAllowedComponent } from '../../Shared/Components/not-allowed/not-allowed.component';
 
 export default [
   {
@@ -75,6 +76,13 @@ export default [
           layout: 'empty',
         },
         canActivate: [noAuthGuard,tokenGuard],
+      },
+      {
+        path: 'unauthorized',
+        component: NotAllowedComponent,
+        data: {
+          layout: 'empty',
+        },
       },
     ],
   },

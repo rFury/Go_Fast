@@ -168,7 +168,7 @@ export class SignInComponent implements OnInit {
                 'email',
                 this.signInForm?.get('email')?.value
               );
-              this._router.navigateByUrl(redirectURL);
+              this._router.navigateByUrl("/admin/"+redirectURL);
             },
             (err) => {
               if (err.status == 405) {

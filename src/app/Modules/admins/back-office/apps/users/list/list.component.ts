@@ -16,6 +16,7 @@ import { LoadingService } from '../../../../../../Shared/Services/loading.servic
 import { UserService } from '../../../../../../Shared/Services/user.service';
 import { CommonModule } from '@angular/common';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-list',
@@ -34,6 +35,7 @@ import { SideNavService } from '../../../../../../Shared/Services/sideNav.servic
         MatMenu,
         MatMenuItem,
         MatPaginator,
+        HasPermissionDirective,
     ],
 })
 export class ListComponent implements OnInit {
