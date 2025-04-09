@@ -76,7 +76,11 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
          this.menuService.getMenu().subscribe({
             next: (data) => {
                 this.navigation = data.menu;
-                console.log('this.navigation', this.navigation)
+                this._userService.features.set(data.features)
+                console.log(this._userService.features())
+                console.log('navigation', this.navigation)
+                console.log('feature', data.features)
+
             },
             error: () => {},
         });

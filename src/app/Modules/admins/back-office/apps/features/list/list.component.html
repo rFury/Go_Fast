@@ -17,7 +17,7 @@
          <button
              class="mr-2 text-blue-500 hover:bg-blue-500 hover:text-gray-900 transition-all duration-400"
              mat-stroked-button
-             (click)="addFeature()">
+             (click)="addFeature()" *hasPermission="['features','create']">
             <span class="mx-1.5 block">{{ 'Add'  }}</span>
          </button>
       </div>
@@ -80,18 +80,18 @@
 
                       </button>
                       <mat-menu #budgetMenu="matMenu">
-                        <button mat-menu-item class="flex justify-between" (click)="openShow(feature)">
+                        <button mat-menu-item class="flex justify-between" (click)="openShow(feature)" *hasPermission="['features','read']">
                           <span class="ml-2 mr-1  block">{{ 'Show'  }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
                         </button>
-                        <button mat-menu-item class="flex justify-between" (click)="openEdit(feature)">
+                        <button mat-menu-item class="flex justify-between" (click)="openEdit(feature)" *hasPermission="['features','update']">
                           <span class="ml-2 mr-1  block">{{ 'Edit'  }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
                         </button>
                         <button
                           mat-menu-item
                           class="flex justify-between"
-                          (click)="deleteFeature(feature)"
+                          (click)="deleteFeature(feature)" *hasPermission="['features','delete']"
                         >
                           <span class="ml-2 mr-1 block">{{ 'Delete'  }}</span>
                           <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>

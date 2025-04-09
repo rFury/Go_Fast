@@ -15,6 +15,7 @@ import { GroupService } from '../../../../../../Shared/Services/group.service';
 import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
 import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.model';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 
 @Component({
@@ -33,6 +34,7 @@ import { SideNavService } from '../../../../../../Shared/Services/sideNav.servic
         MatMenu,
         MatMenuItem,
         MatPaginator,
+        HasPermissionDirective
     ],
 })
 export class ListComponent implements OnInit {

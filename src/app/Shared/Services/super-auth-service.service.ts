@@ -18,6 +18,7 @@ export class SuperAuthService {
   private isloggedin = signal<boolean>(false);
   private _httpClient = inject(HttpClient);
   private _userService = inject(UserService);
+  private _router=inject(Router);
 
   constructor() {
     this.loadToken();
@@ -81,6 +82,9 @@ export class SuperAuthService {
   signOut(): Observable<any> {
     this.removeToken();
     return of(true);
+  }
+  unauthorized(){
+    this._router.navigate['/admin/unauthorized'];
   }
   /*requestResetPassword(email: string): Observable<auth_conf> {
       return this.http.post<auth_conf>(`${this.apiUrl}/reset-password`, { email });

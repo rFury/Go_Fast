@@ -22,7 +22,8 @@ import { FeatureService } from '../../../../../../Shared/Services/feature.servic
 import { LoadingService } from '../../../../../../Shared/Services/loading.service';
 import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.model';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
-
+import { UserService } from '../../../../../../Shared/Services/user.service';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-list',
@@ -43,12 +44,14 @@ import { SideNavService } from '../../../../../../Shared/Services/sideNav.servic
         MatLabel,
         MatOption,
         MatSelect,
+        HasPermissionDirective,
     ],
 })
 export class ListComponent implements OnInit {
   //********* INJECT SERVICES ***********//
   _featureService= inject(FeatureService);
   _router= inject(Router);
+  _userService=inject(UserService);
   _fuseConfirmationService= inject(FuseConfirmationService);
   _route= inject(ActivatedRoute);
   _loadingService = inject(LoadingService)
