@@ -19,12 +19,14 @@ import { ShortcutsComponent } from "../../../common/shortcuts/shortcuts.componen
 import { SearchComponent } from "../../../common/search/search.component";
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+
 
 @Component({
     selector: 'classy-layout',
     templateUrl: './classy.component.html',
     encapsulation: ViewEncapsulation.None,
-    imports: [FuseLoadingBarComponent, FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, ShortcutsComponent, SearchComponent, UserComponent],
+    imports: [FuseLoadingBarComponent,MatProgressSpinnerModule, FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, ShortcutsComponent, SearchComponent, UserComponent],
     standalone: true,
 })
 export class ClassyLayoutComponent implements OnInit, OnDestroy
@@ -57,6 +59,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     }
     async ngOnInit()
     {
+        this.isLoading=true;
 
         console.log(this._authService.getToken())
 
@@ -83,6 +86,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
 
             },
             error: () => {},
+            complete:() => {
+                this.isLoading=false;
+            },
         });
 
         this._fuseMediaWatcherService.onMediaChange$

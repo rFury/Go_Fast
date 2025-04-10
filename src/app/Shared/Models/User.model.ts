@@ -16,6 +16,7 @@ export class User {
   groupId?: Group;
   status?: string;
   previousStatus?: string;
+code?: string;
 
 }
 

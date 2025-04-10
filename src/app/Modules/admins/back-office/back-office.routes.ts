@@ -4,6 +4,7 @@ import featuresRouting from './apps/features/features.routing';
 import groupsRouting from './apps/groups/groups.routing';
 import usersRouting from './apps/users/users.routing';
 import { FeatureCodes } from '../../../Shared/enums/feature-codes';
+import userFeaturesRouting from './apps/user-features/user-features-routing';
 
 export default [
   {
@@ -33,6 +34,14 @@ export default [
         data: {
           breadcrumb: 'Users',
           feature: FeatureCodes.users,
+      },
+      },
+      {
+        path: 'userfeatures',
+        loadChildren: () => userFeaturesRouting,
+        data: {
+          breadcrumb: 'UserFeatures',
+          feature: FeatureCodes.userFeatures,
       },
       },
     ],

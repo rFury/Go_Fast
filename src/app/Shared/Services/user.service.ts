@@ -97,6 +97,9 @@ export class UserService {
       })
     );
   }
+  getAll(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.endpointAuth}/all`)
+  }
 
   changePassword(
     password: string,

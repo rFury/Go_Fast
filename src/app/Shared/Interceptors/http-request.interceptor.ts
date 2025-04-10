@@ -28,6 +28,7 @@ export const authInterceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn):
 
                 location.reload();
             }else if (error instanceof HttpErrorResponse && error.status === 403){
+                console.log(error);
                 router.navigate(['/admin/unauthorized'])
             }
 
