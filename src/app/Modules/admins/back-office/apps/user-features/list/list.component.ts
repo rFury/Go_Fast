@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
 import { MatSort, MatSortHeader } from '@angular/material/sort';
@@ -17,6 +17,8 @@ import { UserService } from '../../../../../../Shared/Services/user.service';
 import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
 import { FuseMediaWatcherService } from '../../../../../../Shared/Services/media-watcher/media-watcher.service';
 import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.model';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
+import { UserFeaturesService } from '../../../../../../Shared/Services/userFeature.service';
 
 @Component({
   selector: 'app-list',
@@ -24,7 +26,7 @@ import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.mode
   styleUrls: ['./list.component.scss'],
   standalone: true,
   imports: [
-    MatProgressBar,
+    HasPermissionDirective,
     MatFormField,
     MatIcon,
     MatPrefix,
@@ -61,6 +63,8 @@ export class ListComponent implements OnInit {
   sortCode: string;
   sortName: string;
   sortEmail: string;
+
+  private userFeaturesService=inject(UserFeaturesService)
 
   constructor(
     private userService: UserService,
@@ -102,7 +106,7 @@ export class ListComponent implements OnInit {
   }
   getList(): void {
     this.isLoading = true;
-    /*this.userFeaturesService
+    this.userFeaturesService
       .getUserWithFeatures(
         this.currentSize,
         this.currentPage,
@@ -120,7 +124,7 @@ export class ListComponent implements OnInit {
         () => {
           this.isLoading = false;
         },
-      );*/
+      );
   }
   refresh(): void {
     clearTimeout(this.typingTimer);
@@ -201,9 +205,9 @@ export class ListComponent implements OnInit {
     confirmation.afterClosed().subscribe((result) => {
       // If the confirm button pressed...
       if (result === 'confirmed') {
-        /*this.userFeaturesService.deleteUser(user._id).subscribe(() => {
+        this.userFeaturesService.deleteUserFeature(user._id).subscribe(() => {
           this.getList();
-        });*/
+        });
       }
     });
   }

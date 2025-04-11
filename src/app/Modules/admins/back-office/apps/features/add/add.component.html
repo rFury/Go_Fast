@@ -40,7 +40,7 @@
                 [color]="'primary'" 
                 type="submit" 
                 (click)="addFeature(myForm)" 
-                class="flex items-center gap-1 hover:bg-indigo-600">
+                class="flex items-center gap-1 hover:bg-indigo-600" *hasPermission="['features','create']">
                 <mat-icon>save</mat-icon>
                 <span>Save</span>
               </button>

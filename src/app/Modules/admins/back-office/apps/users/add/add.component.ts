@@ -18,6 +18,7 @@ import { GroupService } from '../../../../../../Shared/Services/group.service';
 import { LoadingService } from '../../../../../../Shared/Services/loading.service';
 import { UserService } from '../../../../../../Shared/Services/user.service';
 import { MatIcon } from '@angular/material/icon';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-details',
@@ -34,7 +35,8 @@ import { MatIcon } from '@angular/material/icon';
         ReactiveFormsModule,
         MatOption,
         MatSelect,
-        MatIcon
+        MatIcon,
+        HasPermissionDirective
     ],
 })
 export class AddComponent implements OnInit{

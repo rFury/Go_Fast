@@ -17,6 +17,7 @@ import { FuseConfirmationService } from '../../../../../../Shared/Components/con
 import { LoadingService } from '../../../../../../Shared/Services/loading.service';
 import { material } from '../../../../icons/data';
 import { icon } from '../../../../../../Shared/enums/iconType';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-details',
@@ -35,6 +36,7 @@ import { icon } from '../../../../../../Shared/enums/iconType';
         MatOption,
         ReactiveFormsModule,
         MatIcon,
+        HasPermissionDirective
     ],
 })
 export class AddComponent implements OnInit {

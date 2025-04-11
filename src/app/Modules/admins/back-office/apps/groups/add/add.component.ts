@@ -19,6 +19,7 @@ import { Group } from '../../../../../../Shared/Models/Group.model';
 import { GroupFeature } from '../../../../../../Shared/Models/GroupFeature.model';
 import { GroupService } from '../../../../../../Shared/Services/group.service';
 import { LoadingService } from '../../../../../../Shared/Services/loading.service';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-details',
@@ -41,6 +42,7 @@ import { LoadingService } from '../../../../../../Shared/Services/loading.servic
     MatRadioButton,
     MatIcon,
     MatIconButton,
+    HasPermissionDirective
   ],
 })
 export class AddComponent implements OnInit {

@@ -25,6 +25,7 @@ import { UserFeature } from '../../../../../../Shared/Models/UserFeature.model';
 import { FeatureService } from '../../../../../../Shared/Services/feature.service';
 import { SnackBarService } from '../../../../../../Shared/Services/snack-bar.service';
 import { UserFeaturesService } from '../../../../../../Shared/Services/userFeature.service';
+import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-details',
@@ -49,6 +50,7 @@ import { UserFeaturesService } from '../../../../../../Shared/Services/userFeatu
     MatIconButton,
     MatIcon,
     AsyncPipe,
+    HasPermissionDirective
   ],
 })
 export class AddComponent implements OnInit {

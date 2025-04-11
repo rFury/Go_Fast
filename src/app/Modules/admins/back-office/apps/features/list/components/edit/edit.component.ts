@@ -18,6 +18,7 @@ import { LoadingService } from '../../../../../../../../Shared/Services/loading.
 import { material } from '../../../../../../icons/data';
 import { icon } from '../../../../../../../../Shared/enums/iconType';
 import { FeatureType, listFeatureType } from '../../../../../../../../Shared/enums/featureType';
+import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-edit',
@@ -35,6 +36,7 @@ import { FeatureType, listFeatureType } from '../../../../../../../../Shared/enu
     MatSelectTrigger,
     MatOption,
     ReactiveFormsModule,
+    HasPermissionDirective
   ],
 })
 export class EditComponent implements OnInit {
