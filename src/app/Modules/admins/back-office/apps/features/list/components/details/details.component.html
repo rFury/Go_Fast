@@ -22,7 +22,7 @@
                     (click)="deleteFeature()"
                     type="button"
                     class="flex items-center gap-1" *hasPermission="['features','delete']">
-                    <mat-icon>delete</mat-icon>
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
                     <span>Delete</span>
                   </button>
               
@@ -33,7 +33,7 @@
                     type="submit" 
                     (click)="updateFeature()"
                     class="flex items-center gap-1 hover:bg-indigo-600" *hasPermission="['features','update']">
-                    <mat-icon>edit</mat-icon>
+                    <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
                     <span>Update</span>
                   </button>
                 </div>

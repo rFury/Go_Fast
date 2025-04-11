@@ -1,6 +1,8 @@
 import { Route } from '@angular/router';
 import { ListComponent } from './list/list.component';
 import { AddComponent } from './add/add.component';
+import { DetailsComponent } from './list/components/details/details.component';
+import { EditComponent } from './list/components/edit/edit.component';
 
 
 export default [
@@ -21,7 +23,7 @@ export default [
           breadcrumb: 'Add',
         },
       },
-      /*{
+      {
         path: ':id',
         children: [
           {
@@ -33,7 +35,7 @@ export default [
             component: EditComponent,
           },
         ],
-      },*/
+      },
     ],
   },
 ] as Route[];

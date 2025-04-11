@@ -6,6 +6,7 @@ export class UserFeature  {
     companyId?: string;
     userId?: User;
     featureId?:Feature;
+    title?:string;
     status: boolean;
     create: boolean;
     read: boolean;
@@ -16,3 +17,12 @@ export class UserFeature  {
     usersCreation?: User;
     usersLastUpdate?: User;
   }
+
+export class UserFeatureExpress{
+  _id?:string;
+  code?:string;
+  title?:string;
+  icon?:string;
+  status?:string;
+  link?:string;
+}

@@ -36,14 +36,14 @@
         <div
           class="group-grid grid z-10 top-0 shadow items-center gap-4 py-4 px-4 md:px-6 text-md font-semibold text-secondary bg-gray-50 dark:bg-black dark:bg-opacity-5"
           matSort matSortDisableClear>
-          <div class="flex cursor-pointer" [mat-sort-header]="'code'" (click)="updateSort('sortCode')">
-            <span class="capitalize">{{ 'code' }}</span>
-          </div>
           <div class="flex cursor-pointer" [mat-sort-header]="'name'" (click)="updateSort('sortName')">
             <span class="capitalize">{{ 'name' }}</span>
           </div>
           <div class="flex cursor-pointer" [mat-sort-header]="'email'" (click)="updateSort('sortEmail')">
             <span class="capitalize">{{ 'email' }}</span>
+          </div>
+          <div class="flex cursor-pointer" [mat-sort-header]="'user-features'">
+            <span class="capitalize">{{ 'user-features' }}</span>
           </div>
           <div class="hidden sm:flex"></div>
         </div>
@@ -54,13 +54,30 @@
               @for (user of displayedList?.data; track user) {
               <div class="group-grid grid items-center gap-4 py-4 px-4 md:px-6 border-b"
                 (click)="isScreenSmall ? openShow(user) : null">
-                <div class="truncate">{{ user.code }}</div>
                 <div class="truncate">{{ user.first_name+" "+user.last_name }}</div>
                 <div class="truncate">{{ user.email }}</div>
+                <div class="truncate">
+                  <div class="flex flex-wrap gap-2">
+                    @for (x of user.userFeatures; track x) {
+                      <div 
+                        class="flex items-center px-3 py-1 rounded-md text-lg font-medium cursor-pointer transition-colors"
+                        [ngClass]="{
+                          'bg-indigo-600 text-white hover:bg-indigo-400': x.status ,
+                          'bg-gray-100 text-gray-400': !x.status
+                        }"
+                        (click)="x.status ? nav(x.link, x._id) : null">
+                        <span class="w-6 h-6 flex items-center justify-center mr-1">
+                          <mat-icon class="icon-size-5 text-white">{{ x.icon }}</mat-icon>
+                        </span>
+                        <span class="truncate ">{{ x.title }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+                
                 <div class="hidden sm:flex">
                   <button class="mr-1" mat-icon-button [matMenuTriggerFor]="budgetMenu">
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:dots-vertical'"></mat-icon>
-                  </button>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:ellipsis-vertical'"></mat-icon> </button>
                   <mat-menu #budgetMenu="matMenu">
                     <button mat-menu-item class="flex justify-between" (click)="openShow(user)">
                       <span class="ml-2 mr-1 hidden sm:block">{{ 'Show' }}</span>
@@ -82,38 +99,38 @@
           </div>
         </div>
         <mat-paginator
-          class="sm:absolute sm:inset-x-0 sm:bottom-0 border-b sm:border-t sm:border-b-0 z-10 bg-gray-50 dark:bg-transparent"
-          [showFirstLastButtons]="true" (page)="pageChanged($event)" showFirstLastButtons
-          [length]="displayedList?.total" [pageSize]="currentSize"
-          [pageSizeOptions]="[5, 10, 20, 50, 100]"></mat-paginator>
+          class="sm:fixed sm:bottom-0 border-b sm:border-t sm:border-b-0 w-full bg-gray-50 dark:bg-transparent"
+          [showFirstLastButtons]="true" (page)="pageChanged($event)" [length]="displayedList?.total"
+          [pageSize]="currentSize" [pageSizeOptions]="[5, 10, 20, 50, 100]"
+          [class.left-64]="this._sideNavService.getOpen()" [class.pl-4]="this._sideNavService.getOpen()"
+          [class.left-0]="!this._sideNavService.getOpen()"></mat-paginator>
         }@else {
-          <div class="flex flex-1 flex-col items-center justify-center p-8 text-center">
-            <div class="max-w-md space-y-4">
-              <!-- Icon -->
-              <div class="mx-auto text-gray-400 dark:text-gray-500">
-                <mat-icon class="icon-size-20" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
-              </div>
-              
-              <!-- Text -->
-              <div class="space-y-2">
-                <h3 class="text-2xl font-bold tracking-tight text-gray-800 dark:text-gray-200">
-                  No User-features found
-                </h3>
-                <p class="text-gray-500 dark:text-gray-400">
-                  Start by creating a new user-feature or adjust your filters
-                </p>
-              </div>
-        
-              <!-- Action Button -->
-              <button 
-                class="mx-auto inline-flex items-center justify-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
-                mat-raised-button
-                (click)="addUser()">
-                <mat-icon [svgIcon]="'heroicons_outline:plus'" class="mr-2"></mat-icon>
-                Create New User-feature
-              </button>
+        <div class="flex flex-1 flex-col items-center justify-center p-8 text-center">
+          <div class="max-w-md space-y-4">
+            <!-- Icon -->
+            <div class="mx-auto text-gray-400 dark:text-gray-500">
+              <mat-icon class="icon-size-20" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
             </div>
+
+            <!-- Text -->
+            <div class="space-y-2">
+              <h3 class="text-2xl font-bold tracking-tight text-gray-800 dark:text-gray-200">
+                No User-features found
+              </h3>
+              <p class="text-gray-500 dark:text-gray-400">
+                Start by creating a new user-feature or adjust your filters
+              </p>
+            </div>
+
+            <!-- Action Button -->
+            <button
+              class="mx-auto inline-flex items-center justify-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+              mat-raised-button (click)="addUser()">
+              <mat-icon [svgIcon]="'heroicons_outline:plus'" class="mr-2"></mat-icon>
+              Create New User-feature
+            </button>
           </div>
+        </div>
         }
       </ng-container>
     </div>
