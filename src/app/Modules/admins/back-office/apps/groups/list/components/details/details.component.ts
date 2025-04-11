@@ -19,6 +19,7 @@ import { GroupFeature } from '../../../../../../../../Shared/Models/GroupFeature
 import { FeatureService } from '../../../../../../../../Shared/Services/feature.service';
 import { GroupService } from '../../../../../../../../Shared/Services/group.service';
 import { LoadingService } from '../../../../../../../../Shared/Services/loading.service';
+import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
 @Component({
     selector: 'app-details',
     templateUrl: './details.component.html',
@@ -39,6 +40,7 @@ import { LoadingService } from '../../../../../../../../Shared/Services/loading.
         MatSelect,
         MatSelectTrigger,
         MatSlideToggle,
+        HasPermissionDirective
     ],
 })
 export class DetailsComponent implements OnInit {

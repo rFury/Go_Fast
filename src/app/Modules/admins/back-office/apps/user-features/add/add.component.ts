@@ -1,24 +1,30 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { NgForm, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatOption } from '@angular/material/core';
-import { MatSelect, MatSelectTrigger } from '@angular/material/select';
-import { MatInput } from '@angular/material/input';
-import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
-import { MatButton, MatIconButton } from '@angular/material/button';
-import { FeatureService } from '../../../../../../Shared/Services/feature.service';
-import { forkJoin } from 'rxjs';
-import { MatTooltip } from '@angular/material/tooltip';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { MatRadioButton } from '@angular/material/radio';
+import { FormControl, NgForm, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIcon } from '@angular/material/icon';
+import { MatRadioButton } from '@angular/material/radio';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatOption } from '@angular/material/core';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { MatSelect, MatSelectChange, MatSelectTrigger } from '@angular/material/select';
+import { MatFormField, MatError } from '@angular/material/form-field';
+import { MatButton, MatIconButton } from '@angular/material/button';
+import { MatProgressBar } from '@angular/material/progress-bar';
+import { Observable, startWith } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { AsyncPipe } from '@angular/common';
 import { Animations } from '../../../../../../Shared/Animations/public-api';
+import { Router, ActivatedRoute } from '@angular/router';
+import { BreadcrumbService } from 'xng-breadcrumb';
+import { environment } from '../../../../../../../environments/environment';
 import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
+import { User } from '../../../../../../Shared/Models/User.model';
+import { UserService } from '../../../../../../Shared/Services/user.service';
 import { Feature } from '../../../../../../Shared/Models/Feature.model';
-import { Group } from '../../../../../../Shared/Models/Group.model';
-import { GroupFeature } from '../../../../../../Shared/Models/GroupFeature.model';
-import { GroupService } from '../../../../../../Shared/Services/group.service';
-import { LoadingService } from '../../../../../../Shared/Services/loading.service';
+import { UserFeature } from '../../../../../../Shared/Models/UserFeature.model';
+import { FeatureService } from '../../../../../../Shared/Services/feature.service';
+import { SnackBarService } from '../../../../../../Shared/Services/snack-bar.service';
+import { UserFeaturesService } from '../../../../../../Shared/Services/userFeature.service';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
@@ -26,82 +32,115 @@ import { HasPermissionDirective } from '../../../../../../Shared/directives/perm
   templateUrl: './add.component.html',
   styleUrls: ['./add.component.scss'],
   animations: Animations,
+  standalone: true,
   imports: [
     FormsModule,
+    MatProgressBar,
     MatButton,
     MatFormField,
-    MatLabel,
-    MatInput,
-    MatError,
     MatSelect,
     MatSelectTrigger,
-    MatOption,
+    NgxMatSelectSearchModule,
     ReactiveFormsModule,
+    MatOption,
+    MatError,
     MatTooltip,
     MatSlideToggle,
     MatRadioButton,
-    MatIcon,
     MatIconButton,
+    MatIcon,
+    AsyncPipe,
     HasPermissionDirective
   ],
 })
 export class AddComponent implements OnInit {
-  //********* INJECT SERVICES ***********//
-  _groupService = inject(GroupService);
-  _featureService = inject(FeatureService);
-  _router = inject(Router);
-  _fuseConfirmationService = inject(FuseConfirmationService);
-  _route = inject(ActivatedRoute);
-  _loadingService = inject(LoadingService);
-  //********* DECLARE CLASSES/ENUMS ***********//
-  group = new Group();
-  listFeature: Feature[] = [];
+  url = `${environment}/assets/`;
+  loading = false;
+  isLoading: any;
+  filteredListGroups: any;
   featureId: Feature[] = [];
-  filteredList: Feature[][] = [];
+  filteredList :Feature[][] = [];
+  listFeature: Feature[]=[];
   type: boolean[] = [true, true, true, true, true, true];
-  groupFeature: GroupFeature[] = [new GroupFeature()];
+  groupFeature: UserFeature[] = [new UserFeature()];
+  listUsers: User[];
+  filteredListUsers: Observable<User[]>;
+  user: User | null = new User();
+  userFilterControl: FormControl<any> = new FormControl();
+  private userFeaturesService=inject(UserFeaturesService)
+
+  constructor(
+    private featureService: FeatureService,
+    private userService: UserService,
+    private _router: Router,
+    private snackBarService: SnackBarService,
+    private _fuseConfirmationService: FuseConfirmationService,
+    private route: ActivatedRoute,
+    private breadcrumbService: BreadcrumbService,
+  ) {}
+
   ngOnInit(): void {
-    this._loadingService.show();
-    forkJoin([this._featureService.getAllFeature()]).subscribe({
-      next: (result: [Feature[]]) => {
-        this.listFeature = result[0];
-        this._loadingService.hide();
-      },
-      error: () => {
-        this._loadingService.hide();
-      },
-    });
+    this.breadcrumbService.set('home/userfeatures/add', 'Add');
+
+    this.userService.getAll().subscribe(
+      (res)=>{
+        this.listUsers = res;
+        this.filteredListUsers = this.userFilterControl.valueChanges.pipe(
+          startWith(''),
+          map((value) => this._filterUser(value)),
+        );
+      }
+    )
+    this.groupFeature[0] = {
+      list: true,
+      create: true,
+      read: true,
+      update: true,
+      delete: true,
+      status: true,
+      defaultFeature: false,
+    };
+  }
+
+  onUserSelected(event: MatSelectChange) {
+    if(this.user!=null){
+      this.featureService.getNotAllFeature(this.user._id!).subscribe(
+        (feature) => {
+          this.listFeature = feature;
+          this.filteredList.push(feature);
+        },
+        () => {},
+      )
+    }
+  }
+  _filterUser(value: string): User[] {
+    const filterValue = value.toLowerCase();
+    return this.listUsers.filter((user: User) => (user.first_name!+user.last_name!).toLowerCase().includes(filterValue));
   }
   createGroup(myForm: NgForm): void {
     if (myForm.valid) {
       if (!this.groupFeature[0].featureId?._id) {
-        console.log('Feature is required', 'error');
+        this.snackBarService.openSnackBar('Feature is required', 'error');
       } else {
         if (!this.groupFeature[this.groupFeature.length]) {
           this.groupFeature.splice(this.groupFeature.length, 1);
         }
-        if (
-          this.groupFeature.filter((value) => value.defaultFeature).length === 0
+        /*if (
+          this.groupFeature.filter((value) => value.defaultFeature).length === 0 &&
+          !this.user!.groupId
         ) {
-          console.log('Default feature is required', 'error');
-        } else {
-          this._groupService
-            .createOne(this.group, this.groupFeature)
-            .subscribe({
-              next: () => {
-                this._router
-                  .navigate([`../`], { relativeTo: this._route })
-                  .then();
-              },
-            });
-        }
+          this.snackBarService.openSnackBar('Default feature is required for this user', 'error');
+        } else {*/
+          this.userFeaturesService.creatUserFeatures(this.user!, this.groupFeature).subscribe(() => {
+            this._router.navigate([`../${this.user?._id}`], { relativeTo: this.route });
+          });
       }
     }
   }
 
   resetForm(myForm: NgForm, event) {
     event.stopPropagation();
-    if (myForm.pristine) {
+    if (myForm.pristine && this.featureId.length === 0) {
       myForm.resetForm();
     } else {
       // Open the confirmation dialog
@@ -121,14 +160,30 @@ export class AddComponent implements OnInit {
       confirmation.afterClosed().subscribe((result) => {
         // If the confirm button pressed...
         if (result === 'confirmed') {
-          myForm.resetForm();
+          this.user = null;
+          this.filteredList = [];
+          this.filteredList.push(this.listFeature);
+          this.featureId = [];
+          this.groupFeature = [
+            {
+              featureId: null!,
+              list: true,
+              create: true,
+              update: true,
+              read: true,
+              delete: true,
+              status: true,
+              defaultFeature: false,
+            },
+          ];
         }
       });
     }
   }
+
   cancelForm(myForm: NgForm) {
-    if (myForm.pristine) {
-      this._router.navigate([`../`], { relativeTo: this._route }).then();
+    if (myForm.pristine && this.featureId.length === 0) {
+      this._router.navigate([`../`], { relativeTo: this.route });
     } else {
       // Open the confirmation dialog
       const confirmation = this._fuseConfirmationService.open({
@@ -147,11 +202,12 @@ export class AddComponent implements OnInit {
       confirmation.afterClosed().subscribe((result) => {
         // If the confirm button pressed...
         if (result === 'confirmed') {
-          this._router.navigate([`../`], { relativeTo: this._route }).then();
+          this._router.navigate([`../`], { relativeTo: this.route });
         }
       });
     }
   }
+
   addRow(index, value): void {
     if (value) {
       this.featureId[index] = value;
@@ -162,7 +218,7 @@ export class AddComponent implements OnInit {
         this.groupFeature.length - 1 === index &&
         this.groupFeature.length !== this.listFeature.length
       ) {
-        this.groupFeature.push(new GroupFeature());
+        this.groupFeature.push(new UserFeature());
         this.groupFeature[index + 1] = {
           list: true,
           create: true,
@@ -177,10 +233,34 @@ export class AddComponent implements OnInit {
       this.deleteRow(index);
     }
   }
+
   deleteRow(index) {
     this.groupFeature.splice(index, 1);
     this.featureId.splice(index, 1);
+    if (this.groupFeature[this.groupFeature.length - 1].featureId) {
+      this.groupFeature.push({
+        featureId: null!,
+        list: true,
+        create: true,
+        update: true,
+        read: true,
+        delete: true,
+        status: true,
+        defaultFeature: false,
+      });
+    }
   }
+
+  /**
+   * Track by function for ngFor loops
+   *
+   * @param index
+   * @param item
+   */
+  trackByFn(index: number, item: any): any {
+    return item.id || index;
+  }
+
   grantAll(event) {
     event.stopPropagation();
     this.filteredList = this.listFeature.map(() => this.listFeature);
@@ -197,6 +277,7 @@ export class AddComponent implements OnInit {
     }));
     this.type = [true, true, true, true, true, true];
   }
+
   revokeAll(event) {
     event.stopPropagation();
     this.filteredList = [];
@@ -216,22 +297,23 @@ export class AddComponent implements OnInit {
     ];
     this.type = [false, false, false, false, false, false];
   }
+
   activate(type: string) {
     for (const group of this.groupFeature) {
       if (type === 'list') {
-        group.list = !this.type[0];
+        group.list = !this.type[0] ? true : false;
       }
       if (type === 'create') {
-        group.create = !this.type[1];
+        group.create = !this.type[1] ? true : false;
       }
       if (type === 'read') {
-        group.read = !this.type[2];
+        group.read = !this.type[2] ? true : false;
       }
       if (type === 'update') {
-        group.update = !this.type[3];
+        group.update = !this.type[3] ? true : false;
       }
       if (type === 'delete') {
-        group.delete = !this.type[4];
+        group.delete = !this.type[4] ? true : false;
       }
       if (type === 'status') {
         if (!this.type[5]) {
@@ -261,6 +343,7 @@ export class AddComponent implements OnInit {
       this.type[5] = !this.type[5];
     }
   }
+
   testActivate(type: string) {
     if (type === 'list' && this.type[0]) {
       this.type[0] = false;
@@ -277,16 +360,18 @@ export class AddComponent implements OnInit {
     if (type === 'delete' && this.type[4]) {
       this.type[4] = false;
     }
-    if (type === 'status' && this.type[5]) {
+    if (type === 'status' && this.type[4]) {
       this.type[5] = false;
     }
   }
+
   default(index) {
     this.groupFeature.map((value) => {
       value.defaultFeature = false;
     });
     this.groupFeature[index].defaultFeature = true;
   }
+
   checkDefault(index) {
     if (
       !this.groupFeature[index].featureId ||

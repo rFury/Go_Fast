@@ -41,6 +41,9 @@ export class FeatureService {
   getAllFeature(): Observable<Feature[]> {
     return this.http.get<Feature[]>(`${this.endpoint}/all`);
   }
+  getNotAllFeature(id:string): Observable<Feature[]> {
+    return this.http.get<Feature[]>(`${this.endpoint}/${id}/all`);
+  }
   deleteFeature(id: string): Observable<null> {
     return this.http.delete<null>(`${this.endpoint}/${id}`);
   }

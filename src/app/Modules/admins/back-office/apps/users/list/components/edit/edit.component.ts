@@ -13,6 +13,8 @@ import { User } from '../../../../../../../../Shared/Models/User.model';
 import { GroupService } from '../../../../../../../../Shared/Services/group.service';
 import { LoadingService } from '../../../../../../../../Shared/Services/loading.service';
 import { UserService } from '../../../../../../../../Shared/Services/user.service';
+import { MatIcon } from '@angular/material/icon';
+import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
 @Component({
   selector: 'app-edit',
   templateUrl: './edit.component.html',
@@ -27,6 +29,8 @@ import { UserService } from '../../../../../../../../Shared/Services/user.servic
         ReactiveFormsModule,
         MatOption,
         MatSelect,
+        MatIcon,
+        HasPermissionDirective
     ],
 })
 export class EditComponent implements OnInit {

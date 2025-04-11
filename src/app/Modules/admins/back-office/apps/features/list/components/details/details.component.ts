@@ -18,6 +18,7 @@ import { material } from '../../../../../../icons/data';
 import { method } from 'lodash';
 import { listFeatureStatus } from '../../../../../../../../Shared/enums/featureStatus';
 import { FeatureType, listFeatureType } from '../../../../../../../../Shared/enums/featureType';
+import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
 @Component({
   selector: 'app-details',
   templateUrl: './details.component.html',
@@ -35,6 +36,7 @@ import { FeatureType, listFeatureType } from '../../../../../../../../Shared/enu
         MatOption,
         ReactiveFormsModule,
         MatError,
+        HasPermissionDirective
     ],
 })
 export class DetailsComponent implements OnInit {

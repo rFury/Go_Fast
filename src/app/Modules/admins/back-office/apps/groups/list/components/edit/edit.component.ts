@@ -19,6 +19,7 @@ import { FeatureService } from '../../../../../../../../Shared/Services/feature.
 import { GroupService } from '../../../../../../../../Shared/Services/group.service';
 import { LoadingService } from '../../../../../../../../Shared/Services/loading.service';
 import { MatIcon } from '@angular/material/icon';
+import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
 @Component({
     selector: 'app-edit',
     templateUrl: './edit.component.html',
@@ -37,7 +38,8 @@ import { MatIcon } from '@angular/material/icon';
         MatSelectTrigger,
         MatSlideToggle,
         MatTooltip,
-        MatIcon
+        MatIcon,
+        HasPermissionDirective
     ],
 })
 export class EditComponent implements OnInit {
