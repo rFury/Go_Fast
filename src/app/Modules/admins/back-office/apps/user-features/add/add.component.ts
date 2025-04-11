@@ -26,6 +26,7 @@ import { FeatureService } from '../../../../../../Shared/Services/feature.servic
 import { SnackBarService } from '../../../../../../Shared/Services/snack-bar.service';
 import { UserFeaturesService } from '../../../../../../Shared/Services/userFeature.service';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
+import { GroupFeature } from '../../../../../../Shared/Models/GroupFeature.model';
 
 @Component({
   selector: 'app-details',
@@ -63,6 +64,7 @@ export class AddComponent implements OnInit {
   listFeature: Feature[]=[];
   type: boolean[] = [true, true, true, true, true, true];
   groupFeature: UserFeature[] = [new UserFeature()];
+  finalList:UserFeature[]=[];
   listUsers: User[];
   filteredListUsers: Observable<User[]>;
   user: User | null = new User();
@@ -122,18 +124,20 @@ export class AddComponent implements OnInit {
       if (!this.groupFeature[0].featureId?._id) {
         this.snackBarService.openSnackBar('Feature is required', 'error');
       } else {
-        if (!this.groupFeature[this.groupFeature.length]) {
-          this.groupFeature.splice(this.groupFeature.length, 1);
-        }
         /*if (
           this.groupFeature.filter((value) => value.defaultFeature).length === 0 &&
           !this.user!.groupId
         ) {
           this.snackBarService.openSnackBar('Default feature is required for this user', 'error');
         } else {*/
-          this.userFeaturesService.creatUserFeatures(this.user!, this.groupFeature).subscribe(() => {
-            this._router.navigate([`../${this.user?._id}`], { relativeTo: this.route });
-          });
+        const final:GroupFeature[] = this.groupFeature.filter((x)=>x.featureId!=null)
+        this.userFeaturesService.creatUserFeatures(this.user!, final).subscribe(() => {
+            this._router.navigate([`../`], { relativeTo: this.route });
+          },
+        ()=>{
+          console.log(this.groupFeature)
+
+        });
       }
     }
   }
@@ -251,12 +255,7 @@ export class AddComponent implements OnInit {
     }
   }
 
-  /**
-   * Track by function for ngFor loops
-   *
-   * @param index
-   * @param item
-   */
+
   trackByFn(index: number, item: any): any {
     return item.id || index;
   }

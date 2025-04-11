@@ -19,6 +19,8 @@ import { FuseMediaWatcherService } from '../../../../../../Shared/Services/media
 import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.model';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 import { UserFeaturesService } from '../../../../../../Shared/Services/userFeature.service';
+import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-list',
@@ -40,9 +42,11 @@ import { UserFeaturesService } from '../../../../../../Shared/Services/userFeatu
     MatMenu,
     MatMenuItem,
     MatPaginator,
+    CommonModule
   ],
 })
 export class ListComponent implements OnInit {
+      _sideNavService = inject(SideNavService);
   @ViewChild(MatPaginator) paginator: MatPaginator;
   filterOptions: FilterOptions = new FilterOptions();
   group: Group;
@@ -92,6 +96,10 @@ export class ListComponent implements OnInit {
     );
     this.getList();
   }
+
+  nav(link:string,id:string){
+    this._router.navigate([`/admin/dashboard/features/${id}`])
+  }
   pageChanged(event): void {
     let { pageIndex } = event;
     const { pageSize } = event;
@@ -108,17 +116,16 @@ export class ListComponent implements OnInit {
     this.isLoading = true;
     this.userFeaturesService
       .getUserWithFeatures(
-        this.currentSize,
-        this.currentPage,
-        this.filterOptions.sortCode,
-        this.filterOptions.sortName,
-        this.filterOptions.sortEmail,
-        this.filterOptions.search,
-        this.filterOptions.userFeatureId,
+        this.currentSize.toString(),
+        this.currentPage.toString(),
+        this.searchFilter
       )
       .subscribe(
         (res: Pagination<User>) => {
           this.displayedList = res;
+          this.displayedList.data
+          console.log(this.displayedList);
+          
           this.isLoading = false;
         },
         () => {

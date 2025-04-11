@@ -1,5 +1,6 @@
 import { Company } from "./Company.model";
 import { Group } from "./Group.model";
+import { UserFeature, UserFeatureExpress } from "./UserFeature.model";
 
 
 export class User {
@@ -16,8 +17,8 @@ export class User {
   groupId?: Group;
   status?: string;
   previousStatus?: string;
-code?: string;
-
+  userFeatures?:UserFeatureExpress[];
+  userFeaturesFull?:UserFeature[];
 }
 
 export class ResToken {

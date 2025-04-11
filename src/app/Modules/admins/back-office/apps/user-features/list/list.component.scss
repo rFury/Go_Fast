@@ -2,14 +2,14 @@
   grid-template-columns: 150px auto ;
 
   @screen sm {
-    grid-template-columns: 100px 200px auto 50px  ;
+    grid-template-columns: 100px 200px auto 30px  ;
   }
 
   @screen md {
-    grid-template-columns: 100px 200px auto 50px ;
+    grid-template-columns: 100px 200px auto 30px ;
   }
 
   @screen lg {
-    grid-template-columns: 100px 200px auto  50px  ;
+    grid-template-columns: 100px 200px auto  30px  ;
   }
 }
