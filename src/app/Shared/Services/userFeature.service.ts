@@ -19,7 +19,6 @@ export class UserFeaturesService {
   creatUserFeatures(user:User,group:GroupFeature[]):Observable<any>{
     return this.http.post<Observable<any>>(`${this.endpointAuth}`,{user,group})
   }
-
   getUserWithFeatures(
       limit: string,
       page: string,
@@ -41,6 +40,9 @@ export class UserFeaturesService {
       return this.http.get<User>(`${this.endpointAuth}/${id}`)
     }
 
+    UpdateUserFeature(id:string,userFeatures:UserFeature[]):Observable<any>{
+      return this.http.put<any>(`${this.endpointAuth}/${id}`,{userFeatures})
+    }
   deleteUserFeature(id:string):Observable<any>{
     return this.http.delete<any>(`${this.endpointAuth}/${id}`)
   }

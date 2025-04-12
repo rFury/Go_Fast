@@ -22,6 +22,7 @@ import { SnackBarService } from '../../../../../../../../Shared/Services/snack-b
 import { UserService } from '../../../../../../../../Shared/Services/user.service';
 import { UserFeaturesService } from '../../../../../../../../Shared/Services/userFeature.service';
 import { environment } from '../../../../../../../../../environments/environment';
+import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
 
 @Component({
   selector: 'app-edit',
@@ -30,21 +31,17 @@ import { environment } from '../../../../../../../../../environments/environment
   standalone: true,
   imports: [
     FormsModule,
-    MatProgressBar,
     MatButton,
     MatIcon,
     MatFormField,
     MatLabel,
     MatInput,
     MatTooltip,
-    MatSelect,
-    MatSelectTrigger,
     NgxMatSelectSearchModule,
     ReactiveFormsModule,
-    MatOption,
     MatSlideToggle,
-    MatRadioButton,
     MatIconButton,
+    HasPermissionDirective
   ],
 })
 export class EditComponent implements OnInit {
@@ -54,10 +51,6 @@ export class EditComponent implements OnInit {
   id: string;
   userFeature: UserFeature[];
   testGroup: UserFeature[];
-  featureId: Feature[] = [];
-  listFeature: Feature[] = [];
-  filteredList:Feature[][] = [];
-  featureWithId: string[] = [];
   type: boolean[] = [true, true, true, true, true, true];
   index: number;
   label: string;
@@ -65,13 +58,10 @@ export class EditComponent implements OnInit {
   featureFilterControls: FormControl<any> = new FormControl();
   constructor(
     private userFeaturesService: UserFeaturesService,
-    private featureService: FeatureService,
     private _router: Router,
-    private snackBarService: SnackBarService,
     private route: ActivatedRoute,
     private breadcrumbService: BreadcrumbService,
     private _fuseConfirmationService: FuseConfirmationService,
-    private userService: UserService,
   ) {}
 
   ngOnInit(): void {
@@ -85,18 +75,8 @@ export class EditComponent implements OnInit {
             this.label = `${this.user?.first_name} ${this.user?.last_name}`;
             this.breadcrumbService.set('home/userfeatures/:id', this.user.first_name!);
                 this.userFeature = user.userFeaturesFull!;
-                this.userFeature.map((usersFeature) => (usersFeature.userId = this.usersId));
                 this.testGroup = user.userFeaturesFull!;
-                this.featureService.getNotAllFeature(this.user._id!).subscribe(
-                  (feature) => {
-                    this.listFeature = feature;
-                    this.filteredList.push(this.listFeature);
-                    this.filteredList = this.listFeature.map(() => this.listFeature);
-                    this.featureId!= this.userFeature.map((value) => value.featureId);
-                    this.featureWithId!= this.featureId.map((site) => site._id);
-                  },
-                  () => {},
-                );
+
               },
               () => {},
         );
@@ -106,7 +86,7 @@ export class EditComponent implements OnInit {
   trackByFn(index: number, item: any): any {
     return item.id || index;
   }
-  deletegroup() {
+  delete() {
     // Open the confirmation dialog
     const confirmation = this._fuseConfirmationService.open({
       title: 'Delete',
@@ -133,103 +113,51 @@ export class EditComponent implements OnInit {
   }
   grantAll(event) {
     event.stopPropagation();
-    this.filteredList = this.listFeature.map(() => this.listFeature);
-    //this.featureId = this.listFeature.map((value) => value);
-    let i = 0;
-    for (const group of this.userFeature) {
-      if (group.featureId === null) {
-        this.userFeature.splice(i, 1);
-      }
-      i++;
+    for (let item of this.userFeature) {
+      item.list=true;
+      item.create=true;
+      item.delete=true;
+      item.read=true;
+      item.update=true;
+      item.status=true;
+
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const feature of this.listFeature) {
-      if (!this.featureId.map((value) => value._id).includes(feature._id) && feature._id) {
-        this.featureId.push(feature);
-        this.userFeature.push({
-          featureId: feature,
-          list: true,
-          create: true,
-          update: true,
-          read: true,
-          delete: true,
-          status: true,
-          defaultFeature: false,
-          userId: this.usersId,
-        });
-      }
-      this.index++;
-    }
-    this.featureWithId!= this.listFeature.map((site) => site._id);
   }
 
   revokeAll(event) {
     event.stopPropagation();
-    this.filteredList = [];
-    this.filteredList.push(this.listFeature);
-    this.featureId = [];
-    this.userFeature = [
-      {
-        featureId: null!,
-        list: true,
-        create: true,
-        update: true,
-        read: true,
-        delete: true,
-        status: true,
-        defaultFeature: false,
-        userId: this.usersId,
-      },
-    ];
-    this.type = [true, true, true, true, true, true];
-    this.featureWithId = [];
+    for (let item of this.userFeature) {
+      item.list=false;
+      item.create=false;
+      item.delete=false;
+      item.read=false;
+      item.update=false;
+      item.list=false;
+      item.status=false;
+    }
   }
   deleteRow(index) {
-    this.featureId.splice(index, 1);
-    this.userFeature[index] = this.userFeature[index + 1];
-    this.userFeature.splice(index, 1);
-    if (this.userFeature[this.userFeature.length - 1].featureId) {
-      this.userFeature.push({
-        featureId: null!,
-        list: true,
-        create: true,
-        update: true,
-        read: true,
-        delete: true,
-        status: true,
-        defaultFeature: false,
-        userId: this.usersId,
-      });
-    }
-    this.featureWithId.splice(index, 1);
-  }
-  addRow(index, value): void {
-    if (value !== null) {
-      this.featureId[index] = this.listFeature.filter((val) => val._id === value)[0];
-      this.featureWithId[index] = value;
-      this.userFeature[index].featureId = this.listFeature.filter((val) => val._id === value)[0];
-      this.filteredList.push(this.listFeature);
-      if (
-        this.userFeature[index] &&
-        this.userFeature.length - 1 === index &&
-        this.userFeature.length !== this.listFeature.length
-      ) {
-        this.userFeature.push({
-          featureId: null!,
-          list: true,
-          create: true,
-          read: true,
-          update: true,
-          delete: true,
-          status: true,
-          defaultFeature: false,
-          userId: this.usersId,
-        });
+    const confirmation = this._fuseConfirmationService.open({
+      title: 'Delete',
+      message: 'Would you like to delete this feature ?',
+      actions: {
+        confirm: {
+          label: 'yes',
+        },
+        cancel: {
+          label: 'no',
+        },
+      },
+    });
+    // Subscribe to the confirmation dialog closed action
+    confirmation.afterClosed().subscribe((result) => {
+      // If the confirm button pressed...
+      if (result === 'confirmed') {
+        this.userFeature.splice(index, 1);
       }
-    } else {
-      this.deleteRow(index);
-    }
+    });
   }
+  
   cancelEdit(myForm: NgForm) {
     if (myForm.pristine && this.testGroup === this.userFeature) {
       this._router.navigate([`../`], { relativeTo: this.route });
@@ -256,23 +184,13 @@ export class EditComponent implements OnInit {
       });
     }
   }
-  updateGroup(): void {
-    if (!this.userFeature[0].featureId?._id) {
-      this.snackBarService.openSnackBar('feature is required', 'error');
-    } else {
-      if (
-        this.userFeature.filter((value) => value.defaultFeature).length === 0 &&
-        !this.user.groupId
-      ) {
-        this.snackBarService.openSnackBar('Default feature is required for this user', 'error');
-      } else {
-        /*this.userFeaturesService.updateUser(this.userFeature).subscribe(() => {
-          this._router.navigate(['../'], { relativeTo: this.route });
-        });*/
-      }
-    }
+  update(): void {
+        this.userFeaturesService.UpdateUserFeature(this.id,this.userFeature).subscribe(() => {
+          this._router.navigate(['../../'], { relativeTo: this.route });
+        });
   }
   activate(type: string) {
+
     for (const group of this.userFeature) {
       if (type === 'list') {
         group.list = !this.type[0] ? true : false;
@@ -296,7 +214,7 @@ export class EditComponent implements OnInit {
           group.status = false;
           group.defaultFeature = false;
         }
-      }
+      }      
     }
     if (type === 'list') {
       this.type[0] = !this.type[0];
