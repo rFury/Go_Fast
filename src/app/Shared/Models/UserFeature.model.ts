@@ -3,7 +3,6 @@ import { User } from "./User.model";
 
 export class UserFeature  {
     _id?:string;
-    companyId?: string;
     userId?: User;
     featureId?:Feature;
     title?:string;
@@ -14,8 +13,6 @@ export class UserFeature  {
     delete: boolean;
     list?: boolean;
     defaultFeature?: boolean;
-    usersCreation?: User;
-    usersLastUpdate?: User;
   }
 
 export class UserFeatureExpress{
