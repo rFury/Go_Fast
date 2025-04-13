@@ -156,14 +156,27 @@ export class UserService {
   getUsers(
     limit: string,
     page: string,
-    search: string
+    search: string,
+    filterGroups : string,
+    filterStatus :string,
+    filterNewOld : string
   ): Observable<Pagination<User>> {
     let searchParams = new HttpParams();
     searchParams = searchParams.append('limit', limit);
 
     searchParams = searchParams.append('page', page);
+    
     if (search) {
       searchParams = searchParams.append('search', search);
+    }
+    if (filterGroups) {
+      searchParams = searchParams.append('filtergroups', filterGroups);
+    }
+    if (filterStatus) {
+      searchParams = searchParams.append('filterStatus', filterStatus);
+    }
+    if (filterNewOld) {
+      searchParams = searchParams.append('filterNewOld', filterNewOld);
     }
     return this.http.get<Pagination<User>>(`${this.endpointAuth}`, {
       params: searchParams,
