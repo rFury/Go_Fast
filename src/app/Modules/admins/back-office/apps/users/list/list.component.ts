@@ -1,13 +1,19 @@
-import {Component, inject, OnInit, ViewChild} from '@angular/core';
+import { Component, inject, OnInit, ViewChild } from '@angular/core';
 
 import { ActivatedRoute, Router } from '@angular/router';
-import {MatPaginator, PageEvent} from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatMenuTrigger, MatMenu, MatMenuItem } from '@angular/material/menu';
 import { MatButton, MatIconButton } from '@angular/material/button';
-import { FormsModule } from '@angular/forms';
-import { MatInput} from '@angular/material/input';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatInput } from '@angular/material/input';
 import { MatIcon } from '@angular/material/icon';
-import { MatFormField, MatPrefix } from '@angular/material/form-field';
+import {
+  MatFormField,
+  MatFormFieldControl,
+  MatFormFieldModule,
+  MatLabel,
+  MatPrefix,
+} from '@angular/material/form-field';
 import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
 import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.model';
 import { Pagination } from '../../../../../../Shared/Models/Pagination.model';
@@ -17,6 +23,11 @@ import { UserService } from '../../../../../../Shared/Services/user.service';
 import { CommonModule } from '@angular/common';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
+import { MatOption } from '@angular/material/core';
+import { Group } from '../../../../../../Shared/Models/Group.model';
+import { GroupService } from '../../../../../../Shared/Services/group.service';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-list',
@@ -24,28 +35,34 @@ import { HasPermissionDirective } from '../../../../../../Shared/directives/perm
   styleUrls: ['./list.component.scss'],
   imports: [
     CommonModule,
-        MatFormField,
-        MatIcon,
-        MatPrefix,
-        MatInput,
-        FormsModule,
-        MatButton,
-        MatIconButton,
-        MatMenuTrigger,
-        MatMenu,
-        MatMenuItem,
-        MatPaginator,
-        HasPermissionDirective,
-    ],
+    MatFormField,
+    MatIcon,
+    MatPrefix,
+    MatInput,
+    FormsModule,
+    MatButton,
+    MatIconButton,
+    MatMenuTrigger,
+    MatMenu,
+    MatMenuItem,
+    MatPaginator,
+    HasPermissionDirective,
+    MatFormFieldModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatTooltip
+  ],
 })
 export class ListComponent implements OnInit {
   //********* INJECT SERVICES ***********//
-    _sideNavService = inject(SideNavService);
-  _userService= inject(UserService);
-  _router= inject(Router);
-  _fuseConfirmationService= inject(FuseConfirmationService);
-  _route= inject(ActivatedRoute);
-  _loadingService = inject(LoadingService)
+  _sideNavService = inject(SideNavService);
+  _userService = inject(UserService);
+  _groupService = inject(GroupService);
+  _router = inject(Router);
+  _fuseConfirmationService = inject(FuseConfirmationService);
+  _route = inject(ActivatedRoute);
+  _loadingService = inject(LoadingService);
   @ViewChild(MatPaginator) paginator: MatPaginator;
   filterOptions: FilterOptions = new FilterOptions();
   currentSize = 10;
@@ -54,16 +71,30 @@ export class ListComponent implements OnInit {
   typingTimer;
   doneTypingInterval = 500;
   isScreenSmall: boolean;
+  
+ visiblePasswords = new Set<string>(); // ou number selon l'ID
+
   //************* FILTERS *****************//
   openFilter = false;
-  filterType: string[] = [];
+  listGroupUsers: Group[] = [];
+  listStatusUsers = [
+    { value: 'online', label: 'Online', color: 'bg-green-500' },
+    { value: 'away', label: 'Away', color: 'bg-yellow-500' },
+    { value: 'busy', label: 'Busy', color: 'bg-red-500' },
+    { value: 'not-visible', label: 'Not Visible', color: 'bg-gray-500' }
+  ];
   filterStatus: string[] = [];
   filterSearch: string;
+  filterNewOld: string;
+  filtersGroups : string[] = [];
 
   ngOnInit(): void {
     this.getList();
+    this._groupService.getAll().subscribe({
+      next: (groups) => (this.listGroupUsers = groups),
+    });
   }
-  pageChanged(event: PageEvent ): void {
+  pageChanged(event: PageEvent): void {
     let { pageIndex } = event;
     const { pageSize } = event;
     pageIndex++;
@@ -82,18 +113,21 @@ export class ListComponent implements OnInit {
         this.currentSize.toString(),
         this.currentPage.toString(),
         this.filterSearch,
+        this.filtersGroups.toString(),
+        this.filterStatus.toString(),
+        this.filterNewOld
       )
       .subscribe({
-          next: results => {
-            console.log(results);
-              this.displayedList = results;
-              this.openFilter = false;
-              this._loadingService.hide();
-          },
-          error: () => {
-              this._loadingService.hide();
-              this.openFilter = false;
-          }
+        next: (results) => {
+          console.log(results);
+          this.displayedList = results;
+          this.openFilter = false;
+          this._loadingService.hide();
+        },
+        error: () => {
+          this._loadingService.hide();
+          this.openFilter = false;
+        },
       });
   }
   addOne(): void {
@@ -103,7 +137,9 @@ export class ListComponent implements OnInit {
     this._router.navigate([`${row._id}`], { relativeTo: this._route }).then();
   }
   openEdit(row: User) {
-    this._router.navigate([`${row._id}/edit`], { relativeTo: this._route }).then();
+    this._router
+      .navigate([`${row._id}/edit`], { relativeTo: this._route })
+      .then();
   }
   updateSearch() {
     clearTimeout(this.typingTimer);
@@ -138,4 +174,14 @@ export class ListComponent implements OnInit {
       }
     });
   }
+
+
+  togglePassword(id: string) {
+    if (this.visiblePasswords.has(id)) {
+      this.visiblePasswords.delete(id);
+    } else {
+      this.visiblePasswords.add(id);
+    }
+  }
+  
 }

@@ -19,6 +19,10 @@ export class User {
   previousStatus?: string;
   userFeatures?:UserFeatureExpress[];
   userFeaturesFull?:UserFeature[];
+  new ?: {
+    value ?: boolean,
+    password ?: boolean
+  }
 }
 
 export class ResToken {

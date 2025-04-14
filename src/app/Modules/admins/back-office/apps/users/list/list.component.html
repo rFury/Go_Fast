@@ -17,6 +17,7 @@
             placeholder="{{ 'Search' }}" />
         </mat-form-field>
         <!-- Refresh projects list -->
+
         <div class="flex justify-end w-1/4 sm:w-1/3 sm:ml-0">
           <!-- Add project button -->
           <button class="" mat-flat-button [color]="'primary'" (click)="addOne()" *hasPermission="['users','create']">
@@ -40,6 +41,7 @@
             <div class="flex">{{ 'email' }}</div>
             <div class="flex">{{ 'status' }}</div>
             <div class="hidden sm:flex ">{{ 'group' }}</div>
+            <div class="hidden sm:flex ">{{ 'password' }}</div>
             <div class="flex ">
                 <button mat-icon-button (click)="openFilter = true">
                     <mat-icon
@@ -64,6 +66,25 @@
                                               'bg-red-500': row.status === 'busy',
                                               'bg-gray-400': row.status === 'not-visible'}"></span>{{ row.status}}</div>
                   <div class="hidden sm:flex truncate">{{ row.groupId?.label }}</div>
+                  <div class="hidden sm:flex truncate">
+                   
+                    
+                    @if (row?.new?.value) {
+                      <span class="flex items-center gap-2">
+                        <span>
+                          {{ visiblePasswords.has(row._id) ? row?.new?.password : '************' }}
+                        </span>
+                        <button type="button" mat-icon-button (click)="togglePassword(row._id)" matTooltip="{{ visiblePasswords.has(row._id) ? 'Hide password' : 'Show password' }}">
+                          <mat-icon>
+                            {{ visiblePasswords.has(row._id) ? 'visibility_off' : 'visibility' }}
+                          </mat-icon>
+                        </button>
+                      </span>
+                    } @else {
+                      <span class="italic text-gray-500">Password updated</span>
+                    }
+                    
+                  </div>
                   <div class="flex">
                     <button class="mr-4" mat-icon-button [matMenuTriggerFor]="budgetMenu">
                       <mat-icon
@@ -154,11 +175,56 @@
     <mat-icon [svgIcon]="'heroicons_outline:x-circle'"></mat-icon>
   </button>
 </div>
-<div class="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-4 p-4">
-  <div class="border  w-full rounded-md p-2">
+<div class="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-4 px-4">
+  <div class="border w-full rounded-md px-2 pt-2"> 
+    <mat-form-field class="w-full">
+      <mat-label class="font-bold">Select Groups</mat-label>
+      <mat-select [(ngModel)]="filtersGroups" multiple>
+        @for (item of listGroupUsers; track item) {
+          <mat-option class="font-bold" [value]="item.code">{{item.label}}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
   </div>
-  <div class="border  w-full rounded-md p-2">
+  <div class="border w-full rounded-md px-2 pt-2"> 
+    <mat-form-field class="w-full">
+      <mat-label class="font-bold">Select Status</mat-label>
+      <mat-select [(ngModel)]="filterStatus" multiple>
+        @for (item of listStatusUsers; track item) {
+          <mat-option [value]="item.value">
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full block" [ngClass]="item.color"></span>
+              <span  class="font-bold">{{ item.label }}</span>
+            </div>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    
   </div>
+
+  <div class="border w-full rounded-md px-2 pt-2"> 
+    <mat-form-field class="w-full">
+      <mat-label class="font-bold">User Account Status</mat-label>
+      <mat-select [(ngModel)]="filterNewOld">
+        
+        <mat-option value="new">
+          <div class="flex items-center gap-2 font-bold">
+            New Users (created but never logged in)
+          </div>
+        </mat-option>
+  
+        <mat-option value="old">
+          <div class="flex items-center gap-2 font-bold">
+            Old Users (created and logged in at least once)
+          </div>
+        </mat-option>
+        
+      </mat-select>
+    </mat-form-field>
+  </div>
+    
+  
 
 </div>
 }
