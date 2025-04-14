@@ -1,8 +1,8 @@
 import { Route } from '@angular/router';
-import { ListComponent } from './list/list.component';
-import { AddComponent } from './add/add.component';
 import { DetailsComponent } from './list/components/details/details.component';
+import { AddComponent } from './add/add.component';
 import { EditComponent } from './list/components/edit/edit.component';
+import { ListComponent } from './list/list.component';
 import { featureAction } from '../../../../../Shared/Guards/featureAction.guard';
 
 export default [
@@ -13,7 +13,7 @@ export default [
         path: '',
         component: ListComponent,
         data: {
-          breadcrumb: 'Groups',
+          breadcrumb: 'Features',
         },
       },
       {
@@ -21,10 +21,11 @@ export default [
         component: AddComponent,
         data: {
           breadcrumb: 'Add',
-          action: 'create',
-          code: 'user-features',
+          action:"create",
+          code:"features"
+
         },
-        canActivate: [featureAction],
+        canActivate:[featureAction]
       },
       {
         path: ':id',
@@ -32,20 +33,22 @@ export default [
           {
             path: '',
             component: DetailsComponent,
-            data: {
-              action: 'read',
-              code: 'user-features',
+            data:{
+              action:"read",
+              code:"features"
+
             },
-            canActivate: [featureAction],
+            canActivate:[featureAction]
           },
           {
             path: 'edit',
             component: EditComponent,
-            data: {
-              action: 'update',
-              code: 'user-features',
+            data:{
+              action:"update",
+              code:"features"
+
             },
-            canActivate: [featureAction],
+            canActivate:[featureAction]
           },
         ],
       },
