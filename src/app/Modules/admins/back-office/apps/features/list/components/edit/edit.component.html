@@ -201,10 +201,11 @@
                     </div>
                     }
                     <!-- Divider -->
+                    @if (feature.type === FeatureType.group) {
                     <div class="sm:col-span-3">
                         <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
                             <mat-label class="capitalize">{{ 'Divider' }}</mat-label>
-                            <mat-select placeholder="select divider" [(ngModel)]="divider" name="divider">
+                            <mat-select placeholder="select divider" [(ngModel)]="feature.divider" name="divider">
                                 @if (feature.divider) {
                                 <mat-option [value]="null">
                                     <div class="font-medium items-center flex flex-row">
@@ -212,19 +213,20 @@
                                     </div>
                                 </mat-option>
                                 }
-                                <mat-option value="true">
+                                <mat-option [value]="true">
                                     {{ 'with divider' }}
                                 </mat-option>
-                                <mat-option value="false">
+                                <mat-option [value]="false">
                                     {{ 'without divider' }}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
                     </div>
+                }
                     <div class="sm:col-span-3">
                         <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
                             <mat-label class="capitalize">{{ 'icon' }}</mat-label>
-                            <mat-select name="icon" placeholder="select icon" [(ngModel)]="feature.icon">
+                            <mat-select placeholder="select icon" [(ngModel)]="feature.icon" name="icon" #selectValue>
                                 <mat-select-trigger>
                                     @if (feature.icon) {
                                     <div class="font-medium items-center flex flex-row">
@@ -235,8 +237,14 @@
                                     </div>
                                     }
                                 </mat-select-trigger>
-
-                                @if (!feature.icon) {
+                                <mat-option>
+                                    <ngx-mat-select-search
+                                      [formControl]="iconSearchControl"
+                                      placeholder="Search icons..."
+                                      noEntriesFoundLabel="No icons found"
+                                    ></ngx-mat-select-search>
+                                  </mat-option>
+                                @if (feature.type==='group') {
                                 <mat-option [value]="null">
                                     <div class="font-medium items-center flex flex-row">
                                         <span class="block"> {{ '-- None --' }} </span>
