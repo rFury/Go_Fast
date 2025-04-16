@@ -43,7 +43,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Point } from '../../../../../../Shared/Models/Point.model';
 import { CommonModule, NgClass } from '@angular/common';
 import * as mapboxgl from 'mapbox-gl';
-
 @Component({
   selector: 'app-details',
   templateUrl: './add.component.html',
@@ -94,14 +93,12 @@ export class AddComponent implements OnInit {
   readonly FeatureType = FeatureType;
   DeliveryType = DeliveryType;
   OrderTypes = listOrderType;
-  map: mapboxgl.Map;
-  lat = 36.3398;
-  lng = 10.7787;
-  indexStyle = 0;
-  styles = [
-    'mapbox://styles/mapbox/satellite-streets-v12',
-    'mapbox://styles/mapbox/light-v11',
-  ];
+  placeSearchControl = new FormControl('');
+  searchQuery = '';
+  suggestions: any[] = [];
+  mapboxToken =
+    'pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ';
+  userLocation = { lat: 36.8, lng: 10.2 };
 
   ngOnInit(): void {
     this.Order.type = DeliveryType.building;
@@ -117,36 +114,6 @@ export class AddComponent implements OnInit {
             this._loadingService.hide();
         }
     })*/
-    this.map = new mapboxgl.Map({
-      accessToken:
-        'pk.eyJ1IjoiYmFjY291Y2htZWQiLCJhIjoiY2xrMTZwdHllMDRqdjNmcWo1aTQ0c3R4cyJ9.sPeFM-9VpxsoMHaHyWruQA',
-      container: 'map',
-      style: this.styles[this.indexStyle],
-      zoom: 8,
-      center: [this.lng, this.lat],
-    });
-    this.map.on('click', (event) => {
-      console.info(event);
-    });
-  }
-  switchMap(event) {
-    event.stopPropagation();
-    let style;
-    if (this.indexStyle === 0) {
-      this.indexStyle = 1;
-      style = this.styles[1];
-    } else {
-      this.indexStyle = 0;
-      style = this.styles[0];
-    }
-    this.map = new mapboxgl.Map({
-      accessToken:
-        'pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ',
-      container: 'map',
-      style,
-      zoom: 8,
-      center: [this.lng, this.lat],
-    });
   }
   toggleSingleSelectionIndicator() {
     this.hideSingleSelectionIndicator.update((value) => !value);
@@ -217,5 +184,58 @@ export class AddComponent implements OnInit {
         }
       });
     }
+  }
+  onSearchChange() {
+    if (this.searchQuery.length < 3) {
+      this.suggestions = [];
+      return;
+    }
+
+    fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+        this.searchQuery
+      )}.json?proximity=${this.userLocation.lng},${
+        this.userLocation.lat
+      }&country=TN&access_token=${this.mapboxToken}`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        this.suggestions = data.features;
+      });
+  }
+
+  selectSuggestion(suggestion: any) {
+    console.log('Selected location:', suggestion);
+    this.searchQuery = suggestion.place_name;
+    this.Order.pick_up?.place?.setPlace(suggestion.place_name);
+    this.Order.pick_up?.place?.coordinates?.lng!= suggestion.geometry.coordinates[0];
+    this.Order.pick_up?.place?.coordinates?.lat!= suggestion.geometry.coordinates[1];
+    this.suggestions = [];
+  }
+
+  getDistance(suggestion: any): string {
+    const from = [this.userLocation.lng, this.userLocation.lat];
+    const to = suggestion.geometry.coordinates;
+    const distance = this.calculateDistance(from, to);
+    return distance.toFixed(1);
+  }
+
+  // Haversine formula
+  calculateDistance([lng1, lat1]: number[], [lng2, lat2]: number[]) {
+    const R = 6371; // km
+    const dLat = this.deg2rad(lat2 - lat1);
+    const dLon = this.deg2rad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(lat1)) *
+        Math.cos(this.deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  deg2rad(deg: number) {
+    return deg * (Math.PI / 180);
   }
 }

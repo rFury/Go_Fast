@@ -7,7 +7,7 @@ import groupsRouting from './apps/groups/groups.routing';
 import usersRouting from './apps/users/users.routing';
 import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 import userFeaturesRouting from './apps/user-features/user-features-routing';
-import { DetailsComponent } from './details/details.component';
+import clientsRouting from './apps/users copy/clients.routing';
 
 
 export default [
@@ -41,6 +41,14 @@ export default [
       },
       },
       {
+        path: 'clients',
+        loadChildren: () => clientsRouting,
+        data: {
+          breadcrumb: 'Clients',
+          feature: FeatureCodes.clients,
+      },
+      },
+      {
         path: 'userfeatures',
         loadChildren: () => userFeaturesRouting,
         data: {
@@ -53,13 +61,9 @@ export default [
         loadChildren: () => featuresCopyRouting,
         data: {
           breadcrumb: 'UserFeatures',
-          feature: FeatureCodes.userFeatures,
+          feature: FeatureCodes.orders,
       },
       },
     ],
-  },
-  {
-    path:'map',
-    component:DetailsComponent
   }
 ] satisfies Route[];

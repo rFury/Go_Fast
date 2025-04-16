@@ -84,7 +84,7 @@ export class AddComponent implements OnInit {
   ngOnInit(): void {
     this.breadcrumbService.set('home/userfeatures/add', 'Add');
 
-    this.userService.getAll().subscribe(
+    this.userService.getAll("").subscribe(
       (res)=>{
         this.listUsers = res;
         this.filteredListUsers = this.userFilterControl.valueChanges.pipe(

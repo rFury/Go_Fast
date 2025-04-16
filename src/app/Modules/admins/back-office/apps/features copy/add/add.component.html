@@ -73,23 +73,40 @@
                         <!-- Address Section -->
                         <div class="grid gap-6"
                             [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
-                            <div class="space-y-2">
+                            <div class="relative space-y-2">
                                 <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to pick
                                     up</label>
-                                <mat-form-field appearance="outline" class="w-full">
-                                    <input matInput [(ngModel)]="pickupAddress" name="address"
-                                        placeholder="Enter pickup address" required>
-                                    <mat-icon matPrefix class="text-gray-400 mr-2">place</mat-icon>
-                                    @if ( myForm.controls['address'] && (myForm.controls['address'].dirty ||
-                                    myForm.submitted) &&
-                                    myForm.controls['address'].hasError('required') ) {
-                                    <mat-error>
-                                        {{ 'This field is required' }}
-                                    </mat-error>
-                                    }
-                                </mat-form-field>
-                            </div>
+                                <div class="relative">
+                                    <mat-form-field class="w-full" appearance="outline">
+                                        <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange()"
+                                            placeholder="Enter pickup address" autocomplete="off" name="place"
+                                            class="!pb-0 !mb-0">
+                                    </mat-form-field>
 
+                                    @if(suggestions.length > 0){
+                                    <div
+                                        class="absolute top-full left-0 right-0 z-50 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-60 overflow-y-auto">
+                                        @for(suggestion of suggestions; track suggestion){
+                                        <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-100"
+                                            (click)="selectSuggestion(suggestion)">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-medium truncate">
+                                                    <mat-icon class="mr-1 text-gray-500 align-middle">place</mat-icon>
+                                                    {{ suggestion.place_name.split(',')[0] }}
+                                                </div>
+                                                <div class="text-sm text-gray-500 truncate">
+                                                    {{ suggestion.context[0]?.text }}
+                                                </div>
+                                            </div>
+                                            <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
+                                                {{ getDistance(suggestion) }} km
+                                            </div>
+                                        </div>
+                                        }
+                                    </div>
+                                    }
+                                </div>
+                            </div>
                             @if(Order.type === DeliveryType.apartment){
                             <div class="space-y-2">
                                 <label class="text-md font-semibold text-gray-700 uppercase tracking-wide0">Entrance
@@ -290,10 +307,11 @@
                         <!-- Address Section -->
                         <div class="grid gap-6">
                             <div class="space-y-2">
-                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">What to deliver</label>
+                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">What to
+                                    deliver</label>
                                 <mat-form-field appearance="outline" class="w-full">
                                     <input matInput [(ngModel)]="Order.proudct" name="delivery"
-                                        placeholder="Enter delivery description"required>
+                                        placeholder="Enter delivery description" required>
                                     <mat-icon matSuffix class="text-gray-400 mr-2">delivery_dining</mat-icon>
                                     @if ( myForm.controls['delivery'] && (myForm.controls['delivery'].dirty ||
                                     myForm.submitted) &&
@@ -311,6 +329,6 @@
         </div>
     </form>
 
-  
+
 </div>
 }

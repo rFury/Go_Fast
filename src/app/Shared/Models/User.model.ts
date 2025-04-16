@@ -24,7 +24,3 @@ export class User {
     password ?: boolean
   }
 }
-
-export class ResToken {
-  token?: string;
-}

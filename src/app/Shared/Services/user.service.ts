@@ -8,13 +8,15 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { FeatureAuth } from '../Models/FeatureAuth.model';
 import { Pagination } from '../Models/Pagination.model';
 import { FeatureActions } from '../enums/feature-actions';
+import { Client } from '../Models/Client.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  endpointAuth = `${environment.api}/users`;
-  _user=signal<User | null>(null);
+  endpointUser = `${environment.api}/users`;
+  endpointClient = `${environment.api}/users/clients`;
+  _user = signal<User | Client | null>(null);
   private _statusTimeout: any;
   private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
@@ -54,30 +56,6 @@ export class UserService {
     return this._defaultLink;
   }
 
-
-
-  checkPermissions(permissions: FeatureAuth[]): boolean {
-    const featuresAuth: FeatureAuth[] | null = this.features();
-    let permission: FeatureAuth;
-    for (permission of permissions) {
-      const fa = featuresAuth?.find(
-        (fau: FeatureAuth) => fau.code === permission.code
-      );
-      if (!fa) {
-        return false;
-      }
-      let permissionAction;
-      if (permission.actions) {
-        for (permissionAction of permission.actions) {
-          if (!fa.actions?.includes(permissionAction)) {
-            return false;
-          }
-        }
-      }
-    }
-    return true;
-  }
-
   checkPermission(code: string, action: string): boolean {
     const featuresAuth = this.features();
     return !!featuresAuth?.some(
@@ -88,18 +66,26 @@ export class UserService {
   
 
   get(): Observable<User> {
-    return this.http.get<User>(`${this.endpointAuth}/me`).pipe(
-      tap((user) => {
-        this._user.set(user);
+    return this.http.get<User>(`${this.endpointUser}/me`).pipe(
+      tap((user)=>{
+        if(user.type === "client"){
+          this._user.set(user as Client);
+        }else{
+          this._user.set(user);
+        }
       }),
       catchError((error) => {
-        return throwError(() => error); // Propagate the error
+        return throwError(() => error);
       })
     );
   }
-  getAll(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.endpointAuth}/all`)
+  getAll(type:string): Observable<User[] | Client[]> {
+    if(type === "client"){
+    return this.http.get<Client[]>(`${this.endpointUser}/all`,{params:{type:"client"}})
+    }
+    return this.http.get<User[]>(`${this.endpointClient}/all`,{params:{type:"user"}})
   }
+
 
   changePassword(
     password: string,
@@ -107,14 +93,14 @@ export class UserService {
     code: string,
     id: string
   ): Observable<null> {
-    return this.http.post<null>(`${this.endpointAuth}/${id}/change-password`, {
+    return this.http.post<null>(`${this.endpointUser}/${id}/change-password`, {
       password,
       newPassword,
       code,
     });
   }
   checkPassword(password: string): Observable<null> {
-    return this.http.post<null>(`${this.endpointAuth}/check-password`, {
+    return this.http.post<null>(`${this.endpointUser}/check-password`, {
       password,
     });
   }
@@ -123,25 +109,25 @@ export class UserService {
     password: string,
     newPassword: string
   ): Observable<null> {
-    return this.http.post<null>(`${this.endpointAuth}/${id}/send-code`, {
+    return this.http.post<null>(`${this.endpointUser}/${id}/send-code`, {
       password,
       newPassword,
     });
   }
   resendCode(id: string, params: any): Observable<null> {
-    return this.http.patch<null>(`${this.endpointAuth}/${id}/resend-code`, {
+    return this.http.patch<null>(`${this.endpointUser}/${id}/resend-code`, {
       params,
     });
   }
 
   getUserProfile(): Observable<User> {
-    return this.http.get<User>(`${this.endpointAuth}/me`);
+    return this.http.get<User>(`${this.endpointUser}/me`);
   }
   updatePersonalInfo(user: User): Observable<User> {
-    return this.http.post<User>(`${this.endpointAuth}/personal-info`, user);
+    return this.http.post<User>(`${this.endpointUser}/personal-info`, user);
   }
   updateMyAvatar(data: FormData): Observable<User> {
-    return this.http.post<User>(`${this.endpointAuth}/my-avatar`, data).pipe(
+    return this.http.post<User>(`${this.endpointUser}/my-avatar`, data).pipe(
       tap((user) => {
         this._user.set(user);
       })
@@ -149,7 +135,7 @@ export class UserService {
   }
 
   addUser(user: User): Observable<User> {
-    return this.http.post<User>(`${this.endpointAuth}`, {
+    return this.http.post<User>(`${this.endpointUser}`, {
       user,
     });
   }
@@ -178,24 +164,24 @@ export class UserService {
     if (filterNewOld) {
       searchParams = searchParams.append('filterNewOld', filterNewOld);
     }
-    return this.http.get<Pagination<User>>(`${this.endpointAuth}`, {
+    return this.http.get<Pagination<User>>(`${this.endpointUser}`, {
       params: searchParams,
     });
   }
   getOne(id: string): Observable<User> {
-    return this.http.get<User>(`${this.endpointAuth}/${id}`);
+    return this.http.get<User>(`${this.endpointUser}/${id}`);
   }
   updateOne(user: User): Observable<User> {
-    return this.http.put<User>(`${this.endpointAuth}/${user._id}`, { user });
+    return this.http.put<User>(`${this.endpointUser}/${user._id}`, { user });
   }
   enableAccount(id: string): Observable<User> {
-    return this.http.get<User>(`${this.endpointAuth}/${id}/enable-disable`);
+    return this.http.get<User>(`${this.endpointUser}/${id}/enable-disable`);
   }
   deleteOne(id: string): Observable<null> {
-    return this.http.delete<null>(`${this.endpointAuth}/${id}`);
+    return this.http.delete<null>(`${this.endpointUser}/${id}`);
   }
   updateAvatar(data: FormData, id: string): Observable<User> {
-    return this.http.post<User>(`${this.endpointAuth}/${id}/avatar`, data).pipe(
+    return this.http.post<User>(`${this.endpointUser}/${id}/avatar`, data).pipe(
       tap((user) => {
         this._user.set(user);
       })
@@ -209,7 +195,7 @@ export class UserService {
   updateState(status: string): Observable<User> {
     console.log("hello service");
     
-    return this.http.patch<User>(`${this.endpointAuth}/status`, { status }).pipe(
+    return this.http.patch<User>(`${this.endpointUser}/status`, { status }).pipe(
       tap(updatedUser => {
         this._user.update(u => ({ ...u!, status }));
       })
