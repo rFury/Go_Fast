@@ -5,7 +5,6 @@
         <!-- Header -->
         <div
             class="flex flex-wrap md:flex-nowrap items-center justify-between px-4 py-3 border-b bg-white rounded-md shadow-sm">
-
             <!-- Title -->
             <div class="flex items-center gap-2 w-full md:w-1/2 mb-2 md:mb-0">
                 <div class="text-2xl md:text-3xl font-bold text-indigo-700">
@@ -66,45 +65,46 @@
                 <!-- Pickup Point Card -->
                 <mat-card class="!rounded-lg !shadow-sm !border !border-gray-200 overflow-hidden">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
-                        <img src="location-a-icon.svg" class="w-6">
+                        <Map [approximity]="coordinatesA" [markerIcon]="'location-a-icon.svg'"></Map>
                         Pickup Details
                     </h3>
                     <mat-card-content class="p-6 space-y-6">
                         <!-- Address Section -->
                         <div class="grid gap-6"
                             [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
-                            <div class="relative space-y-2">
-                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to pick
-                                    up</label>
-                                <div class="relative">
+                            <div class="relative space-y-2 z-50">
+                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to pick up
+                                </label>
+                                <div class="relative" >
                                     <mat-form-field class="w-full" appearance="outline">
-                                        <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange()"
+                                        <input matInput [(ngModel)]="searchQueryA" (input)="onSearchChange('a')"
                                             placeholder="Enter pickup address" autocomplete="off" name="place"
                                             class="!pb-0 !mb-0">
-                                    </mat-form-field>
-
-                                    @if(suggestions.length > 0){
-                                    <div
-                                        class="absolute top-full left-0 right-0 z-50 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-60 overflow-y-auto">
-                                        @for(suggestion of suggestions; track suggestion){
-                                        <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-100"
-                                            (click)="selectSuggestion(suggestion)">
-                                            <div class="flex-1 min-w-0">
-                                                <div class="font-medium truncate">
-                                                    <mat-icon class="mr-1 text-gray-500 align-middle">place</mat-icon>
-                                                    {{ suggestion.place_name.split(',')[0] }}
+                                        @if(suggestions.length > 0 ){
+                                        <div
+                                            class="absolute top-full left-0 right-0 !z-50 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
+                                            @for(suggestion of suggestions; track suggestion){
+                                            <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-100"
+                                                (click)="selectSuggestion(suggestion,'a')">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="font-medium truncate">
+                                                        <mat-icon
+                                                            class="mr-1 text-gray-500 align-middle">place</mat-icon>
+                                                        {{ suggestion.place_name.split(',')[0] }}
+                                                    </div>
+                                                    <div class="text-sm text-gray-500 truncate">
+                                                        {{ suggestion.context[0]?.text }}
+                                                    </div>
                                                 </div>
-                                                <div class="text-sm text-gray-500 truncate">
-                                                    {{ suggestion.context[0]?.text }}
+                                                <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
+                                                    {{ getDistance(suggestion) }} km
                                                 </div>
                                             </div>
-                                            <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
-                                                {{ getDistance(suggestion) }} km
-                                            </div>
+                                            }
                                         </div>
                                         }
-                                    </div>
-                                    }
+                                    </mat-form-field>
+
                                 </div>
                             </div>
                             @if(Order.type === DeliveryType.apartment){
@@ -149,7 +149,7 @@
                         <!-- Address Details -->
                         <div class="space-y-4">
                             <h4 class="text-md font-semibold text-gray-700 uppercase tracking-wide">Address Details</h4>
-                            <div class="">
+                            <div class="!z-0">
                                 <mat-form-field class="w-full">
                                     <input matInput [(ngModel)]="PointA.adress_details" name="details" type="text"
                                         required>
@@ -169,9 +169,9 @@
                         }
 
 
-                        <!-- Additional Instructions -->
-                        <div class="pt-4 border-t border-gray-200">
-                            <mat-form-field class="w-full">
+                        <!-- Phone -->
+                        <div class="pt-4 border-t border-gray-200 z-0">
+                            <mat-form-field class="bot !z-0 w-full ">
                                 <mat-label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Contact
                                     Number</mat-label>
                                 <span class="text-gray-400 mr-2">+216</span>
@@ -194,30 +194,49 @@
                 <!-- destination Point Card -->
                 <mat-card class="!rounded-lg !shadow-sm !border !border-gray-200 overflow-hidden">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
-                        <img src="location-b-icon.svg" class="w-6">
+                        <Map [approximity]="coordinatesB" [markerIcon]="'location-b-icon.svg'"></Map>
                         Destination Details
                     </h3>
-                    <mat-card-content class="p-6 space-y-4">
+                    <mat-card-content class="p-6 space-y-6">
                         <!-- Address Section -->
                         <div class="grid gap-6"
-                            [ngClass]="{'md:grid-cols-2': Order.type === DeliveryType.apartment, 'grid-cols-1': Order.type === DeliveryType.building}">
-                            <div class="space-y-2">
-                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to
-                                    deliver</label>
-                                <mat-form-field appearance="outline" class="w-full">
-                                    <input matInput [(ngModel)]="PointB.place" name="address2"
-                                        placeholder="Enter pickup address" required>
-                                    <mat-icon matPrefix class="text-gray-400 mr-2">place</mat-icon>
-                                </mat-form-field>
-                                @if ( myForm.controls['address2'] && (myForm.controls['address2'].dirty ||
-                                myForm.submitted) &&
-                                myForm.controls['address2'].hasError('required') ) {
-                                <mat-error>
-                                    {{ 'This field is required' }}
-                                </mat-error>
-                                }
-                            </div>
+                            [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
+                            <div class="relative space-y-2 z-50">
+                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to deliver
+                                </label>
+                                <div class="relative" >
+                                    <mat-form-field class="w-full" appearance="outline">
+                                        <input matInput [(ngModel)]="searchQueryB" (input)="onSearchChange('b')"
+                                            placeholder="Enter destination address" autocomplete="off" name="place2"
+                                            class="!pb-0 !mb-0">
+                                        @if(suggestions.length > 0 ){
+                                        <div
+                                            class="absolute top-full left-0 right-0 !z-50 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
+                                            @for(suggestion of suggestions; track suggestion){
+                                            <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-100"
+                                                (click)="selectSuggestion(suggestion,'b')">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="font-medium truncate">
+                                                        <mat-icon
+                                                            class="mr-1 text-gray-500 align-middle">place</mat-icon>
+                                                        {{ suggestion.place_name.split(',')[0] }}
+                                                    </div>
+                                                    <div class="text-sm text-gray-500 truncate">
+                                                        {{ suggestion.context[0]?.text }}
+                                                    </div>
+                                                </div>
+                                                <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
+                                                    {{ getDistance(suggestion) }} km
+                                                </div>
+                                            </div>
+                                            }
+                                        </div>
+                                        }
+                                    </mat-form-field>
 
+                                </div>
+                            </div>
+                    
                             @if(Order.type === DeliveryType.apartment){
 
                             <div class="space-y-2">

@@ -37,7 +37,8 @@
               "src/assets/styles/themes.scss",
               "src/assets/styles/vendors.scss",
               "src/assets/styles/main.scss",
-              "src/tailwind.scss"
+              "src/tailwind.scss",
+              "mapbox-gl/dist/mapbox-gl.css"
             ],
             "scripts": []
           },

@@ -43,6 +43,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { Point } from '../../../../../../Shared/Models/Point.model';
 import { CommonModule, NgClass } from '@angular/common';
 import * as mapboxgl from 'mapbox-gl';
+import { MapComponent } from '../../../../../../Shared/Components/map/map.component';
 @Component({
   selector: 'app-details',
   templateUrl: './add.component.html',
@@ -57,27 +58,19 @@ import * as mapboxgl from 'mapbox-gl';
     MatError,
     MatSelect,
     MatCardModule,
-    MatSelectTrigger,
     MatOption,
     ReactiveFormsModule,
     MatIcon,
     HasPermissionDirective,
     MatHint,
-    MatDivider,
     MatButtonToggleModule,
     MatCheckboxModule,
     NgClass,
-  ],
+    MapComponent
+],
 })
 export class AddComponent implements OnInit {
   hideSingleSelectionIndicator = signal(false);
-  pickupAddress: string = '';
-  entranceType: string = '';
-  floor!: number;
-  apartment!: string;
-  entryphone!: string;
-  phoneNumber!: string;
-  instructions: string = '';
   //********* INJECT SERVICES ***********//
   _featureService = inject(FeatureService);
   _router = inject(Router);
@@ -89,16 +82,21 @@ export class AddComponent implements OnInit {
   PointA = new Point();
   PointB = new Point();
   listParentFeatures: Feature[] = [];
-
+  hover:boolean = false;
   readonly FeatureType = FeatureType;
   DeliveryType = DeliveryType;
   OrderTypes = listOrderType;
   placeSearchControl = new FormControl('');
-  searchQuery = '';
+  searchQueryA = '';
+  searchQueryB = '';
+
   suggestions: any[] = [];
   mapboxToken =
     'pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ';
   userLocation = { lat: 36.8, lng: 10.2 };
+  close:boolean = false;
+  coordinatesA: [number,number] | null = null;
+  coordinatesB: [number,number] | null = null;
 
   ngOnInit(): void {
     this.Order.type = DeliveryType.building;
@@ -185,18 +183,24 @@ export class AddComponent implements OnInit {
       });
     }
   }
-  onSearchChange() {
-    if (this.searchQuery.length < 3) {
+  onSearchChange(type:string) {
+    let searchQuery
+    if(type==='a'){
+      searchQuery = this.searchQueryA;
+    }
+    else{
+      searchQuery = this.searchQueryB;
+    }
+    if (searchQuery.length < 3) {
       this.suggestions = [];
       return;
     }
-
     fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        this.searchQuery
-      )}.json?proximity=${this.userLocation.lng},${
+        searchQuery
+      )}.json?types=poi,place,address,neighborhood,locality&country=TN&proximity=${this.userLocation.lng},${
         this.userLocation.lat
-      }&country=TN&access_token=${this.mapboxToken}`
+      }&access_token=${this.mapboxToken}&limit=10`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -204,12 +208,22 @@ export class AddComponent implements OnInit {
       });
   }
 
-  selectSuggestion(suggestion: any) {
+  selectSuggestion(suggestion: any,type:string) {
     console.log('Selected location:', suggestion);
-    this.searchQuery = suggestion.place_name;
-    this.Order.pick_up?.place?.setPlace(suggestion.place_name);
-    this.Order.pick_up?.place?.coordinates?.lng!= suggestion.geometry.coordinates[0];
-    this.Order.pick_up?.place?.coordinates?.lat!= suggestion.geometry.coordinates[1];
+    if(type==='a'){
+      this.searchQueryA = suggestion.place_name;
+      this.Order.pick_up?.place?.setPlace(suggestion.place_name);
+      this.Order.pick_up?.place?.coordinates?.lng!= suggestion.geometry.coordinates[0];
+      this.Order.pick_up?.place?.coordinates?.lat!= suggestion.geometry.coordinates[1];
+      this.coordinatesA = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
+    }
+    else{
+      this.searchQueryB = suggestion.place_name;
+      this.Order.destination?.place?.setPlace(suggestion.place_name);
+      this.Order.destination?.place?.coordinates?.lng!= suggestion.geometry.coordinates[0];
+      this.Order.destination?.place?.coordinates?.lat!= suggestion.geometry.coordinates[1];
+      this.coordinatesB = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
+    }
     this.suggestions = [];
   }
 
