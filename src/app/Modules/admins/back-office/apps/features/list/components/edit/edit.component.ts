@@ -1,7 +1,7 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { NgForm, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgForm, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 
 import { MatOption } from '@angular/material/core';
 import { MatSelect, MatSelectTrigger } from '@angular/material/select';
@@ -9,7 +9,7 @@ import { MatInput } from '@angular/material/input';
 import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
-import {forkJoin} from "rxjs";
+import {forkJoin, startWith,map} from "rxjs";
 import { FuseConfirmationService } from '../../../../../../../../Shared/Components/confirmation/confirmation.service';
 import { listFeatureStatus } from '../../../../../../../../Shared/enums/featureStatus';
 import { Feature } from '../../../../../../../../Shared/Models/Feature.model';
@@ -19,6 +19,7 @@ import { material } from '../../../../../../icons/data';
 import { icon } from '../../../../../../../../Shared/enums/iconType';
 import { FeatureType, listFeatureType } from '../../../../../../../../Shared/enums/featureType';
 import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 @Component({
   selector: 'app-edit',
@@ -36,7 +37,8 @@ import { HasPermissionDirective } from '../../../../../../../../Shared/directive
     MatSelectTrigger,
     MatOption,
     ReactiveFormsModule,
-    HasPermissionDirective
+    HasPermissionDirective,
+    NgxMatSelectSearchModule
   ],
 })
 export class EditComponent implements OnInit {
@@ -54,8 +56,9 @@ export class EditComponent implements OnInit {
     filteredListIcons:icon[] = [];
     listFeature:Feature[] = [];
     listIcons:icon[] = [];
-    divider: string;
     feature: Feature;
+    iconSearchControl = new FormControl('');
+    
     ngOnInit(): void {
         if (this.id) {
             this._loadingService.show()
@@ -72,11 +75,6 @@ export class EditComponent implements OnInit {
                             (l: Feature) => l._id ===  this.feature.featuresIdParent!._id,
                         )[0];
                     }
-                    if (this.feature.divider === true) {
-                        this.divider = 'true';
-                    } else {
-                        this.divider = 'false';
-                    }
                     this.filteredListIcons = material;
                     this.listIcons = material;
                     this._loadingService.hide()
@@ -86,10 +84,19 @@ export class EditComponent implements OnInit {
                 }
             });
         }
+        this.iconSearchControl.valueChanges
+              .pipe(
+                startWith(''),
+                map(search => search?.toLowerCase() || '')
+              )
+              .subscribe(search => {
+                this.filteredListIcons = this.listIcons.filter(icon => 
+                  icon.label.toLowerCase().includes(search)
+                );
+              });
       }
     updateFeature(myForm: NgForm) {
         if (myForm.valid) {
-          this.feature.divider = this.divider === 'true';
           if (this.feature.type === this.FeatureType.group) {
             this.feature.link = null!;
           } else {

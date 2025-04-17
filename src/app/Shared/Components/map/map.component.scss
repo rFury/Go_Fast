@@ -1,0 +1,5 @@
+.mapboxgl-marker {
+    position: absolute;
+    transform: translate(-50%, -100%); /* Proper pin positioning */
+    will-change: transform; /* Optimize animation */
+}

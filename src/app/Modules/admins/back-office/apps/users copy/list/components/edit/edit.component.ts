@@ -1,84 +1,61 @@
 import {Component, inject, OnInit} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { NgForm, FormsModule, ReactiveFormsModule } from '@angular/forms';
-
-import { MatOption } from '@angular/material/core';
-import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatInput } from '@angular/material/input';
 import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
-import { MatIcon } from '@angular/material/icon';
 import { MatButton } from '@angular/material/button';
 import {forkJoin} from "rxjs";
+import {MatOption} from "@angular/material/autocomplete";
+import {MatSelect} from "@angular/material/select";
 import { FuseConfirmationService } from '../../../../../../../../Shared/Components/confirmation/confirmation.service';
-import { listFeatureStatus } from '../../../../../../../../Shared/enums/featureStatus';
-import { Feature } from '../../../../../../../../Shared/Models/Feature.model';
-import { FeatureService } from '../../../../../../../../Shared/Services/feature.service';
+import { Group } from '../../../../../../../../Shared/Models/Group.model';
+import { User } from '../../../../../../../../Shared/Models/User.model';
+import { GroupService } from '../../../../../../../../Shared/Services/group.service';
 import { LoadingService } from '../../../../../../../../Shared/Services/loading.service';
-import { material } from '../../../../../../icons/data';
-import { icon } from '../../../../../../../../Shared/enums/iconType';
-import { FeatureType, listFeatureType } from '../../../../../../../../Shared/enums/featureType';
+import { UserService } from '../../../../../../../../Shared/Services/user.service';
+import { MatIcon } from '@angular/material/icon';
 import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
-
 @Component({
   selector: 'app-edit',
   templateUrl: './edit.component.html',
   styleUrls: ['./edit.component.scss'],
-  imports: [
-    FormsModule,
-    MatButton,
-    MatIcon,
-    MatFormField,
-    MatLabel,
-    MatInput,
-    MatError,
-    MatSelect,
-    MatSelectTrigger,
-    MatOption,
-    ReactiveFormsModule,
-    HasPermissionDirective
-  ],
+    imports: [
+        FormsModule,
+        MatButton,
+        MatFormField,
+        MatLabel,
+        MatInput,
+        MatError,
+        ReactiveFormsModule,
+        MatOption,
+        MatSelect,
+        MatIcon,
+        HasPermissionDirective
+    ],
 })
 export class EditComponent implements OnInit {
     //********* INJECT SERVICES ***********//
-    _featureService= inject(FeatureService);
+    _userService= inject(UserService);
+    _groupService= inject(GroupService);
     _router= inject(Router);
     _route= inject(ActivatedRoute);
     _fuseConfirmationService= inject(FuseConfirmationService);
     _loadingService= inject(LoadingService);
     //********* DECLARE CLASSES/ENUMS ***********//
     id = this._route.snapshot.paramMap.get('id') || undefined;
-    readonly FeatureType = FeatureType;
-    listFeatureStatus = listFeatureStatus;
-    listFeatureType = listFeatureType;
-    filteredListIcons:icon[] = [];
-    listFeature:Feature[] = [];
-    listIcons:icon[] = [];
-    divider: string;
-    feature: Feature;
+    user: User;
+    listGroups: Group[];
     ngOnInit(): void {
         if (this.id) {
             this._loadingService.show()
             forkJoin([
-                this._featureService.getFeature(this.id),
-                this._featureService.getFeatureParent(),
+                this._userService.getOne(this.id),
+                this._groupService.getAll(),
             ]).subscribe({
-                next: (result:[Feature, Feature[]]) => {
-                    this.feature = result[0];
-                    this.listFeature = result[1];
-                    console.log(this.feature);
-                    if ( this.feature.featuresIdParent) {
-                        this.feature.featuresIdParent = this.listFeature.filter(
-                            (l: Feature) => l._id ===  this.feature.featuresIdParent!._id,
-                        )[0];
-                    }
-                    if (this.feature.divider === true) {
-                        this.divider = 'true';
-                    } else {
-                        this.divider = 'false';
-                    }
-                    this.filteredListIcons = material;
-                    this.listIcons = material;
+                next: (result:[User, Group[]]) => {
+                    this.user = result[0];
+                    this.listGroups = result[1];
+                    this.user.groupId = this.listGroups.filter((el)=>el._id === this.user.groupId!._id)[0];
                     this._loadingService.hide()
                 },
                 error: () => {
@@ -87,23 +64,16 @@ export class EditComponent implements OnInit {
             });
         }
       }
-    updateFeature(myForm: NgForm) {
+    updateOne(myForm: NgForm) {
         if (myForm.valid) {
-          this.feature.divider = this.divider === 'true';
-          if (this.feature.type === this.FeatureType.group) {
-            this.feature.link = null!;
-          } else {
-            this.feature.subtitle = null!;
-          }
-
-                  this._featureService.updateFeature(this.feature).subscribe(() => {
-                    this._router.navigate(['../'], { relativeTo: this._route }).then();
-                  });
+            this._userService.updateOne(this.user).subscribe(() => {
+               this._router.navigate(['../'], { relativeTo: this._route }).then();
+            });
         }
       }
     cancelEdit(myForm: NgForm) {
         if (myForm.pristine) {
-          this._router.navigate([`../../`], { relativeTo: this._route }).then();
+          this._router.navigate([`../`], { relativeTo: this._route }).then();
         } else {
           // Open the confirmation dialog
           const confirmation = this._fuseConfirmationService.open({
@@ -122,12 +92,12 @@ export class EditComponent implements OnInit {
           confirmation.afterClosed().subscribe((result) => {
             // If the confirm button pressed...
             if (result === 'confirmed') {
-              this._router.navigate([`../../`], { relativeTo: this._route }).then();
+              this._router.navigate([`../`], { relativeTo: this._route }).then();
             }
           });
         }
       }
-    deleteFeature(feature) {
+    deleteOne(row: User) {
         // Open the confirmation dialog
         const confirmation = this._fuseConfirmationService.open({
           title: 'Delete',
@@ -146,8 +116,8 @@ export class EditComponent implements OnInit {
         confirmation.afterClosed().subscribe((result) => {
           // If the confirm button pressed...
           if (result === 'confirmed') {
-            this._featureService.deleteFeature(feature._id).subscribe(() => {
-              this._router.navigate(['/admin/dashboard/features']).then();
+            this._userService.deleteOne(row._id!).subscribe(() => {
+                this._router.navigate([`../`], { relativeTo: this._route }).then();
             });
           }
         });

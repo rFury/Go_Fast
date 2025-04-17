@@ -63,6 +63,7 @@ export class DetailsComponent implements OnInit {
           ]).subscribe({
               next: (result:[Feature ]) => {
                 this.feature = result[0];
+                console.log(this.feature)
                 this._loadingService.hide()
               },
               error: () => {

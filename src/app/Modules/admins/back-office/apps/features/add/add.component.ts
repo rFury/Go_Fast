@@ -7,7 +7,7 @@ import { MatSelect, MatSelectTrigger} from '@angular/material/select';
 import { MatInput } from '@angular/material/input';
 import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
 import { MatButton } from '@angular/material/button';
-import {forkJoin} from "rxjs";
+import {forkJoin, map, startWith} from "rxjs";
 import { Animations } from '../../../../../../Shared/Animations/public-api';
 import { listFeatureStatus } from '../../../../../../Shared/enums/featureStatus';
 import { FeatureType, listFeatureType } from '../../../../../../Shared/enums/featureType';
@@ -18,6 +18,7 @@ import { LoadingService } from '../../../../../../Shared/Services/loading.servic
 import { material } from '../../../../icons/data';
 import { icon } from '../../../../../../Shared/enums/iconType';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 
 @Component({
   selector: 'app-details',
@@ -36,7 +37,8 @@ import { HasPermissionDirective } from '../../../../../../Shared/directives/perm
         MatOption,
         ReactiveFormsModule,
         MatIcon,
-        HasPermissionDirective
+        HasPermissionDirective,
+        NgxMatSelectSearchModule
     ],
 })
 export class AddComponent implements OnInit {
@@ -57,7 +59,7 @@ export class AddComponent implements OnInit {
     filteredListFeature : icon[] = [];
     listIcons :icon[] = [];
     divider: string;
-    iconFilterControl: FormControl<any> = new FormControl();
+    iconSearchControl = new FormControl('');
 
   ngOnInit(): void {
     this.listIcons = material;
@@ -74,11 +76,19 @@ export class AddComponent implements OnInit {
             this._loadingService.hide();
         }
     })
-    this.feature.divider = true;
+    this.iconSearchControl.valueChanges
+      .pipe(
+        startWith(''),
+        map(search => search?.toLowerCase() || '')
+      )
+      .subscribe(search => {
+        this.filteredListIcons = this.listIcons.filter(icon => 
+          icon.label.toLowerCase().includes(search)
+        );
+      });
   }
   addFeature(myForm: NgForm): void {
     if (myForm.valid) {
-      this.feature.divider = this.divider === 'true';
       if (this.feature.type === FeatureType.group) {
         this.feature.link != null;
       } else {

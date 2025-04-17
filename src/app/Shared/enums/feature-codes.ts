@@ -13,18 +13,15 @@ export enum FeatureCodes {
   profile = 'profile',
   userFeatures = 'user-features',
   clients = 'clients',
-  pages = 'pages',
-  texts = 'texts',
-  excursions = 'excursions',
+  orders = 'orders',
+
 }
 
 export const listFeatureActions: RefList<FeatureCodes>[] = [
   { key: FeatureCodes.setting, value: 'Setting' },
-  { key: FeatureCodes.pages, value: 'Pages' },
-  { key: FeatureCodes.texts, value: 'Texts' },
-  { key: FeatureCodes.excursions, value: 'Excursions' },
   { key: FeatureCodes.clients, value: 'Clients' },
   { key: FeatureCodes.administration, value: 'Administration' },
+  { key: FeatureCodes.orders, value: 'Orders' },
   { key: FeatureCodes.companies, value: 'Companies' },
   { key: FeatureCodes.company, value: 'Company' },
   { key: FeatureCodes.features, value: 'Features' },

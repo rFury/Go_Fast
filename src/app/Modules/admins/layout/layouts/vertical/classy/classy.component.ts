@@ -53,7 +53,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     @HostListener('window:beforeunload', ['$event'])
     onBeforeUnload(event: BeforeUnloadEvent) {
       // Synchronous “offline” ping so the browser doesn’t cancel it
-      const url = `${this._userService.endpointAuth}/status`;
+      const url = `${this._userService.endpointUser}/status`;
       const data = JSON.stringify({ status: 'not-visible' });
       navigator.sendBeacon(url, data);
     }

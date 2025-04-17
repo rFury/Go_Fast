@@ -1,0 +1,219 @@
+
+<div class="flex flex-col flex-1 min-w-0 bg-card dark:bg-transparent">
+
+  <!-- Header -->
+  <div class="relative flex flex-col sm:flex-row items-start gap-2 sm:items-center sm:justify-between py-2 px-2 sm:py-3 sm:px-4 border-b">    <!-- Actions -->
+    <!-- Actions -->
+
+    <div class="flex flex-shrink-0 w-full items-baseline  justify-between  md:mt-4 sm:mt-2">
+      <!-- Title -->
+      <div class="hidden sm:flex text-4xl font-extrabold text-indigo-700">{{ 'Users' }}</div>
+
+      <div class="w-3/4 sm:w-2/3 flex flex-row">
+        <!-- Search -->
+        <mat-form-field class="fuse-mat-dense fuse-mat-no-subscript fuse-mat-rounded w-3/4">
+          <mat-icon class="icon-size-5" matPrefix [svgIcon]="'feather:search'"></mat-icon>
+          <input matInput [(ngModel)]="filterSearch" (ngModelChange)="updateSearch()" [autocomplete]="'off'"
+            placeholder="{{ 'Search' }}" />
+        </mat-form-field>
+        <!-- Refresh projects list -->
+
+        <div class="flex justify-end w-1/4 sm:w-1/3 sm:ml-0">
+          <!-- Add project button -->
+          <button class="" mat-flat-button [color]="'primary'" (click)="addOne()" *hasPermission="['clients','create']">
+            <mat-icon [svgIcon]="'heroicons_outline:plus'"></mat-icon>
+            <span class="mx-1.5 hidden sm:block">{{ 'Add' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    </div>
+  <!-- Main -->
+  <div class="flex flex-auto overflow-hidden">
+      <!-- features list -->
+      <div class="flex flex-col flex-auto sm:mb-18">
+          @if (displayedList?.data?.length! > 0) {
+          <!-- Header -->
+          <div class="user-grid grid z-10 top-0 shadow items-center gap-4 py-2 px-4 md:px-6 text-md font-semibold text-secondary bg-gray-50 dark:bg-black dark:bg-opacity-5">
+            <div class="hidden sm:flex">N°</div>
+            <div class="flex">{{ 'first_name' }}</div>
+            <div class="flex">{{ 'last_name' }}</div>
+            <div class="flex">{{ 'email' }}</div>
+            <div class="flex">{{ 'status' }}</div>
+            <div class="hidden sm:flex ">{{ 'password' }}</div>
+            <div class="flex ">
+                <button mat-icon-button (click)="openFilter = true">
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'feather:filter'"></mat-icon>
+                </button>
+            </div>
+          </div>
+          <div class="flex-1 overflow-hidden sm:overflow-y-auto">
+            <div class="flex-1 sm:grid sm:flex-0">
+              <!-- Rows -->
+              <ng-container>
+                @for (row of displayedList?.data; track row) {
+                <div class="user-grid grid items-center gap-4 py-1  px-4 md:px-6 border-b" (click)="isScreenSmall ? openShow(row) : null" >
+                  <div class="hidden sm:flex">{{ $index + 1 }}</div>
+                  <div class="truncate">{{ row.first_name }}</div>
+                  <div class="truncate">{{ row.last_name }}</div>
+                  <div class="truncate">{{ row.email }}</div>
+                  <div class="truncate flex items-center justify-evenly "> <span class="relative inline-block w-3 h-3 rounded-full ml-2" [ngClass]="{
+                                              'bg-green-500': row.status === 'online',
+                                              'bg-amber-500': row.status === 'away',
+                                              'bg-red-500': row.status === 'busy',
+                                              'bg-gray-400': row.status === 'not-visible'}"></span>{{ row.status}}</div>
+                  <div class="hidden sm:flex truncate">
+                   
+                    
+                    @if (row?.new?.value) {
+                      <span class="flex items-center gap-2">
+                        <span>
+                          {{ visiblePasswords.has(row._id) ? row?.new?.password : '************' }}
+                        </span>
+                        <button type="button" mat-icon-button (click)="togglePassword(row._id)" matTooltip="{{ visiblePasswords.has(row._id) ? 'Hide password' : 'Show password' }}">
+                          <mat-icon>
+                            {{ visiblePasswords.has(row._id) ? 'visibility_off' : 'visibility' }}
+                          </mat-icon>
+                        </button>
+                      </span>
+                    } @else {
+                      <span class="italic text-gray-500">Password updated</span>
+                    }
+                    
+                  </div>
+                  <div class="flex">
+                    <button class="mr-4" mat-icon-button [matMenuTriggerFor]="budgetMenu">
+                      <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:ellipsis-vertical'"
+                      ></mat-icon>
+
+                    </button>
+                    <mat-menu #budgetMenu="matMenu">
+                      <button mat-menu-item class="flex justify-between" (click)="openShow(row)" *hasPermission="['users','read']">
+                        <span class="ml-2 mr-1  block">{{ 'Show'  }}</span>
+                        <mat-icon [svgIcon]="'heroicons_outline:eye'"></mat-icon>
+                      </button>
+                      <button mat-menu-item class="flex justify-between" (click)="openEdit(row)" *hasPermission="['users','update']">
+                        <span class="ml-2 mr-1  block">{{ 'Edit'  }}</span>
+                        <mat-icon [svgIcon]="'heroicons_outline:pencil'"></mat-icon>
+                      </button>
+                      <button
+                        mat-menu-item
+                        class="flex justify-between"
+                        (click)="deleteOne(row)" *hasPermission="['users','delete']"
+                      >
+                        <span class="ml-2 mr-1 block">{{ 'Delete'  }}</span>
+                        <mat-icon [svgIcon]="'heroicons_outline:trash'"></mat-icon>
+                      </button>
+                    </mat-menu>
+                  </div>
+                </div>
+                }
+              </ng-container>
+            </div>
+          </div>
+          <mat-paginator
+          class="sm:fixed sm:bottom-0 border-b sm:border-t sm:border-b-0 w-full bg-gray-50 dark:bg-transparent"
+          [showFirstLastButtons]="true"
+          (page)="pageChanged($event)"
+          [length]="displayedList?.total"
+          [pageSize]="currentSize"
+          [pageSizeOptions]="[5, 10, 20, 50, 100]"
+          [class.left-64]="this._sideNavService.getOpen()"
+          [class.pl-4]="this._sideNavService.getOpen()"
+          [class.left-0]="!this._sideNavService.getOpen()">    
+          ></mat-paginator>
+          }@else {
+            <div class="flex flex-1 flex-col items-center justify-center p-8 text-center">
+              <div class="max-w-md space-y-4">
+                <!-- Icon -->
+                <div class="mx-auto text-gray-400 dark:text-gray-500">
+                  <mat-icon class="icon-size-20" [svgIcon]="'heroicons_outline:folder-open'"></mat-icon>
+                </div>
+                
+                <!-- Text -->
+                <div class="space-y-2">
+                  <h3 class="text-2xl font-bold tracking-tight text-gray-800 dark:text-gray-200">
+                    No users found
+                  </h3>
+                  <p class="text-gray-500 dark:text-gray-400">
+                    Start by creating a new user or adjust your filters
+                  </p>
+                </div>
+          
+                <!-- Action Button -->
+                <button 
+                  class="mx-auto inline-flex items-center justify-center rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                  mat-raised-button
+                  (click)="addOne()">
+                  <mat-icon [svgIcon]="'heroicons_outline:plus'" class="mr-2"></mat-icon>
+                  Create New Feature
+                </button>
+              </div>
+            </div>
+          }
+      </div>
+  </div>
+<div class="h-[calc(100vh-8.5rem)] md:h-[calc(100vh-7.5rem)] fixed top-17 md:top-14 right-0 flex flex-col flex-1 justify-start items-center  z-99 bg-gray-400 transition-all duration-500" 
+[class.w-relative]="openFilter" 
+[class.w-0]="!openFilter"
+[class.left-64]="this._sideNavService.getOpen()"
+[class.pl-4]="this._sideNavService.getOpen()"
+[class.left-0]="!this._sideNavService.getOpen()">   
+@if(openFilter) {
+<div class="text-white text-2xl font-bold uppercase flex items-center py-2 gap-2">
+
+  <button mat-stroked-button (click)="getList()">
+    <span>Activate filters</span>
+  </button>
+  <button mat-icon-button (click)="openFilter = false">
+    <mat-icon [svgIcon]="'heroicons_outline:x-circle'"></mat-icon>
+  </button>
+</div>
+<div class="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-4 px-4">
+  <div class="border w-full rounded-md px-2 pt-2"> 
+    <mat-form-field class="w-full">
+      <mat-label class="font-bold">Select Status</mat-label>
+      <mat-select [(ngModel)]="filterStatus" multiple>
+        @for (item of listStatusUsers; track item) {
+          <mat-option [value]="item.value">
+            <div class="flex items-center gap-2">
+              <span class="w-4 h-4 rounded-full block" [ngClass]="item.color"></span>
+              <span  class="font-bold">{{ item.label }}</span>
+            </div>
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    
+  </div>
+
+  <div class="border w-full rounded-md px-2 pt-2"> 
+    <mat-form-field class="w-full">
+      <mat-label class="font-bold">User Account Status</mat-label>
+      <mat-select [(ngModel)]="filterNewOld">
+        
+        <mat-option value="new">
+          <div class="flex items-center gap-2 font-bold">
+            New Users (created but never logged in)
+          </div>
+        </mat-option>
+  
+        <mat-option value="old">
+          <div class="flex items-center gap-2 font-bold">
+            Old Users (created and logged in at least once)
+          </div>
+        </mat-option>
+        
+      </mat-select>
+    </mat-form-field>
+  </div>
+    
+  
+
+</div>
+}
+</div>

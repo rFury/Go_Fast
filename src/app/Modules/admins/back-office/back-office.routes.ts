@@ -1,10 +1,14 @@
 import { Route } from '@angular/router';
 import { BackOfficeComponent } from './back-office.component';
 import featuresRouting from './apps/features/features.routing';
+import featuresCopyRouting from './apps/features copy/features.routing';
+
 import groupsRouting from './apps/groups/groups.routing';
 import usersRouting from './apps/users/users.routing';
 import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 import userFeaturesRouting from './apps/user-features/user-features-routing';
+import clientsRouting from './apps/users copy/clients.routing';
+
 
 export default [
   {
@@ -37,6 +41,14 @@ export default [
       },
       },
       {
+        path: 'clients',
+        loadChildren: () => clientsRouting,
+        data: {
+          breadcrumb: 'Clients',
+          feature: FeatureCodes.clients,
+      },
+      },
+      {
         path: 'userfeatures',
         loadChildren: () => userFeaturesRouting,
         data: {
@@ -44,6 +56,14 @@ export default [
           feature: FeatureCodes.userFeatures,
       },
       },
+      {
+        path: 'orders',
+        loadChildren: () => featuresCopyRouting,
+        data: {
+          breadcrumb: 'UserFeatures',
+          feature: FeatureCodes.orders,
+      },
+      },
     ],
-  },
+  }
 ] satisfies Route[];
