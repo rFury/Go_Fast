@@ -107,25 +107,27 @@
           <div class="sm:col-span-3">
             <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
               <mat-label class="capitalize">{{ 'City' }}</mat-label>
-              <mat-select [(ngModel)]="Client.city" name="place" required
-                (selectionChange)="selectSuggestion(selectedSuggestion)">
+              <mat-select [(ngModel)]="Client.city" name="place" required>
                 <mat-option class="!sticky !top-0 !z-10 !bg-white">
                   <ngx-mat-select-search [formControl]="placeSearchControl" placeholder="Search address..."
                     noEntriesFoundLabel="No locations found">
                   </ngx-mat-select-search>
                 </mat-option>
-
-                @for (suggestion of suggestions; track suggestion.id) {
-                <mat-option [value]="suggestion.place_name" (onSelectionChange)="selectedSuggestion = suggestion">
+                @if (Client.city) {
+                <mat-select-trigger>
+                  <div class="font-medium items-center flex flex-row">
+                    <span class="block"> {{ Client.city.gouvernorat }} </span>
+                  </div>
+                </mat-select-trigger>
+                }
+                @for (suggestion of suggestions; track suggestion) {
+                <mat-option [value]="suggestion">
                   <div class="flex justify-between items-center w-full">
                     <div class="flex items-center">
                       <mat-icon class="mr-2 text-gray-500">place</mat-icon>
                       <div>
                         <div class="font-medium">
-                          {{ suggestion.place_name.split(',')[0] }}
-                        </div>
-                        <div class="text-sm text-gray-500">
-                          {{ suggestion.context[0]?.text }}
+                          {{ suggestion.gouvernorat }}
                         </div>
                       </div>
                     </div>
@@ -146,6 +148,13 @@
             <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
               <mat-label class="capitalize">{{ 'Account Type' }}</mat-label>
               <mat-select [(ngModel)]="Client.accountType" name="type" required>
+                @if (Client.accountType) {
+                  <mat-select-trigger>
+                    <div class="font-medium items-center flex flex-row">
+                      <span class="block"> {{ Client.accountType }} </span>
+                    </div>
+                  </mat-select-trigger>
+                  }
                 <mat-option value="business">
                   <div class="flex items-center">
                     <mat-icon class="mr-2 text-gray-500" matPrefix [svgIcon]="'business'"></mat-icon>

@@ -65,7 +65,7 @@
                 <!-- Pickup Point Card -->
                 <mat-card class="!rounded-lg !shadow-sm !border !border-gray-200 overflow-hidden">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
-                        <Map [approximity]="coordinatesA" [markerIcon]="'location-a-icon.svg'"></Map>
+                        <Map [approximity]="coordinatesA" [markerIcon]="'location-a-icon.svg'" (markersChange)="onMarkersChanged($event)"></Map>
                         Pickup Details
                     </h3>
                     <mat-card-content class="p-6 space-y-6">
@@ -79,7 +79,7 @@
                                     <mat-form-field class="w-full" appearance="outline">
                                         <input matInput [(ngModel)]="searchQueryA" (input)="onSearchChange('a')"
                                             placeholder="Enter pickup address" autocomplete="off" name="place"
-                                            class="!pb-0 !mb-0">
+                                            class="!pb-0 !mb-0" required>
                                         @if(suggestions.length > 0 ){
                                         <div
                                             class="absolute top-full left-0 right-0 !z-50 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
@@ -102,6 +102,13 @@
                                             </div>
                                             }
                                         </div>
+                                        }
+                                        @if ( myForm.controls['place'] && (myForm.controls['place'].dirty ||
+                                        myForm.submitted) &&
+                                        myForm.controls['place'].hasError('required') ) {
+                                        <mat-error>
+                                            {{ 'This field is required' }}
+                                        </mat-error>
                                         }
                                     </mat-form-field>
 

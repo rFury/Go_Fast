@@ -1,6 +1,7 @@
 <!-- Notifications toggle -->
 <button
   mat-icon-button
+  type="button"
   (click)="openPanel()"
   #notificationsOrigin>
   <mat-icon class="text-black text-4xl ">location_on</mat-icon>
@@ -9,7 +10,7 @@
 <!-- Notifications panel -->
 <ng-template #notificationsPanel>
 
-  <div class="fixed inset-0 lg:w-200 lg:h-100  sm:static sm:inset-auto flex flex-col sm:min-w-90 sm:w-90 sm:rounded-2xl overflow-hidden shadow-lg">
+  <div class="fixed inset-0 lg:w-200 lg:h-100 md:w-180 md:h-100 sm:w-140 sm:h-100  sm:static sm:inset-auto flex flex-col sm:rounded-2xl overflow-hidden shadow-lg">
 
     <!-- Header -->
     <div class="flex shrink-0 items-center py-4 pr-4 pl-6 bg-primary text-on-primary">
