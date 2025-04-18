@@ -13,7 +13,7 @@ import { MatFormField, MatLabel, MatError } from '@angular/material/form-field';
 import { MatButton } from '@angular/material/button';
 import { forkJoin, map, startWith } from 'rxjs';
 import { MatOption } from '@angular/material/autocomplete';
-import { MatSelect } from '@angular/material/select';
+import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { Animations } from '../../../../../../Shared/Animations/public-api';
 import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
 import { listFeatureType } from '../../../../../../Shared/enums/featureType';
@@ -27,6 +27,7 @@ import { HasPermissionDirective } from '../../../../../../Shared/directives/perm
 import { Client } from '../../../../../../Shared/Models/Client.model';
 import { ClientService } from '../../../../../../Shared/Services/cLIENT.service';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { Governorate, GOVERNORATES } from '../../../../../../Shared/Models/GeoJson.mode';
 
 @Component({
   selector: 'app-details',
@@ -46,6 +47,7 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
     MatIcon,
     HasPermissionDirective,
     NgxMatSelectSearchModule,
+    MatSelectTrigger
   ],
 })
 export class AddComponent implements OnInit {
@@ -57,27 +59,15 @@ export class AddComponent implements OnInit {
   _loadingService = inject(LoadingService);
   //********* DECLARE CLASSES/ENUMS ***********//
   Client = new Client();
-  list : any[] = [];
-  suggestions: any[] = [];
+  list : Governorate[] = GOVERNORATES;
+  suggestions: Governorate[] =  GOVERNORATES;
   mapboxToken =
     'pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ';
   placeSearchControl = new FormControl('');
-  selectedSuggestion: any;
+
 
   ngOnInit(): void {
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/governorat.json` +
-        `?access_token=${this.mapboxToken}` +
-        `&country=TN` +
-        `&types=region`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        this.list = data.features;
-        this.suggestions = this.list;
-        console.log(this.suggestions);
-        
-      });
+    console.log(this.suggestions);
     this.placeSearchControl.valueChanges
       .pipe(
         startWith(''),
@@ -85,7 +75,7 @@ export class AddComponent implements OnInit {
       )
       .subscribe((search) => {
         this.suggestions = this.list.filter((icon) =>
-          icon.text.toLowerCase().includes(search)
+          icon.gouvernorat.toLowerCase().includes(search)
         );
       });
   }
@@ -100,6 +90,8 @@ export class AddComponent implements OnInit {
     if (suggestion) {
       console.log('Selected location:', suggestion);
       this.suggestions = [];
+      this.Client.city?.coordinates!= suggestion.coordinates;
+      this.Client.city?.gouvernorat!= suggestion.name;
     }
   }
   resetForm(myForm: NgForm, event) {

@@ -5,9 +5,11 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  EventEmitter,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   TemplateRef,
   ViewChild,
   ViewContainerRef,
@@ -40,7 +42,8 @@ export class MapComponent implements OnInit, OnDestroy {
   @Input() approximity:[number,number] | null =null;
   @Input() markerIcon:string | null = null;
   isMapInitialized = false; // Add this flag
-  markers: mapboxgl.Marker[] = []; // Add this property
+  @Output() markersChange = new EventEmitter<mapboxgl.Marker>();
+  markers: mapboxgl.Marker[] = [];
   markerCount: number = 0;
   private _overlayRef!: OverlayRef;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
@@ -53,18 +56,8 @@ export class MapComponent implements OnInit, OnDestroy {
     private _viewContainerRef: ViewContainerRef
   ) {}
 
-  // -----------------------------------------------------------------------------------------------------
-  // @ Lifecycle hooks
-  // -----------------------------------------------------------------------------------------------------
-
-  /**
-   * On init
-   */
   ngOnInit(): void {}
 
-  /**
-   * On destroy
-   */
   ngOnDestroy(): void {
     // Unsubscribe from all subscriptions
     this._unsubscribeAll.next(null);
@@ -79,13 +72,6 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  // -----------------------------------------------------------------------------------------------------
-  // @ Public methods
-  // -----------------------------------------------------------------------------------------------------
-
-  /**
-   * Open the notifications panel
-   */
   openPanel(): void {
     // Return if the notifications panel or its origin is not defined
     if (!this._notificationsPanel || !this._notificationsOrigin) {
@@ -107,7 +93,7 @@ export class MapComponent implements OnInit, OnDestroy {
           accessToken: this.mapboxToken,
           container: 'map',
           style: 'mapbox://styles/mapbox/streets-v12',
-          center: this.approximity==null?[10.1815, 36.8065]:this.approximity,
+          center: this.approximity==null?[ 10.1956, 36.8625 ]:this.approximity,
           zoom: 15,
         });
 
@@ -140,6 +126,8 @@ export class MapComponent implements OnInit, OnDestroy {
     }
     this.markerCount++;
     this.markers.push(marker);
+    this.markersChange.emit(this.markers[0]);
+
 }
 clearMarkers() {
     this.markers.forEach(marker => marker.remove());

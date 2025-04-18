@@ -205,6 +205,11 @@ export class AddComponent implements OnInit {
       .then((res) => res.json())
       .then((data) => {
         this.suggestions = data.features;
+        this.suggestions.sort((a, b) => {
+          let distanceA = this.getDistance(a);
+          let distanceB = this.getDistance(b);
+          return Number(distanceA) - Number(distanceB);
+        });
       });
   }
 
@@ -225,6 +230,10 @@ export class AddComponent implements OnInit {
       this.coordinatesB = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
     }
     this.suggestions = [];
+  }
+  onMarkersChanged(markers: mapboxgl.Marker): void {
+    console.log('Got markers:', markers);
+    this.Order.pick_up?.place?.coordinates !=markers.getLngLat();
   }
 
   getDistance(suggestion: any): string {
