@@ -1,9 +1,9 @@
 import { Route } from '@angular/router';
 import { featureAction } from '../../../../../Shared/Guards/featureAction.guard';
-import { DetailsComponent } from '../features/list/components/details/details.component';
-import { EditComponent } from '../features/list/components/edit/edit.component';
 import { AddComponent } from './add/add.component';
 import { ListComponent } from './list/list.component';
+import { DetailsComponent } from './list/components/details/details.component';
+import { EditComponent } from './list/components/edit/edit.component';
 
 export default [
   {

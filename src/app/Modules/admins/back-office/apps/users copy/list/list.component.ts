@@ -28,6 +28,7 @@ import { Group } from '../../../../../../Shared/Models/Group.model';
 import { GroupService } from '../../../../../../Shared/Services/group.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltip } from '@angular/material/tooltip';
+import { Client } from '../../../../../../Shared/Models/Client.model';
 
 @Component({
   selector: 'app-list',
@@ -66,7 +67,7 @@ export class ListComponent implements OnInit {
   filterOptions: FilterOptions = new FilterOptions();
   currentSize = 10;
   currentPage = 1;
-  displayedList: Pagination<User>;
+  displayedList: Pagination<Client>;
   typingTimer;
   doneTypingInterval = 500;
   isScreenSmall: boolean;
@@ -110,7 +111,7 @@ export class ListComponent implements OnInit {
         this.filterSearch,
         this.filtersGroups.toString(),
         this.filterStatus.toString(),
-        this.filterNewOld
+        this.filterNewOld,'client'
       )
       .subscribe({
         next: (results) => {
@@ -128,10 +129,10 @@ export class ListComponent implements OnInit {
   addOne(): void {
     this._router.navigate(['add'], { relativeTo: this._route }).then();
   }
-  openShow(row: User) {
+  openShow(row: Client) {
     this._router.navigate([`${row._id}`], { relativeTo: this._route }).then();
   }
-  openEdit(row: User) {
+  openEdit(row: Client) {
     this._router
       .navigate([`${row._id}/edit`], { relativeTo: this._route })
       .then();
@@ -144,7 +145,7 @@ export class ListComponent implements OnInit {
       this.getList();
     }, this.doneTypingInterval);
   }
-  deleteOne(row: User) {
+  deleteOne(row: Client) {
     // Open the confirmation dialog
     const confirmation = this._fuseConfirmationService.open({
       title: 'Delete',

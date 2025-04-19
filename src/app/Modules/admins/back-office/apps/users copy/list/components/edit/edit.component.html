@@ -82,30 +82,114 @@
                         </mat-error>
                         }
                     </div>
-                    <!-- group -->
+
+                    <!-- phone -->
                     <div class="sm:col-span-3">
                         <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'group' }}</mat-label>
-                            <mat-select placeholder="select group" [(ngModel)]="user.groupId" name="groupsId" required>
-                                @for (item of listGroups; track item) {
-                                <mat-option [value]="item">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="">
-                                            {{ item.label }}
-                                        </span>
-                                    </div>
-                                </mat-option>
-                                }
-                            </mat-select>
+                            <mat-label class="capitalize">{{ 'phone' }}</mat-label>
+                            <input [(ngModel)]="user.phone" matInput name="phone" type="tel" required />
                         </mat-form-field>
-
-                        @if ( myForm.controls['groupsId'] && (myForm.controls['groupsId'].dirty || myForm.submitted)
-                        && myForm.controls['groupsId'].hasError('required') ) {
+                        @if ( myForm.controls['phone'] && (myForm.controls['phone'].dirty || myForm.submitted)
+                        && myForm.controls['phone'].hasError('required') ) {
                         <mat-error>
                             {{ 'This field is required' }}
                         </mat-error>
                         }
                     </div>
+
+                    <!-- city -->
+                    <div class="sm:col-span-3">
+                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+                            <mat-label class="capitalize">{{ 'city' }}</mat-label>
+                            <mat-select placeholder="select icon" [(ngModel)]="user.city" name="city" #selectValue [compareWith]="compareGovObjects">
+                                @if (user.city) {
+                                <mat-select-trigger>
+                                    <div class="font-medium items-center flex flex-row">
+                                        <mat-icon class="icon-size-6">place</mat-icon>
+                                        <span class="block"> {{ user.city.gouvernorat }} </span>
+                                    </div>
+                                </mat-select-trigger>
+                                }
+                                <mat-option>
+                                    <ngx-mat-select-search [formControl]="placeSearchControl"
+                                        placeholder="Search icons..."
+                                        noEntriesFoundLabel="No icons found"></ngx-mat-select-search>
+                                </mat-option>
+                                @for (item of suggestions ; track item) {
+                                <mat-option [value]="item">
+                                    <div class="flex justify-between items-center w-full">
+                                        <div class="flex items-center">
+                                            <mat-icon class="mr-2 text-gray-500">place</mat-icon>
+                                            <div>
+                                                <div class="font-medium">
+                                                    {{ item.gouvernorat }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                        @if ( myForm.controls['city'] && (myForm.controls['city'].dirty || myForm.submitted)
+                        && myForm.controls['city'].hasError('required') ) {
+                        <mat-error>
+                            {{ 'This field is required' }}
+                        </mat-error>
+                        }
+                    </div>
+
+                    <!-- type -->
+                    <div class="sm:col-span-3">
+                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+                            <mat-label class="capitalize">{{ 'Account Type' }}</mat-label>
+                            <mat-select [(ngModel)]="user.accountType" name="type" required>
+                                @if (user.accountType) {
+                                <mat-select-trigger>
+                                    <div class="font-medium items-center flex flex-row">
+                                        <span class="block"> {{ user.accountType }} </span>
+                                    </div>
+                                </mat-select-trigger>
+                                }
+                                <mat-option value="business">
+                                    <div class="flex items-center">
+                                        <mat-icon class="mr-2 text-gray-500" matPrefix
+                                            [svgIcon]="'business'"></mat-icon>
+                                        Business
+                                    </div>
+                                </mat-option>
+                                <mat-option value="personal">
+                                    <div class="flex items-center">
+                                        <mat-icon class="mr-2 text-gray-500" matPrefix [svgIcon]="'person'"></mat-icon>
+                                        Personal
+                                    </div>
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        @if ( myForm.controls['type'] && (myForm.controls['type'].dirty || myForm.submitted)
+                        && myForm.controls['type'].hasError('required') ) {
+                        <mat-error>
+                            {{ 'This field is required' }}
+                        </mat-error>
+                        }
+                    </div>
+
+                    <!-- password -->
+                    @if(user.new.value){
+                    <div class="sm:col-span-3">
+                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+                            <mat-label class="capitalize">{{ 'password' }}</mat-label>
+                            <input [(ngModel)]="user.new.password" matInput name="password" type="text" required />
+                        </mat-form-field>
+                        @if ( myForm.controls['password'] && (myForm.controls['password'].dirty || myForm.submitted)
+                        && myForm.controls['password'].hasError('required') ) {
+                        <mat-error>
+                            {{ 'This field is required' }}
+                        </mat-error>
+                        }
+                    </div>
+                    }
                 </div>
             </div>
         </div>

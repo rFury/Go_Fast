@@ -2,6 +2,7 @@ import {inject, Injectable} from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { FeatureAuth } from '../Models/FeatureAuth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -13,5 +14,9 @@ export class MenuService {
 
   getMenu(): Observable<any> {
     return this.http.get<any>(`${this.endpoint}`);
+  }
+
+  getActions():Observable<FeatureAuth[]>{
+    return this.http.get<FeatureAuth[]>(`${this.endpoint}/actions`);
   }
 }

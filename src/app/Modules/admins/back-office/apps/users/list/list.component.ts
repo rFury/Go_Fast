@@ -115,7 +115,7 @@ export class ListComponent implements OnInit {
         this.filterSearch,
         this.filtersGroups.toString(),
         this.filterStatus.toString(),
-        this.filterNewOld
+        this.filterNewOld,'user'
       )
       .subscribe({
         next: (results) => {

@@ -48,7 +48,7 @@ export class DetailsComponent implements OnInit {
          if (this.id) {
              this._loadingService.show()
              forkJoin([
-                 this._userService.getOne(this.id),
+                 this._userService.getOne(this.id,'user'),
                  this._groupService.getAll(),
              ]).subscribe({
                  next: (result:[User, Group[]]) => {

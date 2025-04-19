@@ -6,14 +6,14 @@ import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { UserService } from '../Services/user.service';
 
-export const featureAction: CanActivateFn = (route, state) => {
+export const featureAction: CanActivateFn = async (route, state) => {
     const router = inject(Router);
     const user = inject(UserService);
   
     const requiredRole = route.data?.['action'];
     const feature = route.data?.['code'];
   
-    if (user.checkPermission(feature,requiredRole)) {
+    if ( user.checkPermission(feature,requiredRole)) {
       return true;
     } else {
       return router.parseUrl('/admin/unauthorized');
