@@ -9,13 +9,14 @@ import { FeatureAuth } from '../Models/FeatureAuth.model';
 import { Pagination } from '../Models/Pagination.model';
 import { FeatureActions } from '../enums/feature-actions';
 import { Client } from '../Models/Client.model';
+import { MenuService } from './menu.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
   endpointUser = `${environment.api}/users`;
-  endpointClient = `${environment.api}/users/clients`;
+  endpointClient = `${environment.api}/clients`;
   _user = signal<User | Client | null>(null);
   private _statusTimeout: any;
   private _inactivityTimeout: any;
@@ -23,6 +24,7 @@ export class UserService {
   features=signal<FeatureAuth[] | null>(null);
   http = inject(HttpClient);
   router = inject(Router);
+  _menu = inject(MenuService);
 
   
     user = this._user.asReadonly();
@@ -56,11 +58,21 @@ export class UserService {
     return this._defaultLink;
   }
 
-  checkPermission(code: string, action: string): boolean {
-    const featuresAuth = this.features();
-    return !!featuresAuth?.some(
-      (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
-    );
+  checkPermission(code: string, action: string): Observable<boolean> {
+    if (this.features()) {
+      const featuresAuth = this.features();
+      return of(!!featuresAuth?.some(
+        (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
+      ));
+    } else {
+      return this._menu.getActions().pipe(
+        map(actions => {
+          return !!actions?.some(
+            (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
+          );
+        })
+      );
+    }
   }
   
   
@@ -134,8 +146,9 @@ export class UserService {
     );
   }
 
-  addUser(user: User): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}`, {
+  addUser(user: User | Client): Observable<User> {
+    const endpoint = user instanceof Client ?this.endpointClient: this.endpointUser ;
+    return this.http.post<User>(`${endpoint}`, {
       user,
     });
   }
@@ -145,8 +158,9 @@ export class UserService {
     search: string,
     filterGroups : string,
     filterStatus :string,
-    filterNewOld : string
-  ): Observable<Pagination<User>> {
+    filterNewOld : string,
+    who : string
+  ): Observable<Pagination<User | Client>> {
     let searchParams = new HttpParams();
     searchParams = searchParams.append('limit', limit);
 
@@ -164,15 +178,18 @@ export class UserService {
     if (filterNewOld) {
       searchParams = searchParams.append('filterNewOld', filterNewOld);
     }
-    return this.http.get<Pagination<User>>(`${this.endpointUser}`, {
+    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
+    return this.http.get<Pagination<User | Client>>(`${endpoint}`, {
       params: searchParams,
     });
   }
-  getOne(id: string): Observable<User> {
-    return this.http.get<User>(`${this.endpointUser}/${id}`);
+  getOne(id: string,who:string): Observable<User | Client> {
+    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
+    return this.http.get<User>(`${endpoint}/${id}`);
   }
-  updateOne(user: User): Observable<User> {
-    return this.http.put<User>(`${this.endpointUser}/${user._id}`, { user });
+  updateOne(user: User | Client): Observable<User | Client> {
+    const endpoint = user instanceof Client ?this.endpointClient: this.endpointUser ;
+    return this.http.put<User | Client>(`${endpoint}/${user._id}`, { user });
   }
   enableAccount(id: string): Observable<User> {
     return this.http.get<User>(`${this.endpointUser}/${id}/enable-disable`);

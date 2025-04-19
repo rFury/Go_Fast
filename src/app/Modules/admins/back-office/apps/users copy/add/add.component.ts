@@ -27,7 +27,7 @@ import { HasPermissionDirective } from '../../../../../../Shared/directives/perm
 import { Client } from '../../../../../../Shared/Models/Client.model';
 import { ClientService } from '../../../../../../Shared/Services/cLIENT.service';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
-import { Governorate, GOVERNORATES } from '../../../../../../Shared/Models/GeoJson.mode';
+import { Governorate, GOVERNORATES } from '../../../../../../Shared/Models/Gouvernorat.model';
 
 @Component({
   selector: 'app-details',

@@ -14,6 +14,7 @@ import { LoadingService } from '../../../../../../../../Shared/Services/loading.
 import { UserService } from '../../../../../../../../Shared/Services/user.service';
 import { MatIcon } from '@angular/material/icon';
 import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
+import { Client } from '../../../../../../../../Shared/Models/Client.model';
  @Component({
     selector: 'app-details',
     templateUrl: './details.component.html',
@@ -27,38 +28,27 @@ import { HasPermissionDirective } from '../../../../../../../../Shared/directive
          MatInput,
          ReactiveFormsModule,
          MatIcon,
-         MatOption,
-         MatSelect,
          HasPermissionDirective
      ],
 })
 export class DetailsComponent implements OnInit {
      //********* INJECT SERVICES ***********//
      _userService= inject(UserService);
-     _groupService= inject(GroupService);
      _router= inject(Router);
      _route= inject(ActivatedRoute);
      _fuseConfirmationService= inject(FuseConfirmationService);
      _loadingService= inject(LoadingService);
      //********* DECLARE CLASSES/ENUMS ***********//
      id = this._route.snapshot.paramMap.get('id') || undefined;
-     user: User;
-     listGroups: Group[];
+     user: Client;
      ngOnInit(): void {
          if (this.id) {
              this._loadingService.show()
              forkJoin([
-                 this._userService.getOne(this.id),
-                 this._groupService.getAll(),
+                 this._userService.getOne(this.id,'client'),
              ]).subscribe({
-                 next: (result:[User, Group[]]) => {
+                 next: (result:[Client]) => {
                      this.user = result[0];
-                     console.log(result[0])
-                     this.listGroups = result[1];
-                     console.log(this.user);
-                     if(this.user.type !== 'super'){
-                        this.user.groupId = this.listGroups.filter((el)=>el._id === this.user.groupId!._id)[0];
-                     }
                      this._loadingService.hide()
                  },
                  error: () => {
@@ -66,9 +56,10 @@ export class DetailsComponent implements OnInit {
                  }
              });
          }
+         
      }
     updateOne() {
-        this._router.navigate([`/admin/dashboard/users/${this.user._id}/edit`]).then();
+        this._router.navigate([`/admin/dashboard/clients/${this.user._id}/edit`]).then();
     }
     deleteOne() {
         // Open the confirmation dialog
@@ -90,7 +81,7 @@ export class DetailsComponent implements OnInit {
             // If the confirm button pressed...
             if (result === 'confirmed') {
                 this._userService.deleteOne(this.user._id!).subscribe(() => {});
-                this._router.navigate(['/admin/dashboard/users']).then();
+                this._router.navigate(['/admin/dashboard/clients']).then();
             }
         });
     }
