@@ -48,10 +48,10 @@ import { query } from '@angular/animations';
     MatCheckboxModule,
     MatProgressSpinnerModule,
   ],
-  styleUrl: './sign-in.component.scss'
+  styleUrl: './sign-in.component.scss',
 })
 export class SignInComponent implements OnInit {
-  protected btn:boolean = true;
+  protected btn: boolean = true;
   protected missingCode: boolean = false;
   protected emailText: string = 'Email address';
   protected attempts: number = 3;
@@ -102,8 +102,6 @@ export class SignInComponent implements OnInit {
     } else {
       this._router.navigate(['/admin/sign-in']);
     }
-
-
   }
   signIn(): void {
     console.log('1', this.signInForm.value);
@@ -116,7 +114,7 @@ export class SignInComponent implements OnInit {
     }
 
     this.signInForm.disable();
-    this.btn=false;
+    this.btn = false;
     this.showAlert = false;
 
     if (!this.verify) {
@@ -131,21 +129,27 @@ export class SignInComponent implements OnInit {
           });
         },
         (err) => {
-            if(err.status === 400){
-                console.log('4');
-                console.error(err);
-                this.alert.message = 'Wrong Credentials. Please try again';
-                this.showAlert = true;
-                this.signInForm?.enable();
-                this.btn=true;
-            }else if(err.status === 405){
-                this._router.navigate(['/admin/sign-in/verif-code'], {
-                    queryParams: {
-                      email: this.signInForm.get('email')?.value,
-                      verif: true,
-                    },
-                  });
-            }
+          if (err.status === 400) {
+            console.log('4');
+            console.error(err);
+            this.alert.message = 'Wrong Credentials. Please try again';
+            this.showAlert = true;
+            this.signInForm?.enable();
+            this.btn = true;
+          } else if (err.status === 405) {
+            this._router.navigate(['/admin/sign-in/verif-code'], {
+              queryParams: {
+                email: this.signInForm.get('email')?.value,
+                verif: true,
+              },
+            });
+          } else {
+            console.log(err.error.message);
+            this.alert.message = 'Something went wrong';
+            this.showAlert = true;
+            this.signInForm?.enable();
+            this.btn = true;
+          }
         }
       );
     } else {
@@ -156,7 +160,7 @@ export class SignInComponent implements OnInit {
             (res) => {
               this._userService.get().subscribe((user: User) => {
                 this.user = user;
-                console.log(user)
+                console.log(user);
               });
               const redirectURL =
                 this._activatedRoute.snapshot.queryParamMap.get(
@@ -168,27 +172,30 @@ export class SignInComponent implements OnInit {
                 'email',
                 this.signInForm?.get('email')?.value
               );
-              this._router.navigateByUrl("/admin/"+redirectURL);
+              this._router.navigateByUrl('/admin/' + redirectURL);
             },
             (err) => {
               if (err.status == 405) {
                 this.showAlert = true;
                 this.attempts = Number.parseInt(err.error.message);
                 this.alert.message = 'Wrong code, ' + this.attempts + ' left !';
-                this.btn=true;
-              }else if(err.status == 403 || err.status == 402) {
+                this.btn = true;
+              } else if (err.status == 403 || err.status == 402) {
                 this._router.navigate(['/admin/sign-in']);
-              }else if (err.status ===455){                
-                this._router.navigate(['/admin/reset-password'],{
+              } else if (err.status === 455) {
+                this._router.navigate(['/admin/reset-password'], {
                   queryParams: {
-                    email: this.signInForm.get('email')?.value, 
-                    token : err.error.token,
-                    type : true
-                  }
-                })
-              }
-              else{
-                console.error(err);
+                    email: this.signInForm.get('email')?.value,
+                    token: err.error.token,
+                    type: true,
+                  },
+                });
+              } else {
+                console.error(err.error.message);
+                this.alert.message = 'Something went wrong';
+                this.showAlert = true;
+                this.signInForm?.enable();
+                this.btn = true;
               }
             }
           );

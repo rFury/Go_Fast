@@ -93,9 +93,9 @@ export class UserService {
   }
   getAll(type:string): Observable<User[] | Client[]> {
     if(type === "client"){
-    return this.http.get<Client[]>(`${this.endpointUser}/all`,{params:{type:"client"}})
+    return this.http.get<Client[]>(`${this.endpointClient}/all`,{params:{type:"client"}})
     }
-    return this.http.get<User[]>(`${this.endpointClient}/all`,{params:{type:"user"}})
+    return this.http.get<User[]>(`${this.endpointUser}/all`,{params:{type:"user"}})
   }
 
 
@@ -146,9 +146,11 @@ export class UserService {
     );
   }
 
-  addUser(user: User | Client): Observable<User> {
+  addUser(user: User | Client): Observable<any> {
     const endpoint = user instanceof Client ?this.endpointClient: this.endpointUser ;
-    return this.http.post<User>(`${endpoint}`, {
+    console.log(user instanceof Client);
+    
+    return this.http.post<any>(`${endpoint}`, {
       user,
     });
   }
@@ -188,14 +190,17 @@ export class UserService {
     return this.http.get<User>(`${endpoint}/${id}`);
   }
   updateOne(user: User | Client): Observable<User | Client> {
-    const endpoint = user instanceof Client ?this.endpointClient: this.endpointUser ;
+    const endpoint = user.type === 'client' ?this.endpointClient: this.endpointUser ;
+    console.log(user instanceof Client);
     return this.http.put<User | Client>(`${endpoint}/${user._id}`, { user });
   }
   enableAccount(id: string): Observable<User> {
     return this.http.get<User>(`${this.endpointUser}/${id}/enable-disable`);
   }
-  deleteOne(id: string): Observable<null> {
-    return this.http.delete<null>(`${this.endpointUser}/${id}`);
+  deleteOne(id: string,who?:string): Observable<null> {
+    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
+
+    return this.http.delete<null>(`${endpoint}/${id}`);
   }
   updateAvatar(data: FormData, id: string): Observable<User> {
     return this.http.post<User>(`${this.endpointUser}/${id}/avatar`, data).pipe(

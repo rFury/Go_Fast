@@ -25,7 +25,6 @@ import { UserService } from '../../../../../../Shared/Services/user.service';
 import { MatIcon } from '@angular/material/icon';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 import { Client } from '../../../../../../Shared/Models/Client.model';
-import { ClientService } from '../../../../../../Shared/Services/cLIENT.service';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { Governorate, GOVERNORATES } from '../../../../../../Shared/Models/Gouvernorat.model';
 

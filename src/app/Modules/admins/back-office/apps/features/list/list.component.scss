@@ -11,7 +11,7 @@
   }
   /* md: '960px' */
   @screen md {
-    grid-template-columns: 20px 125px 125px 125px 125px auto 125px  30px;
+    grid-template-columns: 20px 125px 125px 125px 125px auto auto  30px;
   }
   /* xs: '1280px' */
   @screen lg {

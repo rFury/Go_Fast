@@ -8,7 +8,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { MatOption } from '@angular/material/core';
-import { MatSelect, MatSelectTrigger } from '@angular/material/select';
+import { MatSelect, MatSelectChange, MatSelectTrigger } from '@angular/material/select';
 import { MatInput } from '@angular/material/input';
 import {
   MatFormField,
@@ -17,7 +17,7 @@ import {
   MatHint,
 } from '@angular/material/form-field';
 import { MatButton } from '@angular/material/button';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map, startWith } from 'rxjs';
 import { Animations } from '../../../../../../Shared/Animations/public-api';
 import { listFeatureStatus } from '../../../../../../Shared/enums/featureStatus';
 import {
@@ -44,6 +44,11 @@ import { Point } from '../../../../../../Shared/Models/Point.model';
 import { CommonModule, NgClass } from '@angular/common';
 import * as mapboxgl from 'mapbox-gl';
 import { MapComponent } from '../../../../../../Shared/Components/map/map.component';
+import { Client } from '../../../../../../Shared/Models/Client.model';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { UserService } from '../../../../../../Shared/Services/user.service';
+import { OrderService } from '../../../../../../Shared/Services/order.service';
+import { Place } from '../../../../../../Shared/Models/Place.model';
 @Component({
   selector: 'app-details',
   templateUrl: './add.component.html',
@@ -66,13 +71,17 @@ import { MapComponent } from '../../../../../../Shared/Components/map/map.compon
     MatButtonToggleModule,
     MatCheckboxModule,
     NgClass,
-    MapComponent
+    MapComponent,
+    MatSelectTrigger,
+    NgxMatSelectSearchModule
 ],
 })
 export class AddComponent implements OnInit {
+
   hideSingleSelectionIndicator = signal(false);
   //********* INJECT SERVICES ***********//
-  _featureService = inject(FeatureService);
+  _userService = inject(UserService);
+  _orderService = inject(OrderService);
   _router = inject(Router);
   _fuseConfirmationService = inject(FuseConfirmationService);
   _route = inject(ActivatedRoute);
@@ -97,38 +106,47 @@ export class AddComponent implements OnInit {
   close:boolean = false;
   coordinatesA: [number,number] | null = null;
   coordinatesB: [number,number] | null = null;
-
+  userFilterControl: FormControl<any> = new FormControl();
+  listUsers: Client[] = [];
+  filteredListUsers : Client[] = [];
+  client: Client = null;
   ngOnInit(): void {
     this.Order.type = DeliveryType.building;
-    /*this._loadingService.show();
-    /*forkJoin([
-        this._featureService.getFeatureParent()
-    ]).subscribe({
-        next:(result:[Feature[]]) => {
-            this.listParentFeatures = result[0];
+    this._loadingService.show();
+      this._userService.getAll("client").subscribe({
+        next:(result) => {
+          this.filteredListUsers = result;
+          this.listUsers = result;
             this._loadingService.hide();
         },
         error: () => {
             this._loadingService.hide();
         }
-    })*/
+    })
+    this.userFilterControl.valueChanges
+    .pipe(
+      startWith(''),
+      map(search => search?.toLowerCase() || '')
+    )
+    .subscribe(search => {
+      this.filteredListUsers = this.listUsers.filter(icon => 
+        icon.email.toLowerCase().includes(search)
+      );
+    });
   }
   toggleSingleSelectionIndicator() {
     this.hideSingleSelectionIndicator.update((value) => !value);
   }
   addOrder(myForm: NgForm): void {
-    /*if (myForm.valid) {
-      this.feature.divider = this.divider === 'true';
-      if (this.feature.type === FeatureType.group) {
-        this.feature.link != null;
-      } else {
-        this.feature.subtitle != null;
-      }
-        console.log(this.feature)
-      this._featureService.createFeature(this.feature).subscribe(() => {
-        this._router.navigate([`../`], { relativeTo: this._route }).then();
+    if (myForm.valid) {
+      this.Order.client = this.client._id;
+      this.Order.pick_up = this.PointA;
+      this.Order.destination = this.PointB;
+        console.log(this.Order)
+      this._orderService.addOrder(this.Order).subscribe(() => {
+        this._router.navigate([`../../`], { relativeTo: this._route }).then();
       });
-    }*/
+    }
   }
   resetForm(myForm: NgForm, event) {
     event.stopPropagation();
@@ -198,7 +216,7 @@ export class AddComponent implements OnInit {
     fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
         searchQuery
-      )}.json?types=poi,place,address,neighborhood,locality&country=TN&proximity=${this.userLocation.lng},${
+      )}.json?country=TN&proximity=${this.userLocation.lng},${
         this.userLocation.lat
       }&access_token=${this.mapboxToken}&limit=10`
     )
@@ -215,25 +233,25 @@ export class AddComponent implements OnInit {
 
   selectSuggestion(suggestion: any,type:string) {
     console.log('Selected location:', suggestion);
+    let place:Place = new Place();
+    place.id = suggestion.id;
+    place.setPlace(suggestion.place_name);
+    place.coordinates = suggestion.geometry.coordinates;
     if(type==='a'){
       this.searchQueryA = suggestion.place_name;
-      this.Order.pick_up?.place?.setPlace(suggestion.place_name);
-      this.Order.pick_up?.place?.coordinates?.lng!= suggestion.geometry.coordinates[0];
-      this.Order.pick_up?.place?.coordinates?.lat!= suggestion.geometry.coordinates[1];
       this.coordinatesA = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
-    }
-    else{
+      this.PointA.place = place;
+    } else if(type==='b'){
       this.searchQueryB = suggestion.place_name;
-      this.Order.destination?.place?.setPlace(suggestion.place_name);
-      this.Order.destination?.place?.coordinates?.lng!= suggestion.geometry.coordinates[0];
-      this.Order.destination?.place?.coordinates?.lat!= suggestion.geometry.coordinates[1];
+      this.PointB.place = place;
       this.coordinatesB = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
     }
     this.suggestions = [];
+    console.log(this.Order);
+    
   }
   onMarkersChanged(markers: mapboxgl.Marker): void {
     console.log('Got markers:', markers);
-    this.Order.pick_up?.place?.coordinates !=markers.getLngLat();
   }
 
   getDistance(suggestion: any): string {
@@ -261,4 +279,8 @@ export class AddComponent implements OnInit {
   deg2rad(deg: number) {
     return deg * (Math.PI / 180);
   }
+  onUserSelected($event: MatSelectChange<any>) {
+    this.userLocation.lng = this.client.city.coordinates[0];
+    this.userLocation.lat = this.client.city.coordinates[1];
+    }
 }
