@@ -12,5 +12,6 @@ export class Order{
     proudct?:Product | string;
     client?:Client | string;
     agent?:string;
+    status?:string;
     
 }
