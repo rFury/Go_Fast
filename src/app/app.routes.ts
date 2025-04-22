@@ -11,5 +11,5 @@ export const routes: Routes = [
   //{ path: 'Sign-Up',loadChildren:()=>signUpRoutes},
   //{ path: 'Home', component: WelcomeComponent },
 { path: "admin", loadChildren: () => import('./Modules/admins/admins.routes') },
-    //{ path: '', redirectTo: 'Home', pathMatch: 'full' },
+    { path: '', redirectTo: 'admin', pathMatch: 'full' },
 ];

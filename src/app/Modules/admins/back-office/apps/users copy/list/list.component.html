@@ -29,8 +29,8 @@
     </div>
     </div>
   <!-- Main -->
-  <div class="flex flex-auto overflow-hidden">
-      <!-- features list -->
+  <div class="flex flex-auto h-[calc(100vh-9rem)] sm:h-[calc(100vh-10.5rem)]">
+    <!-- features list -->
       <div class="flex flex-col flex-auto sm:mb-18">
           @if (displayedList?.data?.length! > 0) {
           <!-- Header -->
@@ -40,8 +40,7 @@
             <div class="flex">{{ 'last_name' }}</div>
             <div class="flex">{{ 'email' }}</div>
             <div class="flex">{{ 'phone' }}</div>
-            <div class="flex">{{ 'city' }}</div>
-            <div class="flex">{{ 'status' }}</div>
+            <div class="hidden sm:flex">{{ 'city' }}</div>
             <div class="hidden sm:flex ">{{ 'password' }}</div>
             <div class="flex ">
                 <button mat-icon-button (click)="openFilter = true">
@@ -51,7 +50,7 @@
                 </button>
             </div>
           </div>
-          <div class="flex-1 overflow-hidden sm:overflow-y-auto">
+          <div class="flex-1 overflow-y-auto">
             <div class="flex-1 sm:grid sm:flex-0">
               <!-- Rows -->
               <ng-container>
@@ -62,15 +61,8 @@
                   <div class="truncate">{{ row.last_name }}</div>
                   <div class="truncate">{{ row.email }}</div>
                   <div class="truncate">{{ row.phone }}</div>
-                  <div class="truncate">{{ row.city?.gouvernorat }}</div>
-                  <div class="truncate flex items-center justify-evenly "> <span class="relative inline-block w-3 h-3 rounded-full ml-2" [ngClass]="{
-                                              'bg-green-500': row.status === 'online',
-                                              'bg-amber-500': row.status === 'away',
-                                              'bg-red-500': row.status === 'busy',
-                                              'bg-gray-400': row.status === 'not-visible'}"></span>{{ row.status}}</div>
+                  <div class="hidden sm:flex truncate">{{ row.city?.gouvernorat }}</div>
                   <div class="hidden sm:flex truncate">
-                   
-                    
                     @if (row?.new?.value) {
                       <span class="flex items-center gap-2">
                         <span>

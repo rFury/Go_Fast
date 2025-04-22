@@ -164,7 +164,7 @@ export class ListComponent implements OnInit {
     confirmation.afterClosed().subscribe((result) => {
       // If the confirm button pressed...
       if (result === 'confirmed') {
-        this._userService.deleteOne(row._id!).subscribe(() => {
+        this._userService.deleteOne(row._id!,'client').subscribe(() => {
           this.getList();
         });
       }

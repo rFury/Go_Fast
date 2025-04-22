@@ -44,6 +44,47 @@
                 <!-- Delivery Type Section -->
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4">Delivery Type</h3>
+                    <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+                        <mat-select placeholder="select client" [(ngModel)]="client" name="user"  (selectionChange)="onUserSelected($event)" required>
+                            <mat-select-trigger>
+                                <div class="font-medium items-center flex flex-row">
+                                    <span class=""> {{ client?.first_name+" "+client?.last_name }} ({{ client?.email }})
+                                    </span>
+                                </div>
+                            </mat-select-trigger>
+                            <mat-option>
+                                <ngx-mat-select-search [formControl]="userFilterControl" placeholder="Filter"
+                                    noEntriesFoundLabel="{{ 'No Clients Found' }}"></ngx-mat-select-search>
+                            </mat-option>
+
+                            <mat-option [value]="null">
+                                <div class="font-medium items-center flex flex-row">
+                                    <span class="sm:block"> {{ '-- None --' }} </span>
+                                </div>
+                            </mat-option>
+                            @for (item of filteredListUsers; track item) {
+                            <mat-option [value]="item">
+                                <div class="font-medium items-center flex flex-row">
+                                    <span class=""> {{ item?.first_name+" "+item?.last_name+" Email:" }}({{ item.email
+                                        }})</span>
+                                </div>
+                            </mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    @if ( myForm.controls['user'] && (myForm.controls['user'].dirty || myForm.submitted) &&
+                    myForm.controls['user'].hasError('required') ) {
+                    <mat-error>
+                        {{ 'This field is required' }}
+                    </mat-error>
+                    }
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto w-full p-4 space-y-4">
+                <!-- Delivery Type Section -->
+                <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Delivery Type</h3>
                     <mat-button-toggle-group [(ngModel)]="Order.type" name="type" aria-label="Delivery type"
                         class="w-full" [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()" required>
                         <mat-button-toggle [value]="DeliveryType.building"
@@ -65,7 +106,8 @@
                 <!-- Pickup Point Card -->
                 <mat-card class="!rounded-lg !shadow-sm !border !border-gray-200 overflow-hidden">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
-                        <Map [approximity]="coordinatesA" [markerIcon]="'location-a-icon.svg'" (markersChange)="onMarkersChanged($event)"></Map>
+                        <Map [approximity]="coordinatesA" [markerIcon]="'location-a-icon.svg'"
+                            (markersChange)="onMarkersChanged($event)"></Map>
                         Pickup Details
                     </h3>
                     <mat-card-content class="p-6 space-y-6">
@@ -73,9 +115,10 @@
                         <div class="grid gap-6"
                             [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
                             <div class="relative space-y-2 z-50">
-                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to pick up
+                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to pick
+                                    up
                                 </label>
-                                <div class="relative" >
+                                <div class="relative">
                                     <mat-form-field class="w-full" appearance="outline">
                                         <input matInput [(ngModel)]="searchQueryA" (input)="onSearchChange('a')"
                                             placeholder="Enter pickup address" autocomplete="off" name="place"
@@ -209,9 +252,10 @@
                         <div class="grid gap-6"
                             [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
                             <div class="relative space-y-2 z-50">
-                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to deliver
+                                <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to
+                                    deliver
                                 </label>
-                                <div class="relative" >
+                                <div class="relative">
                                     <mat-form-field class="w-full" appearance="outline">
                                         <input matInput [(ngModel)]="searchQueryB" (input)="onSearchChange('b')"
                                             placeholder="Enter destination address" autocomplete="off" name="place2"
@@ -243,7 +287,7 @@
 
                                 </div>
                             </div>
-                    
+
                             @if(Order.type === DeliveryType.apartment){
 
                             <div class="space-y-2">

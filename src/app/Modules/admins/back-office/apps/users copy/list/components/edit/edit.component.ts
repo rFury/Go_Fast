@@ -89,7 +89,7 @@ export class EditComponent implements OnInit {
   }
   
   updateOne(myForm: NgForm) {
-    if (myForm.valid) {
+    if (myForm.valid && !myForm.pristine) {
       this._userService.updateOne(this.user).subscribe(() => {
         this._router.navigate(['../'], { relativeTo: this._route }).then();
       });
@@ -140,7 +140,7 @@ export class EditComponent implements OnInit {
     confirmation.afterClosed().subscribe((result) => {
       // If the confirm button pressed...
       if (result === 'confirmed') {
-        this._userService.deleteOne(row._id!).subscribe(() => {
+        this._userService.deleteOne(row._id!, 'client').subscribe(() => {
           this._router.navigate([`../`], { relativeTo: this._route }).then();
         });
       }

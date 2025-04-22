@@ -49,6 +49,8 @@ export class DetailsComponent implements OnInit {
              ]).subscribe({
                  next: (result:[Client]) => {
                      this.user = result[0];
+                     console.log(this.user);
+                     
                      this._loadingService.hide()
                  },
                  error: () => {

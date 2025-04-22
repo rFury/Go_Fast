@@ -1,4 +1,5 @@
 import { DeliveryType } from "../enums/delivery.enums";
+import { Client } from "./Client.model";
 import { Point } from "./Point.model";
 import { Product } from "./Product.model";
 
@@ -9,4 +10,8 @@ export class Order{
     destination?:Point;
     type?:DeliveryType;
     proudct?:Product | string;
+    client?:Client | string;
+    agent?:string;
+    status?:string;
+    
 }

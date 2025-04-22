@@ -27,8 +27,8 @@
       </div>
   </div>
     <!-- Main -->
-    <div class="flex flex-auto overflow-hidden">
-        <div class="flex flex-col flex-auto sm:mb-18">
+    <div class="flex flex-auto h-[calc(100vh-9rem)] sm:h-[calc(100vh-10.5rem)]">
+      <div class="flex flex-col flex-auto sm:mb-18">
             @if (displayedList?.data?.length! > 0) {
             <!-- Header -->
             <div class="group-grid grid z-10 top-0 shadow items-center gap-4 py-2 px-4 md:px-6 text-md font-semibold text-secondary bg-gray-50 dark:bg-black dark:bg-opacity-5">
@@ -43,7 +43,7 @@
                   </button>
               </div>
             </div>
-            <div class="flex-1 overflow-hidden sm:overflow-y-auto">
+            <div class="flex-1 overflow-y-auto">
               <div class="flex-1 sm:grid sm:flex-0">
                 <!-- Rows -->
                 <ng-container>
