@@ -25,6 +25,7 @@ import { FilterOptions } from '../../../../../../Shared/Models/FilterOption.mode
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { UserService } from '../../../../../../Shared/Services/user.service';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
+import { NgClass } from '@angular/common';
 
 @Component({
   selector: 'app-list',
@@ -47,6 +48,7 @@ import { HasPermissionDirective } from '../../../../../../Shared/directives/perm
         MatSelect,
         HasPermissionDirective,
         GoogleMapsModule,
+        NgClass
     ],
 })
 export class ListComponent implements OnInit {

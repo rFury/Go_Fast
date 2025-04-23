@@ -92,7 +92,7 @@ export class MapComponent implements OnInit, OnDestroy {
         this.map = new mapboxgl.Map({
           accessToken: this.mapboxToken,
           container: 'map',
-          style: 'mapbox://styles/mapbox/streets-v12',
+          style: 'mapbox://styles/mapbox/standard',
           center: this.approximity==null?[ 10.1956, 36.8625 ]:this.approximity,
           zoom: 15,
         });

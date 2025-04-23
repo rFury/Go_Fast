@@ -1,15 +1,15 @@
-@if (!_loadingService.isloading()) {
+@if (Order) {
 <div class="flex flex-col flex-1 min-w-0 bg-card dark:bg-transparent">
 
     <form class="w-full" #myForm="ngForm" ngForm="ngForm">
 
         <!-- Header -->
-        <div class="flex flex-wrap md:flex-nowrap items-center justify-between px-4 py-3 border-b bg-white rounded-md shadow-sm">
+        <div class="flex flex-wrap md:flex-nowrap items-center justify-between px-4 py-3 bOrder-b bg-white rounded-md shadow-sm">
 
             <!-- Title -->
             <div class="flex items-center gap-2 w-full md:w-1/2 mb-2 md:mb-0">
               <div class="text-2xl md:text-3xl font-bold text-indigo-700">
-                {{ 'Edit feature' }}
+                {{ 'Edit Order' }}
               </div>
             </div>
           
@@ -19,8 +19,8 @@
               <button 
                 mat-flat-button 
                 color="warn" 
-                (click)="deleteFeature(feature)"
-                class="flex items-center gap-1" *hasPermission="['features','delete']">
+                (click)="deleteOrder(Order)"
+                class="flex items-center gap-1" *hasPermission="['orders','delete']">
                 <mat-icon>delete</mat-icon>
                 <span>Delete</span>
               </button>
@@ -40,8 +40,8 @@
                 mat-flat-button 
                 [color]="'primary'" 
                 type="submit" 
-                (click)="updateFeature(myForm)" 
-                class="flex items-center gap-1 hover:bg-indigo-600" *hasPermission="['features','update']">
+                (click)="updateOrder(myForm)" 
+                class="flex items-center gap-1 hover:bg-indigo-600" *hasPermission="['Orders','update']">
                 <mat-icon>save</mat-icon>
                 <span>Save</span>
               </button>
@@ -49,224 +49,335 @@
           
           </div>
 
-        <!-- Main -->
-        @if(this.feature){
-        <div class="flex flex-col flex-auto h-[calc(100vh-8rem)] bg-gray-100  overflow-y-auto">
-            <div class="flex flex-col mb-6 w-full">
-                <div class="grid sm:grid-cols-9 gap-6 p-3">
-                    <!-- code -->
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'code' }}</mat-label>
-                            <input [(ngModel)]="feature.code" matInput name="code" type="text" required />
-                        </mat-form-field>
-                        @if ( myForm.controls['code'] && (myForm.controls['code'].dirty || myForm.submitted) &&
-                        myForm.controls['code'].hasError('required') ) {
-                        <mat-error>
-                            {{ 'This field is required' }}
-                        </mat-error>
-                        }
-                    </div>
-                    <!-- title -->
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'title' }}</mat-label>
-                            <input [(ngModel)]="feature.title" matInput name="title" type="text" required />
-                        </mat-form-field>
-                        @if ( myForm.controls['title'] && (myForm.controls['title'].dirty || myForm.submitted)
-                        && myForm.controls['title'].hasError('required') ) {
-                        <mat-error>
-                            {{ 'This field is required' }}
-                        </mat-error>
-                        }
-                    </div>
-                    <!-- type -->
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'type' }}</mat-label>
-                            <mat-select placeholder="select type"
-                                (selectionChange)="feature.type = selectValueType.value" [value]="feature.type"
-                                [(ngModel)]="feature.type" name="type" #selectValueType required>
-                                <mat-select-trigger>
-                                    @if (feature.type) {
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="block">
-                                            {{ feature.type }}
-                                        </span>
-                                    </div>
-                                    }
-                                </mat-select-trigger>
-                                @for (item of listFeatureType; track item) {
-                                <mat-option [value]="item.key">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="">
-                                            {{ item.value }}
-                                        </span>
-                                    </div>
-                                </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                        @if ( myForm.controls['type'] && (myForm.controls['type'].dirty || myForm.submitted) &&
-                        myForm.controls['type'].hasError('required') ) {
-                        <mat-error>
-                            {{ 'This field is required' }}
-                        </mat-error>
-                        }
-                    </div>
-                    <!-- Feature parents -->
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'feature parents' }}</mat-label>
-                            <mat-select placeholder="select parent" [(ngModel)]="feature.featuresIdParent"
-                                name="parent">
-                                <mat-option>
+       <!-- Main -->
 
-                                </mat-option>
-                                @if (feature.featuresIdParent) {
-                                <mat-option [value]="null">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="block"> {{ '-- None --' }} </span>
-                                    </div>
-                                </mat-option>
-                                } @for (item of listFeature; track item) {
-                                <mat-option [value]="item">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="block">
-                                            {{ item.code }}: {{ item.title }} ({{ item.type }})
-                                        </span>
-                                    </div>
-                                </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                    <!-- status -->
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'status' }}</mat-label>
-                            <mat-select placeholder="select type"
-                                (selectionChange)="feature.status = selectValueCurrency.value" [value]="feature.status"
-                                [(ngModel)]="feature.status" name="status" #selectValueCurrency required>
-                                <mat-select-trigger>
-                                    @if (feature.status) {
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="block">
-                                            {{ feature.status }}
-                                        </span>
-                                    </div>
-                                    }
-                                </mat-select-trigger>
-                                @for (item of listFeatureStatus; track item) {
-                                <mat-option [value]="item.key">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="block">
-                                            {{ item.value }}
-                                        </span>
-                                    </div>
-                                </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                        @if ( myForm.controls['status'] && (myForm.controls['status'].dirty || myForm.submitted)
-                        && myForm.controls['status'].hasError('required') ) {
-                        <mat-error>
-                            {{ 'This field is required' }}
-                        </mat-error>
-                        }
-                    </div>
-                    <!-- Ordre -->
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'ordre' }}</mat-label>
-                            <input [(ngModel)]="feature.order" matInput name="ordre" type="number" />
-                        </mat-form-field>
-                    </div>
-                    <!-- subtitle -->
-                    @if (feature.type === FeatureType.group) {
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'Subtitle' }}</mat-label>
-                            <input [(ngModel)]="feature.subtitle" matInput name="subtitle" type="text" />
-                        </mat-form-field>
-                    </div>
-                    }
-                    <!-- Link -->
-                    @if (feature.type !== FeatureType.group) {
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'link' }}</mat-label>
-                            <input [(ngModel)]="feature.link" matInput name="link" type="text" />
-                        </mat-form-field>
-                    </div>
-                    }
-                    <!-- Divider -->
-                    @if (feature.type === FeatureType.group) {
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'Divider' }}</mat-label>
-                            <mat-select placeholder="select divider" [(ngModel)]="feature.divider" name="divider">
-                                @if (feature.divider) {
-                                <mat-option [value]="null">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="block"> {{ '-- None --' }} </span>
-                                    </div>
-                                </mat-option>
-                                }
-                                <mat-option [value]="true">
-                                    {{ 'with divider' }}
-                                </mat-option>
-                                <mat-option [value]="false">
-                                    {{ 'without divider' }}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                }
-                    <div class="sm:col-span-3">
-                        <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                            <mat-label class="capitalize">{{ 'icon' }}</mat-label>
-                            <mat-select placeholder="select icon" [(ngModel)]="feature.icon" name="icon" #selectValue>
-                                <mat-select-trigger>
-                                    @if (feature.icon) {
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="w-7 shadow rounded-sm overflow-hidden mr-1">
-                                            <mat-icon class="icon-size-6">{{ feature.icon }}</mat-icon>
-                                        </span>
-                                        <span class="block"> {{ feature.icon }} </span>
-                                    </div>
-                                    }
-                                </mat-select-trigger>
-                                <mat-option>
-                                    <ngx-mat-select-search
-                                      [formControl]="iconSearchControl"
-                                      placeholder="Search icons..."
-                                      noEntriesFoundLabel="No icons found"
-                                    ></ngx-mat-select-search>
-                                  </mat-option>
-                                @if (feature.type==='group') {
-                                <mat-option [value]="null">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="block"> {{ '-- None --' }} </span>
-                                    </div>
-                                </mat-option>
-                                } @for (item of filteredListIcons ; track item) {
-                                <mat-option [value]="item.label">
-                                    <div class="font-medium items-center flex flex-row">
-                                        <span class="w-9 shadow rounded-sm overflow-hidden mr-1">
-                                            <mat-icon class="icon-size-7 mr-1">{{ item.label }}</mat-icon>
-                                        </span>
-                                        <span class="block"> {{ item.label }} </span>
-                                    </div>
-                                </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                    </div>
-                </div>
+       <div class="flex flex-col flex-auto h-[calc(100vh-8rem)] bg-gray-100  overflow-y-auto">
+        <div class="max-w-4xl mx-auto w-full p-4 space-y-4">
+            <!-- Delivery Type Section -->
+            <div class="bg-white rounded-lg shadow-sm p-6 bOrder bOrder-gray-200">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Client</h3>
+                <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+                    <input type="text" matInput [(ngModel)]="clientLabel" name="client" readonly>
+                </mat-form-field>
             </div>
         </div>
-        }
+
+        <div class="max-w-4xl mx-auto w-full p-4 space-y-4">
+            <!-- Delivery Type Section -->
+            <div class="bg-white rounded-lg shadow-sm p-6 bOrder bOrder-gray-200">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4">Delivery Type</h3>
+                <mat-button-toggle-group [(ngModel)]="Order.type" name="type" aria-label="Delivery type"
+                    class="w-full" [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()" required>
+                    <mat-button-toggle [value]="DeliveryType.building"
+                        class="w-1/2 !rounded-lg !px-4 !py-3 !bOrder !bOrder-gray-200"
+                        [class.bg-indigo-50]="Order.type === DeliveryType.building">
+                        <span class="font-medium text-gray-700">Delivery to building</span>
+                    </mat-button-toggle>
+                    <mat-button-toggle [value]="DeliveryType.apartment"
+                        class="w-1/2 !rounded-lg !px-4 !py-3 !bOrder !bOrder-gray-200"
+                        [class.bg-indigo-50]="Order.type === DeliveryType.apartment">
+                        <span class="font-medium text-gray-700">Delivery to apartment</span>
+                    </mat-button-toggle>
+                </mat-button-toggle-group>
+                @if (myForm.controls['type']?.invalid && (myForm.controls['type'].dirty || myForm.submitted)) {
+                <mat-error class="mt-2 text-sm">Please select a delivery type</mat-error>
+                }
+            </div>
+
+            <!-- Pickup Point Card -->
+            <mat-card class="!rounded-lg !shadow-sm !bOrder !bOrder-gray-200 overflow-hidden">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
+                    <Map [approximity]="coordinatesA" [markerIcon]="'location-a-icon.svg'"
+                        (markersChange)="onMarkersChanged($event)"></Map>
+                    Pickup Details
+                </h3>
+                <mat-card-content class="p-6 space-y-6">
+                    <!-- Address Section -->
+                    <div class="grid gap-6"
+                        [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
+                        <div class="relative space-y-2 z-50">
+                            <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to pick
+                                up
+                            </label>
+                            <div class="relative">
+                                <mat-form-field class="w-full" appearance="outline">
+                                    <input matInput [(ngModel)]="searchQueryA" (input)="onSearchChange('a')"
+                                        placeholder="Enter pickup address" autocomplete="off" name="place"
+                                        class="!pb-0 !mb-0" required>
+                                    @if(suggestions.length > 0 ){
+                                    <div
+                                        class="absolute top-full left-0 right-0 !z-50 bg-white bOrder bOrder-t-0 bOrder-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
+                                        @for(suggestion of suggestions; track suggestion){
+                                        <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer bOrder-t bOrder-gray-100"
+                                            (click)="selectSuggestion(suggestion,'a')">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-medium truncate">
+                                                    <mat-icon
+                                                        class="mr-1 text-gray-500 align-middle">place</mat-icon>
+                                                    {{ suggestion.place_name.split(',')[0] }}
+                                                </div>
+                                                <div class="text-sm text-gray-500 truncate">
+                                                    {{ suggestion.context[0]?.text }}
+                                                </div>
+                                            </div>
+                                            <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
+                                                {{ getDistance(suggestion) }} km
+                                            </div>
+                                        </div>
+                                        }
+                                    </div>
+                                    }
+                                    @if ( myForm.controls['place'] && (myForm.controls['place'].dirty ||
+                                    myForm.submitted) &&
+                                    myForm.controls['place'].hasError('required') ) {
+                                    <mat-error>
+                                        {{ 'This field is required' }}
+                                    </mat-error>
+                                    }
+                                </mat-form-field>
+
+                            </div>
+                        </div>
+                        @if(Order.type === DeliveryType.apartment){
+                        <div class="space-y-2">
+                            <label class="text-md font-semibold text-gray-700 uppercase tracking-wide0">Entrance
+                                Type</label>
+                            <mat-form-field appearance="outline" class="w-full">
+                                <mat-select [(ngModel)]="PointA.entrance" name="entranceType" required>
+                                    <mat-option value="main">
+                                        <div class="flex items-center">
+                                            <mat-icon class="mr-2 text-gray-500">home</mat-icon>
+                                            Main Entrance
+                                        </div>
+                                    </mat-option>
+                                    <mat-option value="side">
+                                        <div class="flex items-center">
+                                            <mat-icon class="mr-2 text-gray-500">meeting_room</mat-icon>
+                                            Side Entrance
+                                        </div>
+                                    </mat-option>
+                                    <mat-option value="back">
+                                        <div class="flex items-center">
+                                            <mat-icon class="mr-2 text-gray-500">backup</mat-icon>
+                                            Back Entrance
+                                        </div>
+                                    </mat-option>
+                                </mat-select>
+                                @if ( myForm.controls['entranceType'] && (myForm.controls['entranceType'].dirty ||
+                                myForm.submitted) &&
+                                myForm.controls['entranceType'].hasError('required') ) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+
+                    @if(Order.type === DeliveryType.apartment){
+
+                    <!-- Address Details -->
+                    <div class="space-y-4">
+                        <h4 class="text-md font-semibold text-gray-700 uppercase tracking-wide">Address Details</h4>
+                        <div class="!z-0">
+                            <mat-form-field class="w-full">
+                                <input matInput [(ngModel)]="PointA.adress_details" name="details" type="text"
+                                    required>
+                                <mat-hint>Floor, apartment, entryphone ...</mat-hint>
+                                @if ( myForm.controls['details'] && (myForm.controls['details'].dirty ||
+                                myForm.submitted) &&
+                                myForm.controls['details'].hasError('required') ) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+
+
+                    </div>
+                    }
+
+
+                    <!-- Phone -->
+                    <div class="pt-4 bOrder-t bOrder-gray-200 z-0">
+                        <mat-form-field class="bot !z-0 w-full ">
+                            <mat-label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Contact
+                                Number</mat-label>
+                            <span class="text-gray-400 mr-2">+216</span>
+                            <input matInput [(ngModel)]="PointA.phone" name="phone" type="tel" pattern="[0-9]{8}"
+                                placeholder="90-303-560" required>
+                            <mat-icon class="text-gray-400">call</mat-icon>
+                            <mat-hint class="text-sm">Format: 90-303-560</mat-hint>
+                            @if ( myForm.controls['phone'] && (myForm.controls['phone'].dirty || myForm.submitted)
+                            &&
+                            myForm.controls['phone'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                        </mat-form-field>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- destination Point Card -->
+            <mat-card class="!rounded-lg !shadow-sm !bOrder !bOrder-gray-200 overflow-hidden">
+                <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
+                    <Map [approximity]="coordinatesB" [markerIcon]="'location-b-icon.svg'"></Map>
+                    Destination Details
+                </h3>
+                <mat-card-content class="p-6 space-y-6">
+                    <!-- Address Section -->
+                    <div class="grid gap-6"
+                        [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
+                        <div class="relative space-y-2 z-50">
+                            <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Where to
+                                deliver
+                            </label>
+                            <div class="relative">
+                                <mat-form-field class="w-full" appearance="outline">
+                                    <input matInput [(ngModel)]="searchQueryB" (input)="onSearchChange('b')"
+                                        placeholder="Enter destination address" autocomplete="off" name="place2"
+                                        class="!pb-0 !mb-0">
+                                    @if(suggestions.length > 0 ){
+                                    <div
+                                        class="absolute top-full left-0 right-0 !z-50 bg-white bOrder bOrder-t-0 bOrder-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
+                                        @for(suggestion of suggestions; track suggestion){
+                                        <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer bOrder-t bOrder-gray-100"
+                                            (click)="selectSuggestion(suggestion,'b')">
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-medium truncate">
+                                                    <mat-icon
+                                                        class="mr-1 text-gray-500 align-middle">place</mat-icon>
+                                                    {{ suggestion.place_name.split(',')[0] }}
+                                                </div>
+                                                <div class="text-sm text-gray-500 truncate">
+                                                    {{ suggestion.context[0]?.text }}
+                                                </div>
+                                            </div>
+                                            <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
+                                                {{ getDistance(suggestion) }} km
+                                            </div>
+                                        </div>
+                                        }
+                                    </div>
+                                    }
+                                </mat-form-field>
+
+                            </div>
+                        </div>
+
+                        @if(Order.type === DeliveryType.apartment){
+
+                        <div class="space-y-2">
+                            <label class="text-md font-semibold text-gray-700 uppercase tracking-wide0">Entrance
+                                Type</label>
+                            <mat-form-field appearance="outline" class="w-full">
+                                <mat-select [(ngModel)]="PointB.entrance" name="entranceType2" required>
+                                    <mat-option value="main">
+                                        <div class="flex items-center">
+                                            <mat-icon class="mr-2 text-gray-500">home</mat-icon>
+                                            Main Entrance
+                                        </div>
+                                    </mat-option>
+                                    <mat-option value="side">
+                                        <div class="flex items-center">
+                                            <mat-icon class="mr-2 text-gray-500">meeting_room</mat-icon>
+                                            Side Entrance
+                                        </div>
+                                    </mat-option>
+                                    <mat-option value="back">
+                                        <div class="flex items-center">
+                                            <mat-icon class="mr-2 text-gray-500">backup</mat-icon>
+                                            Back Entrance
+                                        </div>
+                                    </mat-option>
+                                </mat-select>
+                                @if ( myForm.controls['entranceType2'] && (myForm.controls['entranceType2'].dirty ||
+                                myForm.submitted) &&
+                                myForm.controls['entranceType2'].hasError('required') ) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+
+                    @if(Order.type === DeliveryType.apartment){
+
+                    <!-- Address Details -->
+                    <div class="space-y-4">
+                        <h4 class="text-md font-semibold text-gray-700 uppercase tracking-wide">Address Details</h4>
+                        <div class="">
+                            <mat-form-field class="w-full">
+                                <input matInput [(ngModel)]="PointB.adress_details" name="details2" type="text"
+                                    required>
+                                <mat-hint>Floor, apartment, entryphone ...</mat-hint>
+                                @if ( myForm.controls['details2'] && (myForm.controls['details2'].dirty ||
+                                myForm.submitted) &&
+                                myForm.controls['details2'].hasError('required') ) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+
+
+                    </div>
+                    }
+
+                    <!-- Additional Instructions -->
+                    <div class="pt-4 bOrder-t bOrder-gray-200">
+                        <mat-form-field class="w-full">
+                            <mat-label class="text-md font-semibold text-gray-700 uppercase tracking-wide">Contact
+                                Number</mat-label>
+                            <span class="text-gray-400 mr-2">+216</span>
+                            <input matInput [(ngModel)]="PointB.phone" name="phone2" type="tel" pattern="[0-9]{8}"
+                                placeholder="90-303-560" required>
+                            <mat-icon class="text-gray-400">call</mat-icon>
+                            <mat-hint class="text-sm">Format: 90-303-560</mat-hint>
+                            @if ( myForm.controls['phone2'] && (myForm.controls['phone2'].dirty || myForm.submitted)
+                            &&
+                            myForm.controls['phone2'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                        </mat-form-field>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card class="!rounded-lg !shadow-sm !bOrder !bOrder-gray-200 overflow-hidden">
+                <mat-card-content class="p-6 space-y-6">
+                    <!-- Address Section -->
+                    <div class="grid gap-6">
+                        <div class="space-y-2">
+                            <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">What to
+                                deliver</label>
+                            <mat-form-field appearance="outline" class="w-full">
+                                <input matInput [(ngModel)]="Order.productDesc" name="delivery"
+                                    placeholder="Enter delivery description" required>
+                                <mat-icon matSuffix class="text-gray-400 mr-2">delivery_dining</mat-icon>
+                                @if ( myForm.controls['delivery'] && (myForm.controls['delivery'].dirty ||
+                                myForm.submitted) &&
+                                myForm.controls['delivery'].hasError('required') ) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+           </div>
+        </div>
     </form>
 </div>
 }

@@ -4,9 +4,14 @@ export class Place{
     gouvernorat?: string;
     coordinates?:[number,number];
 
-    setPlace(details:string){
+    setPlace(details:string,type:string){
         const detailsArray = details.split(',');
-        this.name = detailsArray[0];
-        this.gouvernorat = detailsArray[1];
+        if(type==='postcode'){
+            this.name = detailsArray[0];
+            this.gouvernorat = detailsArray[1];
+        }else{
+            this.name = detailsArray[1];
+            this.gouvernorat = detailsArray[2];
+        }
     }
 }

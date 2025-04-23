@@ -49,6 +49,8 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { UserService } from '../../../../../../Shared/Services/user.service';
 import { OrderService } from '../../../../../../Shared/Services/order.service';
 import { Place } from '../../../../../../Shared/Models/Place.model';
+import { MapService } from '../../../../../../Shared/Services/map.service';
+import { selectMapComponent } from '../../../../../../Shared/Components/map copy/map.component';
 @Component({
   selector: 'app-details',
   templateUrl: './add.component.html',
@@ -73,14 +75,15 @@ import { Place } from '../../../../../../Shared/Models/Place.model';
     NgClass,
     MapComponent,
     MatSelectTrigger,
-    NgxMatSelectSearchModule
-],
+    NgxMatSelectSearchModule,
+    selectMapComponent,
+  ],
 })
 export class AddComponent implements OnInit {
-
   hideSingleSelectionIndicator = signal(false);
   //********* INJECT SERVICES ***********//
   _userService = inject(UserService);
+  _mapService=inject(MapService)
   _orderService = inject(OrderService);
   _router = inject(Router);
   _fuseConfirmationService = inject(FuseConfirmationService);
@@ -109,7 +112,7 @@ export class AddComponent implements OnInit {
   userFilterControl: FormControl<any> = new FormControl();
   listUsers: Client[] = [];
   filteredListUsers : Client[] = [];
-  client: Client = null;
+  client!: Client;
   ngOnInit(): void {
     this.Order.type = DeliveryType.building;
     this._loadingService.show();
@@ -130,7 +133,7 @@ export class AddComponent implements OnInit {
     )
     .subscribe(search => {
       this.filteredListUsers = this.listUsers.filter(icon => 
-        icon.email.toLowerCase().includes(search)
+        icon.email!.toLowerCase().includes(search)
       );
     });
   }
@@ -143,7 +146,8 @@ export class AddComponent implements OnInit {
       this.Order.pick_up = this.PointA;
       this.Order.destination = this.PointB;
         console.log(this.Order)
-      this._orderService.addOrder(this.Order).subscribe(() => {
+        
+      this._orderService.addOrderAdmin(this.Order).subscribe(() => {
         this._router.navigate([`../../`], { relativeTo: this._route }).then();
       });
     }
@@ -201,86 +205,28 @@ export class AddComponent implements OnInit {
       });
     }
   }
-  onSearchChange(type:string) {
-    let searchQuery
-    if(type==='a'){
-      searchQuery = this.searchQueryA;
+  onSelectPlace($event: Place,who:string) {
+    if(who==='a'){
+      this.PointA.place = $event;
+      this.coordinatesA = $event.coordinates!;
+    }else{
+      this.PointB.place = $event;
+      this.coordinatesB = $event.coordinates!;
     }
-    else{
-      searchQuery = this.searchQueryB;
-    }
-    if (searchQuery.length < 3) {
-      this.suggestions = [];
-      return;
-    }
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        searchQuery
-      )}.json?country=TN&proximity=${this.userLocation.lng},${
-        this.userLocation.lat
-      }&access_token=${this.mapboxToken}&limit=10`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        this.suggestions = data.features;
-        this.suggestions.sort((a, b) => {
-          let distanceA = this.getDistance(a);
-          let distanceB = this.getDistance(b);
-          return Number(distanceA) - Number(distanceB);
-        });
-      });
   }
 
-  selectSuggestion(suggestion: any,type:string) {
-    console.log('Selected location:', suggestion);
-    let place:Place = new Place();
-    place.id = suggestion.id;
-    place.setPlace(suggestion.place_name);
-    place.coordinates = suggestion.geometry.coordinates;
-    if(type==='a'){
-      this.searchQueryA = suggestion.place_name;
-      this.coordinatesA = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
-      this.PointA.place = place;
-    } else if(type==='b'){
-      this.searchQueryB = suggestion.place_name;
-      this.PointB.place = place;
-      this.coordinatesB = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
-    }
-    this.suggestions = [];
-    console.log(this.Order);
+
+  onMarkersChanged(markers: mapboxgl.Marker,type:string): void {
+    /*this._mapService.reverseGeocode(markers._lngLat.lng,markers._lngLat.lat).subscribe(place =>{
+      this.selectSuggestion(place.features[0],type);
+    });*/
     
   }
-  onMarkersChanged(markers: mapboxgl.Marker): void {
-    console.log('Got markers:', markers);
-  }
 
-  getDistance(suggestion: any): string {
-    const from = [this.userLocation.lng, this.userLocation.lat];
-    const to = suggestion.geometry.coordinates;
-    const distance = this.calculateDistance(from, to);
-    return distance.toFixed(1);
-  }
 
-  // Haversine formula
-  calculateDistance([lng1, lat1]: number[], [lng2, lat2]: number[]) {
-    const R = 6371; // km
-    const dLat = this.deg2rad(lat2 - lat1);
-    const dLon = this.deg2rad(lng2 - lng1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.deg2rad(lat1)) *
-        Math.cos(this.deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
 
-  deg2rad(deg: number) {
-    return deg * (Math.PI / 180);
-  }
   onUserSelected($event: MatSelectChange<any>) {
-    this.userLocation.lng = this.client.city.coordinates[0];
-    this.userLocation.lat = this.client.city.coordinates[1];
+    this.userLocation.lng = this.client.city!.coordinates[0];
+    this.userLocation.lat = this.client.city!.coordinates[1];
     }
 }

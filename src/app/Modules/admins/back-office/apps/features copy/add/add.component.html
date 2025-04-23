@@ -1,4 +1,3 @@
-@if (!_loadingService.isloading()) {
 <div class="flex flex-col flex-1 min-w-0 bg-card dark:bg-transparent">
 
     <form class="w-full" #myForm="ngForm" ngForm="ngForm">
@@ -45,7 +44,8 @@
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4">Delivery Type</h3>
                     <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
-                        <mat-select placeholder="select client" [(ngModel)]="client" name="user"  (selectionChange)="onUserSelected($event)" required>
+                        <mat-select placeholder="select client" [(ngModel)]="client" name="user"
+                            (selectionChange)="onUserSelected($event)" required>
                             <mat-select-trigger>
                                 <div class="font-medium items-center flex flex-row">
                                     <span class=""> {{ client?.first_name+" "+client?.last_name }} ({{ client?.email }})
@@ -90,12 +90,17 @@
                         <mat-button-toggle [value]="DeliveryType.building"
                             class="w-1/2 !rounded-lg !px-4 !py-3 !border !border-gray-200"
                             [class.bg-indigo-50]="Order.type === DeliveryType.building">
-                            <span class="font-medium text-gray-700">Delivery to building</span>
+                            <span class="capitalize sm:font-medium text-gray-700">
+                                <span class="hidden sm:inline">Delivery to </span>building
+                            </span>
+
                         </mat-button-toggle>
                         <mat-button-toggle [value]="DeliveryType.apartment"
                             class="w-1/2 !rounded-lg !px-4 !py-3 !border !border-gray-200"
                             [class.bg-indigo-50]="Order.type === DeliveryType.apartment">
-                            <span class="font-medium text-gray-700">Delivery to apartment</span>
+                            <span class="capitalize sm:font-medium text-gray-700">
+                                <span class="hidden sm:inline">Delivery to </span>apartment
+                            </span>
                         </mat-button-toggle>
                     </mat-button-toggle-group>
                     @if (myForm.controls['type']?.invalid && (myForm.controls['type'].dirty || myForm.submitted)) {
@@ -107,7 +112,7 @@
                 <mat-card class="!rounded-lg !shadow-sm !border !border-gray-200 overflow-hidden">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
                         <Map [approximity]="coordinatesA" [markerIcon]="'location-a-icon.svg'"
-                            (markersChange)="onMarkersChanged($event)"></Map>
+                            (markersChange)="onMarkersChanged($event,'a')"></Map>
                         Pickup Details
                     </h3>
                     <mat-card-content class="p-6 space-y-6">
@@ -119,41 +124,16 @@
                                     up
                                 </label>
                                 <div class="relative">
-                                    <mat-form-field class="w-full" appearance="outline">
-                                        <input matInput [(ngModel)]="searchQueryA" (input)="onSearchChange('a')"
-                                            placeholder="Enter pickup address" autocomplete="off" name="place"
-                                            class="!pb-0 !mb-0" required>
-                                        @if(suggestions.length > 0 ){
-                                        <div
-                                            class="absolute top-full left-0 right-0 !z-50 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
-                                            @for(suggestion of suggestions; track suggestion){
-                                            <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-100"
-                                                (click)="selectSuggestion(suggestion,'a')">
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-medium truncate">
-                                                        <mat-icon
-                                                            class="mr-1 text-gray-500 align-middle">place</mat-icon>
-                                                        {{ suggestion.place_name.split(',')[0] }}
-                                                    </div>
-                                                    <div class="text-sm text-gray-500 truncate">
-                                                        {{ suggestion.context[0]?.text }}
-                                                    </div>
-                                                </div>
-                                                <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
-                                                    {{ getDistance(suggestion) }} km
-                                                </div>
-                                            </div>
-                                            }
-                                        </div>
-                                        }
-                                        @if ( myForm.controls['place'] && (myForm.controls['place'].dirty ||
-                                        myForm.submitted) &&
-                                        myForm.controls['place'].hasError('required') ) {
-                                        <mat-error>
-                                            {{ 'This field is required' }}
-                                        </mat-error>
-                                        }
-                                    </mat-form-field>
+                                    <select-map [userLocation]="userLocation"
+                                        (selectPlace)="onSelectPlace($event,'a')"></select-map>
+
+                                    @if (
+                                    myForm.submitted &&
+                                    PointA.place == null) {
+                                    <mat-error>
+                                        {{ 'This field is required' }}
+                                    </mat-error>
+                                    }
 
                                 </div>
                             </div>
@@ -256,34 +236,16 @@
                                     deliver
                                 </label>
                                 <div class="relative">
-                                    <mat-form-field class="w-full" appearance="outline">
-                                        <input matInput [(ngModel)]="searchQueryB" (input)="onSearchChange('b')"
-                                            placeholder="Enter destination address" autocomplete="off" name="place2"
-                                            class="!pb-0 !mb-0">
-                                        @if(suggestions.length > 0 ){
-                                        <div
-                                            class="absolute top-full left-0 right-0 !z-50 bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
-                                            @for(suggestion of suggestions; track suggestion){
-                                            <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-100"
-                                                (click)="selectSuggestion(suggestion,'b')">
-                                                <div class="flex-1 min-w-0">
-                                                    <div class="font-medium truncate">
-                                                        <mat-icon
-                                                            class="mr-1 text-gray-500 align-middle">place</mat-icon>
-                                                        {{ suggestion.place_name.split(',')[0] }}
-                                                    </div>
-                                                    <div class="text-sm text-gray-500 truncate">
-                                                        {{ suggestion.context[0]?.text }}
-                                                    </div>
-                                                </div>
-                                                <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
-                                                    {{ getDistance(suggestion) }} km
-                                                </div>
-                                            </div>
-                                            }
-                                        </div>
-                                        }
-                                    </mat-form-field>
+                                    <select-map [userLocation]="userLocation"
+                                        (selectPlace)="onSelectPlace($event,'b')"></select-map>
+
+                                    @if (
+                                    myForm.submitted &&
+                                    PointB.place == null) {
+                                    <mat-error>
+                                        {{ 'This field is required' }}
+                                    </mat-error>
+                                    }
 
                                 </div>
                             </div>
@@ -401,4 +363,3 @@
 
 
 </div>
-}

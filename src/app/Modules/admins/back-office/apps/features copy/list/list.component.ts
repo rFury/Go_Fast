@@ -28,6 +28,8 @@ import { HasPermissionDirective } from '../../../../../../Shared/directives/perm
 import { OrderService } from '../../../../../../Shared/Services/order.service';
 import { Order } from '../../../../../../Shared/Models/Order.model';
 import { Client } from '../../../../../../Shared/Models/Client.model';
+import { NgClass } from '@angular/common';
+import { listOrderStatus, OrderStatus, Status } from '../../../../../../Shared/enums/status.enums';
 
 @Component({
   selector: 'app-list',
@@ -50,6 +52,7 @@ import { Client } from '../../../../../../Shared/Models/Client.model';
         MatSelect,
         HasPermissionDirective,
         GoogleMapsModule,
+        NgClass
     ],
 })
 export class ListComponent implements OnInit {
@@ -63,6 +66,7 @@ export class ListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   filterOptions: FilterOptions = new FilterOptions();
   order: Order;
+  OrderStatus = OrderStatus;
   currentSize = 10;
   currentPage = 1;
   displayedList: Pagination<Order>;
@@ -71,10 +75,9 @@ export class ListComponent implements OnInit {
   isScreenSmall: boolean;
   //************* FILTERS *****************//
   openFilter = false;
-  protected readonly listFeatureType = listFeatureType;
-  filterType: string[] = [];
   filterStatus: string[] = [];
   filterSearch: string;
+  ListOrderStatus = listOrderStatus;
 
   ngOnInit(): void {
     this.getList();
@@ -117,14 +120,14 @@ export class ListComponent implements OnInit {
           }
       });
   }
-  addFeature(): void {
+  addOrder(): void {
     this._router.navigate(['add'], { relativeTo: this._route }).then();
   }
-  openShow(row: Feature) {
+  openShow(row: Order) {
     this._router.navigate([`${row._id}`], { relativeTo: this._route }).then();
   }
-  openEdit(feature: Feature) {
-    this._router.navigate([`${feature._id}/edit`], { relativeTo: this._route }).then();
+  openEdit(order: Order) {
+    this._router.navigate([`${order._id}/edit`], { relativeTo: this._route }).then();
   }
   updateSearch() {
     clearTimeout(this.typingTimer);
@@ -134,7 +137,7 @@ export class ListComponent implements OnInit {
       this.getList();
     }, this.doneTypingInterval);
   }
-  deleteFeature(feature: Feature) {
+  deleteOrder(order: Order) {
     // Open the confirmation dialog
     const confirmation = this._fuseConfirmationService.open({
       title: 'Delete',
@@ -161,7 +164,7 @@ export class ListComponent implements OnInit {
   }
   clientName(order:Order):string{
     let client = order.client as Client
-    return client.first_name + " " + client.last_name
+    return client.first_name + " " + client.last_name+" ("+client.email+")"
   }
   refresh(): void {
     clearTimeout(this.typingTimer);
@@ -170,5 +173,4 @@ export class ListComponent implements OnInit {
     }, this.doneTypingInterval);
   }
 
-    protected readonly listFeatureStatus = listFeatureStatus;
 }
