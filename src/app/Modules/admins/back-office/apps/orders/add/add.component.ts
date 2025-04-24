@@ -50,7 +50,7 @@ import { UserService } from '../../../../../../Shared/Services/user.service';
 import { OrderService } from '../../../../../../Shared/Services/order.service';
 import { Place } from '../../../../../../Shared/Models/Place.model';
 import { MapService } from '../../../../../../Shared/Services/map.service';
-import { selectMapComponent } from '../../../../../../Shared/Components/map copy/map.component';
+import { selectMapComponent } from '../../../../../../Shared/Components/map-select/map.component';
 @Component({
   selector: 'app-details',
   templateUrl: './add.component.html',

@@ -32,7 +32,7 @@ import { MatCardModule } from '@angular/material/card';
 import { NgClass } from '@angular/common';
 import { MapComponent } from '../../../../../../../../Shared/Components/map/map.component';
 import { CurriedFunction4 } from 'lodash';
-import { selectMapComponent } from '../../../../../../../../Shared/Components/map copy/map.component';
+import { selectMapComponent } from '../../../../../../../../Shared/Components/map-select/map.component';
 import { MapService } from '../../../../../../../../Shared/Services/map.service';
 
 @Component({

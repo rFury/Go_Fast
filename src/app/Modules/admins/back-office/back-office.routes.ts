@@ -1,13 +1,13 @@
 import { Route } from '@angular/router';
 import { BackOfficeComponent } from './back-office.component';
 import featuresRouting from './apps/features/features.routing';
-import featuresCopyRouting from './apps/features copy/orders.routing';
+import featuresCopyRouting from './apps/orders/orders.routing';
 
 import groupsRouting from './apps/groups/groups.routing';
 import usersRouting from './apps/users/users.routing';
 import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 import userFeaturesRouting from './apps/user-features/user-features-routing';
-import clientsRouting from './apps/users copy/clients.routing';
+import clientsRouting from './apps/clients/clients.routing';
 
 
 export default [
