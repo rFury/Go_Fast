@@ -47,7 +47,7 @@ export class OrderService {
   getOrder(id: string): Observable<Order> {
     return this.http.get<Order>(`${this.endpoint}/${id}`);
   }
-  updateOrder(Order: Order): Observable<null> {
-    return this.http.put<null>(`${this.endpoint}/${Order._id}`, { Order });
+  updateOrder(order: Order): Observable<null> {
+    return this.http.put<null>(`${this.endpoint}/${order._id}`, { order });
   }
 }

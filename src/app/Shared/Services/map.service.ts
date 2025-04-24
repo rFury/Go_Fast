@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
-import { map } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
+import { Place } from '../Models/Place.model';
 @Injectable({
   providedIn: 'root',
 })
@@ -14,7 +15,19 @@ export class MapService {
   reverseGeocode(lng: number, lat: number) {
     const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${this.mapboxToken}`;
 
-    return this.http.get<any>(url);
+    return this.http.get<any>(url).pipe(
+      map(res => {
+      let suggestion =res.features[0];
+      let place: Place = new Place();
+      place.id = suggestion.id;
+      place.setPlace(suggestion.place_name, 'postcode');
+      place.coordinates = suggestion.geometry.coordinates;
+        return place;
+      }),
+      catchError(err => {
+        return of(null);
+      })
+    );
   }
   // Haversine formula
   calculateDistance([lng1, lat1]: number[], [lng2, lat2]: number[]) {

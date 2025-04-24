@@ -101,10 +101,8 @@ export class AddComponent implements OnInit {
   placeSearchControl = new FormControl('');
   searchQueryA = '';
   searchQueryB = '';
-
   suggestions: any[] = [];
-  mapboxToken =
-    'pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ';
+  mapboxToken ='pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ';
   userLocation = { lat: 36.8, lng: 10.2 };
   close:boolean = false;
   coordinatesA: [number,number] | null = null;
@@ -208,18 +206,26 @@ export class AddComponent implements OnInit {
   onSelectPlace($event: Place,who:string) {
     if(who==='a'){
       this.PointA.place = $event;
-      this.coordinatesA = $event.coordinates!;
+      this.coordinatesA = $event?.coordinates!;
     }else{
       this.PointB.place = $event;
-      this.coordinatesB = $event.coordinates!;
+      this.coordinatesB = $event?.coordinates!;
     }
   }
 
 
   onMarkersChanged(markers: mapboxgl.Marker,type:string): void {
-    /*this._mapService.reverseGeocode(markers._lngLat.lng,markers._lngLat.lat).subscribe(place =>{
-      this.selectSuggestion(place.features[0],type);
-    });*/
+    this._mapService.reverseGeocode(markers._lngLat.lng,markers._lngLat.lat).subscribe(place =>{
+      if(type==='a'){
+        this.PointA.place = place!;
+        this.searchQueryA = place!.name+', '+place!.gouvernorat;
+        this.coordinatesA = place?.coordinates!;
+      }else{
+        this.PointB.place = place!;
+        this.searchQueryB = place!.name+', '+place!.gouvernorat;
+        this.coordinatesB = place?.coordinates!;
+      }
+    });
     
   }
 

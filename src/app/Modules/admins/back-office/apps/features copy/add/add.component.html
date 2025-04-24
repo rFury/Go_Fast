@@ -124,7 +124,7 @@
                                     up
                                 </label>
                                 <div class="relative">
-                                    <select-map [userLocation]="userLocation"
+                                    <select-map [userLocation]="userLocation" [searchQuery]="searchQueryA"
                                         (selectPlace)="onSelectPlace($event,'a')"></select-map>
 
                                     @if (
@@ -224,7 +224,7 @@
                 <!-- destination Point Card -->
                 <mat-card class="!rounded-lg !shadow-sm !border !border-gray-200 overflow-hidden">
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 p-6 flex gap-2 items-center">
-                        <Map [approximity]="coordinatesB" [markerIcon]="'location-b-icon.svg'"></Map>
+                        <Map [approximity]="coordinatesB" [markerIcon]="'location-b-icon.svg'" (markersChange)="onMarkersChanged($event,'b')"></Map>
                         Destination Details
                     </h3>
                     <mat-card-content class="p-6 space-y-6">
@@ -236,7 +236,7 @@
                                     deliver
                                 </label>
                                 <div class="relative">
-                                    <select-map [userLocation]="userLocation"
+                                    <select-map [userLocation]="userLocation" [searchQuery]="searchQueryB"
                                         (selectPlace)="onSelectPlace($event,'b')"></select-map>
 
                                     @if (

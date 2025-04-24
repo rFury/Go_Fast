@@ -44,11 +44,11 @@ export class selectMapComponent implements OnInit, OnDestroy {
   _mapService = inject(MapService);
   _viewContainerRef = inject(ViewContainerRef);
   _overlay = inject(Overlay);
-  searchQuery: string = '';
   suggestions: any[] = [];
   _overlayRef!: OverlayRef;
   @Input() userLocation: { lng: number; lat: number };
   @Output() selectPlace = new EventEmitter<Place>();
+  @Input() searchQuery: string = '';
 
   ngOnInit(): void {}
   ngOnDestroy(): void {}
@@ -60,14 +60,13 @@ export class selectMapComponent implements OnInit, OnDestroy {
     // Create the overlay if it doesn't exist
     if (!this._overlayRef) {
       this._createOverlay();
-      
     }
-    if(!this._overlayRef.hasAttached()){
-    this._overlayRef.attach(
-      new TemplatePortal(this.selectMap, this._viewContainerRef)
-    );
-  }
-
+    if (!this._overlayRef.hasAttached()) {
+      this._overlayRef.attach(
+        new TemplatePortal(this.selectMap, this._viewContainerRef)
+      );
+    }
+    
     fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
         this.searchQuery
@@ -84,7 +83,6 @@ export class selectMapComponent implements OnInit, OnDestroy {
           return Number(distanceA) - Number(distanceB);
         });
       });
-
   }
   selectSuggestion(suggestion: any) {
     let place: Place = new Place();
@@ -101,33 +99,35 @@ export class selectMapComponent implements OnInit, OnDestroy {
     const distance = this._mapService.calculateDistance(from, to);
     return distance.toFixed(1);
   }
-  private _createOverlay(): void
-  {
-      // Create the overlay
-      this._overlayRef = this._overlay.create({
-          hasBackdrop     : true,
-          backdropClass   : 'fuse-backdrop-on-mobile',
-          scrollStrategy  : this._overlay.scrollStrategies.block(),
-          positionStrategy: this._overlay.position()
-              .flexibleConnectedTo(this.Zokicen.nativeElement)
-              .withLockedPosition(true)
-              .withPush(true)
-              .withPositions([
-                  {
-                      originX : 'start',
-                      originY : 'bottom',
-                      overlayX: 'start',
-                      overlayY: 'top',
-                  }, 
-              ]),
-              width: this.Zokicen.nativeElement.width,
-      });
+  private _createOverlay(): void {
+    // Create the overlay
+    this._overlayRef = this._overlay.create({
+      hasBackdrop: true,
+      backdropClass: 'fuse-backdrop-on-mobile',
+      scrollStrategy: this._overlay.scrollStrategies.block(),
+      positionStrategy: this._overlay
+        .position()
+        .flexibleConnectedTo(this.Zokicen.nativeElement)
+        .withLockedPosition(true)
+        .withPush(true)
+        .withPositions([
+          {
+            originX: 'start',
+            originY: 'bottom',
+            overlayX: 'start',
+            overlayY: 'top',
+          },
+        ]),
+      width: this.Zokicen.nativeElement.width,
+    });
 
-      // Detach the overlay from the portal on backdrop click
-      this._overlayRef.backdropClick().subscribe(() =>
-      {
-          this._overlayRef.detach();
-      });
-      
+    this._overlayRef.backdropClick().subscribe(() => {
+      this._overlayRef.detach();
+    });
+  }
+  clear() {
+    this.searchQuery = '';
+    this.suggestions = [];
+    this.selectPlace.emit(undefined);
   }
 }

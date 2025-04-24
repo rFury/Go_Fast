@@ -32,6 +32,8 @@ import { MatCardModule } from '@angular/material/card';
 import { NgClass } from '@angular/common';
 import { MapComponent } from '../../../../../../../../Shared/Components/map/map.component';
 import { CurriedFunction4 } from 'lodash';
+import { selectMapComponent } from '../../../../../../../../Shared/Components/map copy/map.component';
+import { MapService } from '../../../../../../../../Shared/Services/map.service';
 
 @Component({
   selector: 'app-edit',
@@ -46,7 +48,7 @@ import { CurriedFunction4 } from 'lodash';
     MatInput,
     MatError,
     MatSelect,
-    MatSelectTrigger,
+    selectMapComponent,
     MatOption,
     ReactiveFormsModule,
     HasPermissionDirective,
@@ -59,7 +61,6 @@ import { CurriedFunction4 } from 'lodash';
   ],
 })
 export class EditComponent implements OnInit {
-   
   hideSingleSelectionIndicator = signal(false);
   //********* INJECT SERVICES ***********//
   _userService = inject(UserService);
@@ -68,6 +69,7 @@ export class EditComponent implements OnInit {
   _fuseConfirmationService = inject(FuseConfirmationService);
   _route = inject(ActivatedRoute);
   _loadingService = inject(LoadingService);
+  _mapService = inject(MapService);
   //********* DECLARE CLASSES/ENUMS ***********//
   Order = new Order();
   PointA  = new Point();
@@ -88,12 +90,15 @@ export class EditComponent implements OnInit {
   close:boolean = false;
   coordinatesA: [number,number] | null = null;
   coordinatesB: [number,number] | null = null;
+  coordinatesAright: {lng:number,lat:number} | null = null;
+  coordinatesBright: {lng:number,lat:number} | null = null;
   userFilterControl: FormControl<any> = new FormControl();
   listUsers: Client[] = [];
   filteredListUsers : Client[] = [];
   client!: Client;
   clientLabel: string='';
   id = this._route.snapshot.paramMap.get('id') || undefined;
+  pristine: boolean=true;
   ngOnInit(): void {
     this.Order.type = DeliveryType.building;
     if (this.id) {
@@ -138,40 +143,15 @@ export class EditComponent implements OnInit {
   }
 
   updateOrder(myForm: NgForm): void {
-    if (myForm.valid && !myForm.pristine) {
+    if (myForm.valid && (!myForm.pristine || !this.pristine) && this.PointA.place && this.PointB.place) {
+      console.log('hii');
+      
       this.Order.client = this.client._id;
       this.Order.pick_up != this.PointA;
       this.Order.destination != this.PointB;
         console.log(this.Order)
       this._orderService.updateOrder(this.Order).subscribe(() => {
         this._router.navigate([`../../`], { relativeTo: this._route }).then();
-      });
-    }
-  }
-  resetForm(myForm: NgForm, event) {
-    event.stopPropagation();
-    if (myForm.pristine) {
-      myForm.resetForm();
-    } else {
-      // Open the confirmation dialog
-      const confirmation = this._fuseConfirmationService.open({
-        title: 'Clear',
-        message: 'Would you like to clear the information ?',
-        actions: {
-          confirm: {
-            label: 'yes',
-          },
-          cancel: {
-            label: 'no',
-          },
-        },
-      });
-      // Subscribe to the confirmation dialog closed action
-      confirmation.afterClosed().subscribe((result) => {
-        // If the confirm button pressed...
-        if (result === 'confirmed') {
-          myForm.resetForm();
-        }
       });
     }
   }
@@ -201,84 +181,33 @@ export class EditComponent implements OnInit {
       });
     }
   }
-  onSearchChange(type:string) {
-    let searchQuery
-    if(type==='a'){
-      searchQuery = this.searchQueryA;
+
+
+  onMarkersChanged(markers: mapboxgl.Marker,type:string): void {
+    this.pristine = false;
+    this._mapService.reverseGeocode(markers._lngLat.lng,markers._lngLat.lat).subscribe(place =>{
+      if(type==='a'){
+        this.PointA.place = place!;
+        this.searchQueryA = place!.name+', '+place!.gouvernorat;
+        this.coordinatesA = place?.coordinates!;
+      }else{
+        this.PointB.place = place!;
+        this.searchQueryB = place!.name+', '+place!.gouvernorat;
+        this.coordinatesB = place?.coordinates!;
+      }
+    });
+  }
+  onSelectPlace($event: Place,who:string) {
+    this.pristine = false;
+    if(who==='a'){
+      this.PointA.place = $event;
+      this.coordinatesA = $event?.coordinates!;
+    }else{
+      this.PointB.place = $event;
+      this.coordinatesB = $event?.coordinates!;
     }
-    else{
-      searchQuery = this.searchQueryB;
-    }
-    if (searchQuery.length < 3) {
-      this.suggestions = [];
-      return;
-    }
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        searchQuery
-      )}.json?country=TN&proximity=${this.userLocation.lng},${
-        this.userLocation.lat
-      }&access_token=${this.mapboxToken}&limit=10`
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        this.suggestions = data.features;
-        this.suggestions.sort((a, b) => {
-          let distanceA = this.getDistance(a);
-          let distanceB = this.getDistance(b);
-          return Number(distanceA) - Number(distanceB);
-        });
-      });
   }
 
-  selectSuggestion(suggestion: any,type:string) {
-    console.log('Selected location:', suggestion);
-    let place:Place = new Place();
-    place.id = suggestion.id;
-    place.setPlace(suggestion.place_name,'');
-    place.coordinates = suggestion.geometry.coordinates;
-    if(type==='a'){
-      this.searchQueryA = suggestion.place_name;
-      this.coordinatesA = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
-      this.PointA.place = place;
-    } else if(type==='b'){
-      this.searchQueryB = suggestion.place_name;
-      this.PointB.place = place;
-      this.coordinatesB = [suggestion.geometry.coordinates[0],suggestion.geometry.coordinates[1]];
-    }
-    this.suggestions = [];
-    console.log(this.Order);
-    
-  }
-  onMarkersChanged(markers: mapboxgl.Marker): void {
-    console.log('Got markers:', markers);
-  }
-
-  getDistance(suggestion: any): string {
-    const from = [this.userLocation.lng, this.userLocation.lat];
-    const to = suggestion.geometry.coordinates;
-    const distance = this.calculateDistance(from, to);
-    return distance.toFixed(1);
-  }
-
-  // Haversine formula
-  calculateDistance([lng1, lat1]: number[], [lng2, lat2]: number[]) {
-    const R = 6371; // km
-    const dLat = this.deg2rad(lat2 - lat1);
-    const dLon = this.deg2rad(lng2 - lng1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.deg2rad(lat1)) *
-        Math.cos(this.deg2rad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }
-
-  deg2rad(deg: number) {
-    return deg * (Math.PI / 180);
-  }
   onUserSelected($event: MatSelectChange<any>) {
     this.userLocation.lng = this.client.city!.coordinates[0];
     this.userLocation.lat = this.client.city!.coordinates[1];

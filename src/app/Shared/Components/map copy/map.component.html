@@ -1,6 +1,9 @@
-<div class="w-full h-13 border border-gray-300 rounded-lg bg-white px-4 py-2" #Zokicen>
+<div class="w-full h-13 border border-gray-300 rounded-t-lg bg-white px-4 py-2 relative" #Zokicen>
   <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange(true)" placeholder="Select address" autocomplete="off"
     class="!pb-0 !mb-0 w-full h-full" (click)="onSearchChange(false)">
+    <button mat-icon-button type="button" class="absolute right-2 top-1/2 -translate-y-1/2" (click)="clear()">
+      <mat-icon  [svgIcon]="'close'"></mat-icon>
+    </button>
   <ng-template #selectMap>
     @if(suggestions.length > 0 ){
     <div
