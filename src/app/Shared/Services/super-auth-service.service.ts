@@ -2,11 +2,13 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '../Models/User.model';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { map, Observable, of, switchMap, throwError } from 'rxjs';
+import { from, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { auth_conf } from '../Models/auth-confirmation.model';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
+
 
 @Injectable({
   providedIn: 'root',
@@ -15,6 +17,7 @@ export class SuperAuthService {
   private apiUrl = `${environment.api}/auth`;
   private helper = new JwtHelperService();
   private token = signal<string>('');
+  public who = signal<string>('admin');
   private isloggedin = signal<boolean>(false);
   private _httpClient = inject(HttpClient);
   private _userService = inject(UserService);
@@ -60,13 +63,40 @@ export class SuperAuthService {
     );;
   }
 
-  signIn(credentials: { email: string; password: string }): Observable<any> {
+  signIn(credentials: { email: string; password: string },who:string):Observable<any> {
     if (this.isloggedin()) {
       return throwError('User is already logged in.');
     }
+    if(who=='user'){
+      this.getFingerprint$().subscribe(fingerprint => {
+        console.log(fingerprint);
+        if(fingerprint){
+          return this._httpClient.post(`${this.apiUrl}/login`, { ...credentials, who, fingerprint});
+        }
+      });
+    }
     return this._httpClient.post(`${this.apiUrl}/login`, { ...credentials });
   }
-  verifCode(elems: { code: string; email: string }): Observable<any> {
+  verifCode(elems: { code: string; email: string },who:string): Observable<any> {
+    if(who=='user'){
+      this.getFingerprint$().subscribe(fingerprint => {
+        console.log(fingerprint);
+        if(fingerprint){
+        return this._httpClient
+          .post(`${this.apiUrl}/verif-account`, { ...elems,fingerprint })
+          .pipe(
+            switchMap((response: any) => {
+              this.saveToken(response.token);
+              const connectedUser = this.decodeToken();
+              this._userService._defaultLink.next(connectedUser?.defaultLink);
+              this.who.set(connectedUser?.type);
+              return of(response);
+            })
+          );
+        }
+      });
+
+    }
     return this._httpClient
       .post(`${this.apiUrl}/verif-account`, { ...elems })
       .pipe(
@@ -74,6 +104,7 @@ export class SuperAuthService {
           this.saveToken(response.token);
           const connectedUser = this.decodeToken();
           this._userService._defaultLink.next(connectedUser?.defaultLink);
+          this.who.set(connectedUser?.type);
           return of(response);
         })
       );
@@ -158,4 +189,12 @@ export class SuperAuthService {
       map(response => response.valid)
     );
   }
+  
+  getFingerprint$(): Observable<string> {
+    return from(FingerprintJS.load()).pipe(
+      switchMap(fp => from(fp.get())),
+      map(result => result.visitorId)
+    );
+  }
+  
 }

@@ -10,6 +10,7 @@ import { noAuthGuard } from '../../Shared/Guards/noAuth.guard';
 import backOfficeRoutes from './back-office/back-office.routes';
 import { tokenGuard } from '../../Shared/Guards/token.guard';
 import { NotAllowedComponent } from '../../Shared/Components/not-allowed/not-allowed.component';
+import { adminGuard } from '../../Shared/Guards/admin.guard';
 
 export default [
   {
@@ -20,7 +21,7 @@ export default [
         path: 'dashboard',
         component: BackOfficeComponent,
         loadChildren: () => backOfficeRoutes,
-        canActivate: [authGuard],
+        canActivate: [authGuard,adminGuard],
         data: {
           layout: 'classy',
           data: {

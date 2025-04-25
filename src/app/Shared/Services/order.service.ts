@@ -2,9 +2,9 @@ import {inject, Injectable} from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { FeatureAuth } from '../Models/FeatureAuth.model';
 import { Order } from '../Models/Order.model';
 import { Pagination } from '../Models/Pagination.model';
+import { Client } from '../Models/Client.model';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +14,9 @@ export class OrderService {
 
   http = inject(HttpClient)
 
+  addOrderAdmin(order:Order):Observable<any>{
+    return this.http.post<any>(`${this.endpoint}/${order.client}`,{order});
+  }
   addOrder(order:Order):Observable<any>{
     return this.http.post<any>(`${this.endpoint}`,{order});
   }
@@ -37,5 +40,14 @@ export class OrderService {
     return this.http.get<Pagination<Order>>(`${this.endpoint}`, {
       params: searchParams,
     });
+  }
+  deleteOrder(id: string): Observable<null> {
+    return this.http.delete<null>(`${this.endpoint}/${id}`);
+  }
+  getOrder(id: string): Observable<Order> {
+    return this.http.get<Order>(`${this.endpoint}/${id}`);
+  }
+  updateOrder(order: Order): Observable<null> {
+    return this.http.put<null>(`${this.endpoint}/${order._id}`, { order });
   }
 }

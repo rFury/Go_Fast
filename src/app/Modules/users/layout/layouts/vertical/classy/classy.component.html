@@ -1,0 +1,73 @@
+<fuse-loading-bar></fuse-loading-bar>
+<div class="flex h-screen ">
+    <!-- Navigation -->
+    <fuse-vertical-navigation
+    class="dark  w-64 flex-none "
+    [mode]="isScreenSmall ? 'over' : 'side'"
+    [name]="'mainNavigation'"
+    [navigation]="navigation"
+    [opened]="!isScreenSmall"
+>
+    <!-- Navigation header hook -->
+    <ng-container fuseVerticalNavigationContentHeader>
+        <div class="flex justify-between items-center p-2">
+            <div class="w-14">
+                <img src="logo-white.png" alt="logo">
+             </div>
+             <div>
+                @if(showUser){
+                    <user></user>
+                }
+                <notifications></notifications>
+             </div>
+        </div>
+    </ng-container>
+    <!-- Navigation footer hook -->
+    <ng-container fuseVerticalNavigationContentFooter>
+        <div
+            class="flex flex-0 items-center justify-center h-16 pr-6 pl-2 mt-8 mb-2 opacity-50 mx-auto"
+        ></div>
+    </ng-container>
+</fuse-vertical-navigation>
+
+
+<!-- Wrapper -->
+    <div class="flex flex-col flex-1 min-w-0">
+        <!-- Header -->
+    <div
+        class="relative flex flex-0 items-center w-full h-16 px-4 md:px-6 z-49 shadow dark:shadow-none dark:border-b bg-card dark:bg-transparent print:hidden"
+    >
+        <!-- Navigation toggle button -->
+        <button mat-icon-button (click)="toggleNavigation('mainNavigation')">
+            <mat-icon svgIcon="heroicons_outline:bars-3"></mat-icon>
+        </button>
+
+        <ng-template #separatorTemplate>
+            <mat-icon svgIcon="heroicons_outline:chevron-right"></mat-icon>
+        </ng-template>
+        <!-- Components -->
+        <div class="flex items-center pl-2 ml-auto space-x-0.5 sm:space-x-2">
+
+            <search></search>
+            <shortcuts></shortcuts>
+
+        </div>
+    </div>
+    <!-- Content -->
+    <div class="flex flex-col flex-auto overflow-hidden bg-white">
+        @if (true) {
+            @if(isLoading){
+                <div class="flex flex-1 justify-center items-center">
+                    <mat-progress-spinner 
+                      [diameter]="45" 
+                      mode="indeterminate">
+                    </mat-progress-spinner>
+                  </div>
+            }@else {
+                <router-outlet></router-outlet>
+            }
+        }
+    </div>
+
+</div>
+</div>

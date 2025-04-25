@@ -12,7 +12,6 @@ import { MatDrawer } from '@angular/material/sidenav';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatListModule} from '@angular/material/list';
 import { Router, RouterOutlet} from '@angular/router';
-import { NotificationsComponent } from "../../../Shared/Components/notifications/notifications.component";
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
 import { UserService } from '../../../Shared/Services/user.service';
@@ -82,11 +81,5 @@ export class BackOfficeComponent implements OnDestroy, OnInit {
     if (this.drawer) {
       this.drawer.toggle();
     }
-  }
-
-  readonly dialog = inject(MatDialog);
-
-  openDialog(): void {
-    const dialogRef = this.dialog.open(NotificationsComponent);
   }
 }

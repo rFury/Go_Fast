@@ -1,0 +1,31 @@
+<div class="w-full h-13 border border-gray-300 rounded-t-lg bg-white px-4 py-2 relative" #Zokicen>
+  <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange(true)" placeholder="Select address" autocomplete="off"
+    class="!pb-0 !mb-0 w-full h-full" (click)="onSearchChange(false)">
+    <button mat-icon-button type="button" class="absolute right-2 top-1/2 -translate-y-1/2" (click)="clear()">
+      <mat-icon  [svgIcon]="'close'"></mat-icon>
+    </button>
+  <ng-template #selectMap>
+    @if(suggestions.length > 0 ){
+    <div
+      class="absolute !z-50  bg-white border border-t-0 border-gray-200 rounded-b-lg shadow-lg max-h-40 overflow-y-auto">
+      @for (suggestion of suggestions; track suggestion.id) {
+      <div class="flex justify-between items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-t border-gray-100"
+        (click)="selectSuggestion(suggestion)">
+        <div class="flex-1 min-w-0">
+          <div class="font-medium truncate">
+            <mat-icon class="mr-1 text-gray-500 align-middle">place</mat-icon>
+            {{ suggestion.place_name.split(',')[0] }}
+          </div>
+          <div class="text-sm text-gray-500 truncate">
+            {{ suggestion.context[0]?.text }}
+          </div>
+        </div>
+        <div class="text-gray-500 text-sm whitespace-nowrap ml-4">
+          {{ getDistance(suggestion) }} km
+        </div>
+      </div>
+      }
+    </div>
+    }
+</ng-template>
+</div>

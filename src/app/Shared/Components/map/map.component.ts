@@ -21,6 +21,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import * as mapboxgl from 'mapbox-gl';
+import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'Map',
@@ -29,18 +30,14 @@ import * as mapboxgl from 'mapbox-gl';
   changeDetection: ChangeDetectionStrategy.OnPush,
   exportAs: 'Map',
   styleUrls: ['./map.component.scss'],
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-  ],
+  imports: [MatButtonModule, MatIconModule, MatTooltipModule,MatProgressSpinnerModule],
 })
 export class MapComponent implements OnInit, OnDestroy {
-[x: string]: any;
   @ViewChild('notificationsOrigin') private _notificationsOrigin!: MatButton;
-  @ViewChild('notificationsPanel') private _notificationsPanel!: TemplateRef<any>;
-  @Input() approximity:[number,number] | null =null;
-  @Input() markerIcon:string | null = null;
+  @ViewChild('notificationsPanel')
+  private _notificationsPanel!: TemplateRef<any>;
+  @Input() approximity: [number, number] | null = null;
+  @Input() markerIcon: string | null = null;
   isMapInitialized = false; // Add this flag
   @Output() markersChange = new EventEmitter<mapboxgl.Marker>();
   markers: mapboxgl.Marker[] = [];
@@ -50,13 +47,16 @@ export class MapComponent implements OnInit, OnDestroy {
   map: mapboxgl.Map;
   mapboxToken =
     'pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ';
+  loading: boolean;
   constructor(
     private _changeDetectorRef: ChangeDetectorRef,
     private _overlay: Overlay,
     private _viewContainerRef: ViewContainerRef
   ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+
+  }
 
   ngOnDestroy(): void {
     // Unsubscribe from all subscriptions
@@ -87,53 +87,65 @@ export class MapComponent implements OnInit, OnDestroy {
     this._overlayRef.attach(
       new TemplatePortal(this._notificationsPanel, this._viewContainerRef)
     );
+    let lnglat;
+    if(this.approximity){
+       lnglat= new mapboxgl.LngLat(
+        this.approximity[0],
+        this.approximity[1]
+      );
+    }
     if (!this.isMapInitialized) {
+      console.log(this.approximity);
+      
       setTimeout(() => {
         this.map = new mapboxgl.Map({
           accessToken: this.mapboxToken,
           container: 'map',
-          style: 'mapbox://styles/mapbox/streets-v12',
-          center: this.approximity==null?[ 10.1956, 36.8625 ]:this.approximity,
+          style: 'mapbox://styles/mapbox/standard',
+          center: this.approximity==undefined?new mapboxgl.LngLat(10.1956,36.8625):this.approximity,
           zoom: 15,
         });
-
         // Add click event listener for markers
         this.map.on('click', (e) => {
           this.addMarker(e.lngLat);
         });
+
+        if(this.approximity){
+          this.addMarker(lnglat);
+        }
       }, 0);
     }
+    console.log(this.map);
   }
   addMarker(lngLat: mapboxgl.LngLat) {
     this.clearMarkers();
     let marker;
-    if(this.markerIcon !== null){
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        el.innerHTML = `
+    if (this.markerIcon !== null) {
+      console.log('zebi');
+
+      const el = document.createElement('div');
+      el.className = 'custom-marker';
+      el.innerHTML = `
             <img src="${this.markerIcon}" 
                  alt="Marker" 
                  class="w-8 h-8 animate-pulse">
         `;
-        marker = new mapboxgl.Marker({element:el,anchor:'bottom'})
-            .setLngLat(lngLat)
-            .addTo(this.map);
-    }
-    else{
-        marker = new mapboxgl.Marker()
-            .setLngLat(lngLat)
-            .addTo(this.map);
+      marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat(lngLat)
+        .addTo(this.map);
+      console.log(marker);
+    } else {
+      marker = new mapboxgl.Marker().setLngLat(lngLat).addTo(this.map);
     }
     this.markerCount++;
     this.markers.push(marker);
     this.markersChange.emit(this.markers[0]);
-
-}
-clearMarkers() {
-    this.markers.forEach(marker => marker.remove());
+  }
+  clearMarkers() {
+    this.markers.forEach((marker) => marker.remove());
     this.markers = [];
     this.markerCount = 0;
-}
+  }
 
   closePanel(): void {
     this._overlayRef.detach();
@@ -188,5 +200,20 @@ clearMarkers() {
     this._overlayRef.backdropClick().subscribe(() => {
       this._overlayRef.detach();
     });
+  }
+  checkFullyLoaded(){
+    if (this.map) {
+      this.loading=this.map._fullyLoaded===true?false:true;
+      console.log(this.loading);
+      if (this.loading) {
+        setTimeout(()=>{
+          this.checkFullyLoaded();
+        },1000)
+      }
+    }else{
+      setTimeout(()=>{
+        this.checkFullyLoaded();
+      },1000)
+    }
   }
 }
