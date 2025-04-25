@@ -27,11 +27,11 @@ import { UserService } from '../../../Shared/Services/user.service';
 import { AlertType } from '../../../Shared/Components/alert/alert.types';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
 import { CodeInputModule } from 'angular-code-input';
-import { query } from '@angular/animations';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 @Component({
-  selector: 'auth-sign-in',
-  templateUrl: './sign-in.component.html',
+  selector: 'auth-sign-up',
+  templateUrl: './sign-up.component.html',
   encapsulation: ViewEncapsulation.None,
   animations: Animations,
   standalone: true,
@@ -48,9 +48,9 @@ import { query } from '@angular/animations';
     MatCheckboxModule,
     MatProgressSpinnerModule,
   ],
-  styleUrl: './sign-in.component.scss',
+  styleUrl: './sign-up.component.scss',
 })
-export class SignInComponent implements OnInit {
+export class SignUpComponent implements OnInit {
   protected btn: boolean = true;
   protected missingCode: boolean = false;
   protected emailText: string = 'Email address';
@@ -96,11 +96,10 @@ export class SignInComponent implements OnInit {
       this.verify = true;
       this.btnText = 'Verify Code';
       this.emailText = 'Code sent to';
-      this.signInForm.get('email')?.disable();
       this.signInForm.get('email')?.setValue(email);
       this.signInForm.get('password')?.setValue(' ');
     } else {
-      this._router.navigate(['/admin/sign-in']);
+      this._router.navigate(['/sign-in']);
     }
   }
   signIn(): void {
@@ -118,10 +117,14 @@ export class SignInComponent implements OnInit {
     this.showAlert = false;
 
     if (!this.verify) {
-      this._authService.signIn(this.signInForm?.value,'admin').subscribe(
+      // fingerprint.service.ts
+
+
+
+      this._authService.signIn(this.signInForm?.value,'user').subscribe(
         (res) => {
           console.log('3');
-          this._router.navigate(['/admin/sign-in/verif-code'], {
+          this._router.navigate(['/sign-in/verif-code'], {
             queryParams: {
               email: this.signInForm.get('email')?.value,
               verif: true,
@@ -137,7 +140,7 @@ export class SignInComponent implements OnInit {
             this.signInForm?.enable();
             this.btn = true;
           } else if (err.status === 405) {
-            this._router.navigate(['/admin/sign-in/verif-code'], {
+            this._router.navigate(['/sign-in/verif-code'], {
               queryParams: {
                 email: this.signInForm.get('email')?.value,
                 verif: true,
@@ -155,7 +158,7 @@ export class SignInComponent implements OnInit {
     } else {
       if (this.attempts != 0) {
         this._authService
-          .verifCode({ email: this.signInForm.value.email, code: this.code },'admin')
+          .verifCode({ email: this.signInForm.value.email, code: this.code },'user')
           .subscribe(
             (res) => {
               this._userService.get().subscribe((user: User) => {
@@ -167,12 +170,12 @@ export class SignInComponent implements OnInit {
                   'redirectURL'
                 ) ||
                 this._userService._defaultLink.getValue() ||
-                '/admin/signed-in-redirect';
+                '/signed-in-redirect';
               localStorage.setItem(
                 'email',
                 this.signInForm?.get('email')?.value
               );
-              this._router.navigateByUrl('/admin/' + redirectURL);
+              this._router.navigateByUrl('/' + redirectURL);
             },
             (err) => {
               if (err.status == 405) {
@@ -181,9 +184,9 @@ export class SignInComponent implements OnInit {
                 this.alert.message = 'Wrong code, ' + this.attempts + ' left !';
                 this.btn = true;
               } else if (err.status == 403 || err.status == 402) {
-                this._router.navigate(['/admin/sign-in']);
+                this._router.navigate(['/sign-in']);
               } else if (err.status === 455) {
-                this._router.navigate(['/admin/reset-password'], {
+                this._router.navigate(['/reset-password'], {
                   queryParams: {
                     email: this.signInForm.get('email')?.value,
                     token: err.error.token,
@@ -200,7 +203,7 @@ export class SignInComponent implements OnInit {
             }
           );
       } else {
-        this._router.navigate(['/admin/sign-in']);
+        this._router.navigate(['/sign-in']);
       }
     }
   }

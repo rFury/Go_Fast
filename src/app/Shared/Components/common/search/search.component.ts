@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { RouterLink } from '@angular/router';
 import { debounceTime, filter, map, Subject, takeUntil } from 'rxjs';
-import { Animations } from '../../../../../Shared/Animations/public-api';
+import { Animations } from '../../../../Shared/Animations/public-api';
 
 @Component({
     selector: 'search',

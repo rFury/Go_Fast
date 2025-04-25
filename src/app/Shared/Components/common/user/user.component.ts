@@ -18,8 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { User } from '../../../../../Shared/Models/User.model';
-import { UserService } from '../../../../../Shared/Services/user.service';
+import { User } from '../../../../Shared/Models/User.model';
+import { UserService } from '../../../../Shared/Services/user.service';
 
 @Component({
   selector: 'user',

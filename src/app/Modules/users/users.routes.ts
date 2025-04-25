@@ -1,45 +1,45 @@
 import { Route, Routes } from '@angular/router';
-import { AdminsComponent } from './admins.component';
-import { BackOfficeComponent } from './back-office/back-office.component';
+import { UsersComponent } from './users.component';
 import { authGuard } from '../../Shared/Guards/auth.guard';
-import { SignInComponent } from '../admins/sign-in/sign-in.component';
-import { AuthSignOutComponent } from './sign-out/sign-out.component';
+import { SignInComponent } from './sign-in/sign-in.component';
+import { AuthSignOutComponent } from '../admins/sign-out/sign-out.component';
 import { AuthForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { AuthResetPasswordComponent } from './reset-password/reset-password.component';
 import { noAuthGuard } from '../../Shared/Guards/noAuth.guard';
-import backOfficeRoutes from './back-office/back-office.routes';
 import { tokenGuard } from '../../Shared/Guards/token.guard';
 import { NotAllowedComponent } from '../../Shared/Components/not-allowed/not-allowed.component';
-import { adminGuard } from '../../Shared/Guards/admin.guard';
+import { ApplicationComponent } from './App/application.component';
+import applicationRoutes from './App/application.routes';
+import { SignUpComponent } from './sign-up/sign-up.component';
+import { userGuard } from '../../Shared/Guards/user.guard';
 
 export default [
   {
     path: '',
-    component: AdminsComponent,
+    component: UsersComponent,
     children: [
       {
-        path: 'dashboard',
-        component: BackOfficeComponent,
-        loadChildren: () => backOfficeRoutes,
-        canActivate: [authGuard,adminGuard],
+        path: '',
+        component: ApplicationComponent,
+        loadChildren: () => applicationRoutes,
+        canActivate: [authGuard,userGuard],
         data: {
           layout: 'classy',
-          data: {
-            breadcrumb: {
-                label: 'Dashboard',
-                info: { myData: { icon: 'home', iconType: 'material' } },
-            },
+          who: 'users',
         },
-        },
-      },
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full',
       },
       {
         path: 'sign-in',
         component: SignInComponent,
+        data: {
+          layout: 'empty',
+          who: 'users',
+        },
+        canActivate: [noAuthGuard],
+      },
+      {
+        path: 'sign-up',
+        component: SignUpComponent,
         data: {
           layout: 'empty',
         },
@@ -52,9 +52,12 @@ export default [
           layout: 'empty',
           verif: true,
           email: '',
+          who: 'users',
+
         },
         canActivate: [noAuthGuard],
       },
+      
       {
         path: 'sign-out',
         component: AuthSignOutComponent,
@@ -67,14 +70,19 @@ export default [
         component: AuthForgotPasswordComponent,
         data: {
           layout: 'empty',
+          who: 'users',
+
         },
         canActivate: [noAuthGuard],
+        
       },
       {
         path: 'reset-password',
         component: AuthResetPasswordComponent,
         data: {
           layout: 'empty',
+          who: 'users',
+
         },
         canActivate: [noAuthGuard,tokenGuard],
       },
