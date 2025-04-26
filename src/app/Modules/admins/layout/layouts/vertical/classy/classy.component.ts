@@ -13,10 +13,10 @@ import { FuseNavigationService } from '../../../../../../Shared/Components/navig
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
-import { NotificationsComponent } from "../../../../../../Shared/Components/common/notifications/notifications.component";
-import { UserComponent } from "../../../../../../Shared/Components/common/user/user.component";
-import { ShortcutsComponent } from "../../../../../../Shared/Components/common/shortcuts/shortcuts.component";
-import { SearchComponent } from "../../../../../../Shared/Components/common/search/search.component";
+import { NotificationsComponent } from "./common/notifications/notifications.component";
+import { UserComponent } from "./common/user/user.component";
+import { ShortcutsComponent } from "./common/shortcuts/shortcuts.component";
+import { SearchComponent } from "./common/search/search.component";
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';

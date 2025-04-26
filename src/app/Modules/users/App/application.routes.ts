@@ -2,6 +2,8 @@ import { Route } from '@angular/router';
 import { ApplicationComponent } from './application.component';
 
 import { FeatureCodes } from '../../../Shared/enums/feature-codes';
+import { OrdersComponent } from './orders/orders.component';
+import { NewOrderComponent } from './new-order/new-order.component';
 
 
 
@@ -9,56 +11,20 @@ export default [
   {
     path: '',
     component: ApplicationComponent,
-    children: [/*
+    children: [
       {
-        path: 'features',
-        loadChildren: () => featuresRouting,
-        data: {
-          breadcrumb: 'Features',
-          feature: FeatureCodes.features,
-      },
-      },
-      {
-        path: 'groups',
-        loadChildren: () => groupsRouting,
-        data: {
-          breadcrumb: 'Groups',
-          feature: FeatureCodes.groups,
-      },
-      },
-      
-      {
-        path: 'users',
-        loadChildren: () => usersRouting,
-        data: {
-          breadcrumb: 'Users',
-          feature: FeatureCodes.users,
-      },
-      },
-      {
-        path: 'clients',
-        loadChildren: () => clientsRouting,
-        data: {
-          breadcrumb: 'Clients',
-          feature: FeatureCodes.clients,
-      },
-      },
-      {
-        path: 'userfeatures',
-        loadChildren: () => userFeaturesRouting,
-        data: {
-          breadcrumb: 'UserFeatures',
-          feature: FeatureCodes.userFeatures,
-      },
+        path: '',
+        redirectTo: 'new-order',
+        pathMatch: 'full',
       },
       {
         path: 'orders',
-        loadChildren: () => featuresCopyRouting,
-        data: {
-          breadcrumb: 'UserFeatures',
-          feature: FeatureCodes.orders,
+        component:OrdersComponent,
       },
-      },*/
+      {
+        path: 'new-order',
+        component:NewOrderComponent,
+      },    
     ],
   }
 ] satisfies Route[];

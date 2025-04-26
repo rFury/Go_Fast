@@ -2,7 +2,6 @@ import { Route, Routes } from '@angular/router';
 import { UsersComponent } from './users.component';
 import { authGuard } from '../../Shared/Guards/auth.guard';
 import { SignInComponent } from './sign-in/sign-in.component';
-import { AuthSignOutComponent } from '../admins/sign-out/sign-out.component';
 import { AuthForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { AuthResetPasswordComponent } from './reset-password/reset-password.component';
 import { noAuthGuard } from '../../Shared/Guards/noAuth.guard';
@@ -12,6 +11,7 @@ import { ApplicationComponent } from './App/application.component';
 import applicationRoutes from './App/application.routes';
 import { SignUpComponent } from './sign-up/sign-up.component';
 import { userGuard } from '../../Shared/Guards/user.guard';
+import { AuthSignOutComponent } from './sign-out/sign-out.component';
 
 export default [
   {
