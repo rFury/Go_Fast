@@ -1,9 +1,18 @@
 <div class="w-full h-13 border border-gray-300 rounded-t-lg bg-white px-4 py-2 relative" #Zokicen>
   <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange(true)" placeholder="Select address" autocomplete="off"
-    class="!pb-0 !mb-0 w-full h-full" (click)="onSearchChange(false)">
+    class="!pb-0 !mb-0 w-full h-full pl-6" (click)="onSearchChange(false)">
     <button mat-icon-button type="button" class="absolute right-2 top-1/2 -translate-y-1/2" (click)="clear()">
-      <mat-icon  [svgIcon]="'close'"></mat-icon>
+      <mat-icon  [svgIcon]="'close'" class="text-gray-900"></mat-icon>
     </button>
+    @if(icon === 'a'){
+      <div class="absolute left-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">A</div>
+    }@else if(icon === 'b'){
+      <div class="absolute left-2 top-1/2 -translate-y-1/2 bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">B</div>
+    }
+    @else {
+      <mat-icon class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-900" [svgIcon]="'heroicons_solid:map-pin'"></mat-icon>
+
+    }
   <ng-template #selectMap>
     @if(suggestions.length > 0 ){
     <div

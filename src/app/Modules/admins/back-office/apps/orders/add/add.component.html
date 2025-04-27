@@ -142,7 +142,11 @@
                                 <label class="text-md font-semibold text-gray-700 uppercase tracking-wide0">Entrance
                                     Type</label>
                                 <mat-form-field appearance="outline" class="w-full">
-                                    <mat-select [(ngModel)]="PointA.entrance" name="entranceType" required>
+                                    <mat-icon
+                                    class="icon-size-5"
+                                    [svgIcon]="'heroicons_solid:globe-alt'"
+                                    matPrefix></mat-icon>
+                                    <mat-select [(ngModel)]="PointA.entrance" name="entranceTypeA" required>
                                         <mat-option value="main">
                                             <div class="flex items-center">
                                                 <mat-icon class="mr-2 text-gray-500">home</mat-icon>
@@ -342,7 +346,7 @@
                                 <label class="text-md font-semibold text-gray-700 uppercase tracking-wide">What to
                                     deliver</label>
                                 <mat-form-field appearance="outline" class="w-full">
-                                    <input matInput [(ngModel)]="Order.proudct" name="delivery"
+                                    <input matInput [(ngModel)]="Order.productDesc" name="delivery"
                                         placeholder="Enter delivery description" required>
                                     <mat-icon matSuffix class="text-gray-400 mr-2">delivery_dining</mat-icon>
                                     @if ( myForm.controls['delivery'] && (myForm.controls['delivery'].dirty ||

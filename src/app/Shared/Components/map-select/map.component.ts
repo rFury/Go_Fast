@@ -46,6 +46,7 @@ export class selectMapComponent implements OnInit, OnDestroy {
   _overlay = inject(Overlay);
   suggestions: any[] = [];
   _overlayRef!: OverlayRef;
+  @Input() icon: string = '';
   @Input() userLocation: { lng: number; lat: number };
   @Output() selectPlace = new EventEmitter<Place>();
   @Input() searchQuery: string = '';
