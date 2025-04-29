@@ -92,6 +92,7 @@ export class selectMapComponent implements OnInit, OnDestroy {
     place.coordinates = suggestion.geometry.coordinates;
     this.searchQuery = suggestion.place_name;
     this.suggestions = [];
+    this._overlayRef.detach();
     this.selectPlace.emit(place);
   }
   getDistance(suggestion: any): string {
@@ -129,6 +130,7 @@ export class selectMapComponent implements OnInit, OnDestroy {
   clear() {
     this.searchQuery = '';
     this.suggestions = [];
+    this._overlayRef.detach();
     this.selectPlace.emit(undefined);
   }
 }

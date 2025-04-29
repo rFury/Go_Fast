@@ -1,20 +1,23 @@
-<div class="flex flex-col h-full w-full relative "> <!-- Added relative for positioning context -->
+<div class="flex flex-col h-full w-full relative ">
+    <!-- Toggle Button -->
+    <button mat-icon-button class="absolute left-112 m-4 ml-0 top-9 z-20 rounded-full bg-white shadow-lg" [class.left-4]="toggle" (click)="toggle = !toggle">
+        <mat-icon [svgIcon]="toggle ? 'heroicons_outline:plus' : 'heroicons_outline:x-mark'"></mat-icon>
+    </button>
     <!-- Order Details overlay -->
-    <div class="absolute left-0 top-72 sm:top-0 m-0 sm:m-4 z-10 p-0 sm:p-6 w-full sm:w-5/12
+    <div class="absolute left-0 top-72 sm:top-0 m-0 sm:m-4 z-10 p-0 sm:p-6 w-full sm:w-112
      bg-white sm:bg-transparent rounded-3xl sm:rounded-none border-rounded sm:border-none
-      overflow-y-auto overflow-x-hidden max-h-[calc(100vh-2rem)] scrollbar-hide"
-      [class.top-128]="dragging()">
-        <form class="w-full" #myForm="ngForm" ngForm="ngForm">
-
+      overflow-y-auto overflow-x-hidden max-h-[calc(100vh-2rem)] scrollbar-hide transition-all duration-500" [class.top-160]="dragging()" [hidden]="toggle" [@expandCollapse]="toggle ? 'collapsed' : 'expanded'">
+        <form class="w-110" #myForm="ngForm" ngForm="ngForm">
             <!-- Add your form elements or content here -->
             <div class="space-y-4 left-0">
-                <div class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl sm:rounded-full shadow-sm p-2 border border-gray-200">
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl sm:rounded-full shadow-sm p-2 border border-gray-200">
                     <mat-button-toggle-group [(ngModel)]="Order.type" name="type" aria-label="Delivery type"
                         class="w-full" [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()" required>
                         <mat-button-toggle [value]="DeliveryType.building"
                             class="w-1/2 !rounded-full !px-2 !py-1 !border !border-gray-200"
                             [class.bg-gray-300]="Order.type === DeliveryType.building">
-                            <span class="capitalize md:font-medium text-gray-900">
+                            <span class="capitalize md:text-md text-gray-900">
                                 <span class="hidden md:inline">Delivery to </span>building
                             </span>
 
@@ -22,13 +25,14 @@
                         <mat-button-toggle [value]="DeliveryType.apartment"
                             class="w-1/2 !rounded-full !px-2 !py-1 !border !border-gray-200 "
                             [class.bg-gray-300]="Order.type === DeliveryType.apartment">
-                            <span class="capitalize md:font-medium text-gray-900">
+                            <span class="capitalize md:text-md text-gray-900">
                                 <span class="hidden md:inline">Delivery to </span>apartment
                             </span>
                         </mat-button-toggle>
                     </mat-button-toggle-group>
                 </div>
-                <div class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 text-gray-900 flex gap-2 items-center">
                         Pickup Details
                     </h3>
@@ -91,12 +95,15 @@
 
                     <!-- Address Details -->
                     <div class="space-y-4 pb-4 !z-0">
-                        <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Address Details</label> 
+                        <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Address
+                            Details</label>
                         <mat-form-field [subscriptSizing]="'fixed'" class="w-full">
-                            <mat-icon class="icon-size-5 text-gray-800" [svgIcon]="'heroicons_outline:ellipsis-horizontal'"
-                                matSuffix></mat-icon>
-                            <textarea matInput [(ngModel)]="PointA.adress_details" name="details" cdkTextareaAutosize [cdkAutosizeMinRows]="2" required></textarea>
-                            <mat-hint class="text-gray-900"><span class="text-gray-500">Floor, apartment, entryphone ...</span></mat-hint>
+                            <mat-icon class="icon-size-5 text-gray-800"
+                                [svgIcon]="'heroicons_outline:ellipsis-horizontal'" matSuffix></mat-icon>
+                            <textarea matInput [(ngModel)]="PointA.adress_details" name="details" cdkTextareaAutosize
+                                [cdkAutosizeMinRows]="2" required></textarea>
+                            <mat-hint class="text-gray-900"><span class="text-gray-500">Floor, apartment, entryphone
+                                    ...</span></mat-hint>
                             @if ( myForm.controls['details'] && (myForm.controls['details'].dirty ||
                             myForm.submitted) &&
                             myForm.controls['details'].hasError('required') ) {
@@ -117,7 +124,8 @@
                             <input matInput [(ngModel)]="PointA.phone" name="phone" type="tel" pattern="[0-9]{8}"
                                 placeholder="90-303-560" required>
                             <mat-icon class="text-gray-900">call</mat-icon>
-                            <mat-hint class="text-sm text-gray-900"><span class="text-gray-500">Format: 90-303-560</span></mat-hint>
+                            <mat-hint class="text-sm text-gray-900"><span class="text-gray-500">Format:
+                                    90-303-560</span></mat-hint>
                             @if ( myForm.controls['phone'] && (myForm.controls['phone'].dirty || myForm.submitted)
                             &&
                             myForm.controls['phone'].hasError('required') ) {
@@ -128,7 +136,8 @@
                         </mat-form-field>
                     </div>
                 </div>
-                <div class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4 text-gray-900 flex gap-2 items-center">
                         Destination Details
                     </h3>
@@ -179,12 +188,15 @@
 
                     <!-- Address Details -->
                     <div class="space-y-4 pb-4 !z-0">
-                        <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Address Details</label> 
+                        <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Address
+                            Details</label>
                         <mat-form-field [subscriptSizing]="'fixed'" class="w-full">
-                            <mat-icon class="icon-size-5 text-gray-800" [svgIcon]="'heroicons_outline:ellipsis-horizontal'"
-                                matSuffix></mat-icon>
-                            <textarea matInput [(ngModel)]="PointB.adress_details" name="detailsb" cdkTextareaAutosize [cdkAutosizeMinRows]="2" required></textarea>
-                            <mat-hint class="text-gray-900"><span class="text-gray-500">Floor, apartment, entryphone ...</span></mat-hint>
+                            <mat-icon class="icon-size-5 text-gray-800"
+                                [svgIcon]="'heroicons_outline:ellipsis-horizontal'" matSuffix></mat-icon>
+                            <textarea matInput [(ngModel)]="PointB.adress_details" name="detailsb" cdkTextareaAutosize
+                                [cdkAutosizeMinRows]="2" required></textarea>
+                            <mat-hint class="text-gray-900"><span class="text-gray-500">Floor, apartment, entryphone
+                                    ...</span></mat-hint>
                             @if ( myForm.controls['detailsb'] && (myForm.controls['detailsb'].dirty ||
                             myForm.submitted) &&
                             myForm.controls['detailsb'].hasError('required') ) {
@@ -205,7 +217,8 @@
                             <input matInput [(ngModel)]="PointB.phone" name="phoneb" type="tel" pattern="[0-9]{8}"
                                 placeholder="90-303-560" required>
                             <mat-icon class="text-gray-900">call</mat-icon>
-                            <mat-hint class="text-sm text-gray-900"><span class="text-gray-500">Format: 90-303-560</span></mat-hint>
+                            <mat-hint class="text-sm text-gray-900"><span class="text-gray-500">Format:
+                                    90-303-560</span></mat-hint>
                             @if ( myForm.controls['phoneb'] && (myForm.controls['phoneb'].dirty || myForm.submitted)
                             &&
                             myForm.controls['phoneb'].hasError('required') ) {
@@ -216,29 +229,31 @@
                         </mat-form-field>
                     </div>
                 </div>
-                <div class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
                     <div class="sm:col-span-4">
                         <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
                             <mat-label class="text-md font-semibold text-gray-900 uppercase tracking-wide">Order
                                 Details</mat-label>
                             <textarea placeholder="Describe your order" matInput [(ngModel)]="Order.productDesc"
                                 name="productDesc" cdkTextareaAutosize [cdkAutosizeMinRows]="3" required></textarea>
-                                @if ( myForm.controls['productDesc'] && (myForm.controls['productDesc'].dirty || myForm.submitted)
-                                &&
-                                myForm.controls['productDesc'].hasError('required') ) {
-                                <mat-error>
-                                    {{ 'This field is required' }}
-                                </mat-error>
-                                }
-                                <mat-hint><span class="text-gray-500">Brief description for your order</span></mat-hint>
+                            @if ( myForm.controls['productDesc'] && (myForm.controls['productDesc'].dirty ||
+                            myForm.submitted)
+                            &&
+                            myForm.controls['productDesc'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                            <mat-hint><span class="text-gray-500">Brief description for your order</span></mat-hint>
                         </mat-form-field>
                     </div>
                 </div>
-                <button class="fuse-mat-button-large w-full mt-6 rounded-full" mat-flat-button [color]="'primary'" (click)="UserOrder()">Order</button>
+                <button class="fuse-mat-button-large w-full mt-6 rounded-full" mat-flat-button [color]="'primary'"
+                    (click)="UserOrder()">Order</button>
             </div>
         </form>
     </div>
-
     <!-- Map container -->
     <div class="flex-1 min-h-0 relative z-0 ">
         <div id="map" class="h-full w-full"></div>
