@@ -1,9 +1,7 @@
 import { Route } from '@angular/router';
 import { ApplicationComponent } from './application.component';
-
-import { FeatureCodes } from '../../../Shared/enums/feature-codes';
-import { OrdersComponent } from './orders/orders.component';
 import { NewOrderComponent } from './new-order/new-order.component';
+import ordersRoutes from './orders/orders.routes';
 
 
 
@@ -18,8 +16,7 @@ export default [
         pathMatch: 'full',
       },
       {
-        path: 'orders',
-        component:OrdersComponent,
+        path: 'orders',loadChildren:()=>ordersRoutes
       },
       {
         path: 'new-order',

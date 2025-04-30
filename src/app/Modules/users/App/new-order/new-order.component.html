@@ -1,13 +1,17 @@
 <div class="flex flex-col h-full w-full relative ">
     <!-- Toggle Button -->
-    <button mat-icon-button class="absolute left-112 m-4 ml-0 top-9 z-20 rounded-full bg-white shadow-lg" [class.left-4]="toggle" (click)="toggle = !toggle">
+    <button mat-icon-button
+        class="hidden sm:inline-flex absolute left-112 m-4 ml-0 top-9 z-20 rounded-full bg-white shadow-lg"
+        [class.left-4]="toggle" (click)="toggle = !toggle">
         <mat-icon [svgIcon]="toggle ? 'heroicons_outline:plus' : 'heroicons_outline:x-mark'"></mat-icon>
     </button>
+    @if(!toggle){
     <!-- Order Details overlay -->
-    <div class="absolute left-0 top-72 sm:top-0 m-0 sm:m-4 z-10 p-0 sm:p-6 w-full sm:w-112
-     bg-white sm:bg-transparent rounded-3xl sm:rounded-none border-rounded sm:border-none
-      overflow-y-auto overflow-x-hidden max-h-[calc(100vh-2rem)] scrollbar-hide transition-all duration-500" [class.top-160]="dragging()" [hidden]="toggle" [@expandCollapse]="toggle ? 'collapsed' : 'expanded'">
-        <form class="w-110" #myForm="ngForm" ngForm="ngForm">
+    <div class="absolute left-0 bottom-0 sm:bottom-18 top-72 sm:top-0 m-0 sm:m-4 z-10 p-0 sm:p-6 w-full sm:w-112
+     bg-white sm:bg-transparent rounded-t-3xl sm:rounded-none border-rounded sm:border-none
+      overflow-y-auto overflow-x-hidden max-h-[calc(100vh-2rem)] scrollbar-hide transition-all duration-500" @expandCollapse
+        [class.top-160]="dragging()">
+        <form class="w-110 relative" #myForm="ngForm" ngForm="ngForm">
             <!-- Add your form elements or content here -->
             <div class="space-y-4 left-0">
                 <div
@@ -249,11 +253,16 @@
                         </mat-form-field>
                     </div>
                 </div>
-                <button class="fuse-mat-button-large w-full mt-6 rounded-full" mat-flat-button [color]="'primary'"
-                    (click)="UserOrder()">Order</button>
+                <div
+                    class="sm:fixed w-full sm:w-100 bottom-10 z-0 sm:z-50 bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-full shadow-sm p-2 border border-gray-200">
+
+                    <button class="fuse-mat-button-large w-full rounded-full" mat-flat-button [color]="'primary'"
+                        (click)="UserOrder()">Order</button>
+                </div>
             </div>
         </form>
     </div>
+    }
     <!-- Map container -->
     <div class="flex-1 min-h-0 relative z-0 ">
         <div id="map" class="h-full w-full"></div>

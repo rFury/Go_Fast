@@ -1,14 +1,12 @@
 
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import {  ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import {  Router, RouterOutlet } from '@angular/router';
+import {   RouterOutlet } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../../../../../Shared/Models/User.model';
-import { MenuService } from '../../../../../../Shared/Services/menu.service';
 import { UserService } from '../../../../../../Shared/Services/user.service';
 import { FuseMediaWatcherService } from '../../../../../../Shared/Services/media-watcher/media-watcher.service';
-import { Navigation, NavigationService } from '../../../../../../Shared/Services/navigation.service';
 import { FuseNavigationService } from '../../../../../../Shared/Components/navigation/navigation.service';
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
