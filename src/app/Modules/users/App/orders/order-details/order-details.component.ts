@@ -7,9 +7,11 @@ import { CardComponent } from '../../../../../Shared/Components/card/card.compon
 import { Order } from '../../../../../Shared/Models/Order.model';
 import { OrderService } from '../../../../../Shared/Services/order.service';
 import { Animations } from '../../../../../Shared/Animations/public-api';
+import { MatMenuModule } from '@angular/material/menu';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-order-details',
-  imports: [MatIconModule, MatButtonModule, CardComponent],
+  imports: [MatIconModule, MatButtonModule, CardComponent, MatMenuModule],
   animations: Animations,
   templateUrl: './order-details.component.html',
   styleUrl: './order-details.component.scss',
@@ -19,6 +21,7 @@ export class OrderDetailsComponent implements OnInit {
   map: mapboxgl.Map;
   private _mapService = inject(MapService);
   private _orderService = inject(OrderService);
+  private router = inject(Router);
 
   Order: Order | null = null;
 
@@ -125,5 +128,9 @@ export class OrderDetailsComponent implements OnInit {
           animate: true,
         });
       });
-  }
+    }
+    cancelOrder() {}
+    goBack() {
+      this.router.navigate(['/orders']);
+    }
 }

@@ -37,6 +37,7 @@ export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('notificationsPanel')
   private _notificationsPanel!: TemplateRef<any>;
   @Input() approximity: [number, number] | null = null;
+  @Input() effects: boolean = true;
   @Input() markerIcon: string | null = null;
   isMapInitialized = false; // Add this flag
   @Output() markersChange = new EventEmitter<mapboxgl.Marker>();
@@ -106,9 +107,11 @@ export class MapComponent implements OnInit, OnDestroy {
           zoom: 15,
         });
         // Add click event listener for markers
-        this.map.on('click', (e) => {
-          this.addMarker(e.lngLat);
-        });
+        if(this.effects){
+          this.map.on('click', (e) => {
+            this.addMarker(e.lngLat);
+          });
+        }
 
         if(this.approximity){
           this.addMarker(lnglat);
