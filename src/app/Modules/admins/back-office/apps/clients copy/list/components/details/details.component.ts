@@ -16,7 +16,7 @@ import { MatIcon } from '@angular/material/icon';
 import { HasPermissionDirective } from '../../../../../../../../Shared/directives/permission/has-permission.directive';
 import { Client } from '../../../../../../../../Shared/Models/Client.model';
  @Component({
-    selector: 'app-details',
+    selector: 'order-details',
     templateUrl: './details.component.html',
     styleUrls: ['./details.component.scss'],
     standalone: true,

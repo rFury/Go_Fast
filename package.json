@@ -28,7 +28,7 @@
     "@capacitor/camera": "^7.0.0",
     "@capacitor/cli": "^7.0.1",
     "@capacitor/core": "^7.0.1",
-    "@capacitor/geolocation": "^7.0.0",
+    "@capacitor/geolocation": "^7.1.2",
     "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@mapbox/mapbox-gl-directions": "^4.3.1",
     "@tailwindcss/postcss": "^4.0.3",

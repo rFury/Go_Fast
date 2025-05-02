@@ -30,7 +30,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltip } from '@angular/material/tooltip';
 import { Client } from '../../../../../../Shared/Models/Client.model';
 import { Agent } from '../../../../../../Shared/Models/Agent.model';
-import { MapComponent } from "../../../../../../Shared/Components/map/map.component";
+import { MapComponent } from '../../../../../../Shared/Components/map/map.component';
+import { Subscription } from 'rxjs';
+import { LocationService } from '../../../../../../Shared/Services/agent-location.service';
 
 @Component({
   selector: 'app-list',
@@ -55,8 +57,8 @@ import { MapComponent } from "../../../../../../Shared/Components/map/map.compon
     FormsModule,
     ReactiveFormsModule,
     MatTooltip,
-    MapComponent
-],
+    MapComponent,
+  ],
 })
 export class ListComponent implements OnInit {
   //********* INJECT SERVICES ***********//
@@ -66,6 +68,7 @@ export class ListComponent implements OnInit {
   _fuseConfirmationService = inject(FuseConfirmationService);
   _route = inject(ActivatedRoute);
   _loadingService = inject(LoadingService);
+  _locationService = inject(LocationService);
   @ViewChild(MatPaginator) paginator: MatPaginator;
   filterOptions: FilterOptions = new FilterOptions();
   currentSize = 10;
@@ -74,6 +77,8 @@ export class ListComponent implements OnInit {
   typingTimer;
   doneTypingInterval = 500;
   isScreenSmall: boolean;
+  private locationSub!: Subscription;
+  locations: any[] = [];
 
   visiblePasswords = new Set<string>(); // ou number selon l'ID
 
@@ -92,6 +97,12 @@ export class ListComponent implements OnInit {
 
   ngOnInit(): void {
     this.getList();
+  }
+  updateMap(location: any) {
+    // Update your map here with the new location
+    console.log('New location:', location);
+    return location.coordinates;
+    // You can use Leaflet, Google Maps, or any other mapping library
   }
   pageChanged(event: PageEvent): void {
     let { pageIndex } = event;
@@ -114,7 +125,8 @@ export class ListComponent implements OnInit {
         this.filterSearch,
         this.filtersGroups.toString(),
         this.filterStatus.toString(),
-        this.filterNewOld,'agent'
+        this.filterNewOld,
+        'agent'
       )
       .subscribe({
         next: (results) => {
@@ -167,7 +179,7 @@ export class ListComponent implements OnInit {
     confirmation.afterClosed().subscribe((result) => {
       // If the confirm button pressed...
       if (result === 'confirmed') {
-        this._userService.deleteOne(row._id!,'agent').subscribe(() => {
+        this._userService.deleteOne(row._id!, 'agent').subscribe(() => {
           this.getList();
         });
       }

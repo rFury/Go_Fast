@@ -5,29 +5,66 @@ import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class LocationService {
   private socket: Socket;
 
   constructor() {
-    this.socket = io(`${environment.api}/track-agent-location`);
+    this.socket = io('http://127.0.0.1:3000', {
+      transports: ['websocket'], // ← only websocket
+      path: '/socket.io', // must match your server.path
+      withCredentials: true,
+    });
+  }
+
+   // Register agent connection
+   registerAgent(agentId: string): void {
+    this.socket.emit('register-agent', agentId);
+  }
+
+  // Subscribe to specific agent updates
+  subscribeToAgent(agentId: string): void {
+    this.socket.emit('subscribe-to-agent', agentId);
+  }
+
+  // Unsubscribe from agent updates
+  unsubscribeFromAgent(agentId: string): void {
+    this.socket.emit('unsubscribe-from-agent', agentId);
   }
 
   // Receive real-time updates
-  getLocations() {
-    return new Observable<{ agentId: string, coordinates:[number,number]}>((observer) => {
-      this.socket.on('newLocation', (data) => {
-        observer.next(data);
-      });
+  getAgentLocations(
+    agentId: string
+  ): Observable<{ agentId: string; coordinates: [number, number] }> {
+    return new Observable((observer) => {
+      const listener = (data: {
+        agentId: string;
+        coordinates: [number, number];
+      }) => {
+        if (data.agentId === agentId) {
+          observer.next(data);
+        }
+      };
+
+      this.socket.on('agent-location', listener);
+
+      return () => {
+        this.socket.off('agent-location', listener);
+        this.unsubscribeFromAgent(agentId);
+      };
     });
   }
 
-  // Send location updates (for agent app)
-  sendLocation(agentId: string, coordinates:[number,number]) {
-    this.socket.emit('locationUpdate', {
+  // Send location updates for specific agent
+  sendAgentLocation(agentId: string, coordinates: [number, number]): void {
+    this.socket.emit('track-agent-location', {
       agentId,
-      coordinates
+      coordinates,
     });
+  }
+
+  diconnect() {
+    this.socket.disconnect();
   }
 }

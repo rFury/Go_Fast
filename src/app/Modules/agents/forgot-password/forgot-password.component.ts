@@ -12,7 +12,7 @@ import { SuperAuthService } from '../../../Shared/Services/super-auth-service.se
 import { Animations } from '../../../Shared/Animations/public-api';
 
 @Component({
-    selector: 'forgot-password',
+    selector: 'auth-forgot-agent-password',
     templateUrl: './forgot-password.component.html',
     encapsulation: ViewEncapsulation.None,
     animations: Animations,

@@ -12,13 +12,17 @@ export const noAuthGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   if (!_authService.isLoggedIn()) {
     return true;
   } else {
-    if(who === 'users'){
+    if (who === 'users') {
       return _router.createUrlTree(['/'], {
-        queryParams: { returnUrl: state.url }
+        queryParams: { returnUrl: state.url },
+      });
+    } else if (who === 'users') {
+      return _router.createUrlTree(['agent/'], {
+        queryParams: { returnUrl: state.url },
       });
     }
     return _router.createUrlTree(['admin/'], {
-      queryParams: { returnUrl: state.url }
+      queryParams: { returnUrl: state.url },
     });
   }
 };

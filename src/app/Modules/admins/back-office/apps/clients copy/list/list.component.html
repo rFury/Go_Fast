@@ -68,7 +68,7 @@
                     @if (row.coordinates[1]===0 && row.coordinates[0]===0) {
                       <mat-icon [svgIcon]="'mat_solid:location_off'"></mat-icon>
                     }@else {
-                      <Map [approximity]="row.coordinates" [effects]="false"></Map>
+                      <Map [track]="row._id" [effects]="false" ></Map>
                     }
                   </div>
                   <div class="hidden sm:flex truncate">{{ row.agentStatus }}</div>

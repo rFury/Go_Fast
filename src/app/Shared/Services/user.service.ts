@@ -20,7 +20,6 @@ export class UserService {
   endpointClient = `${environment.api}/clients`;
   endpointAgent = `${environment.api}/agents`;
   _user = signal<User | Client | Agent | null>(null);
-  private _statusTimeout: any;
   private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
   features=signal<FeatureAuth[] | null>(null);

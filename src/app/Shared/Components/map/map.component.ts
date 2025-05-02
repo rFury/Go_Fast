@@ -6,6 +6,7 @@ import {
   ChangeDetectorRef,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnDestroy,
   OnInit,
@@ -19,9 +20,13 @@ import { MatButton, MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { filter, Subject, Subscription, takeUntil } from 'rxjs';
 import * as mapboxgl from 'mapbox-gl';
-import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import {
+  MatProgressSpinner,
+  MatProgressSpinnerModule,
+} from '@angular/material/progress-spinner';
+import { LocationService } from '../../Services/agent-location.service';
 
 @Component({
   selector: 'Map',
@@ -30,7 +35,12 @@ import { MatProgressSpinner, MatProgressSpinnerModule } from '@angular/material/
   changeDetection: ChangeDetectionStrategy.OnPush,
   exportAs: 'Map',
   styleUrls: ['./map.component.scss'],
-  imports: [MatButtonModule, MatIconModule, MatTooltipModule,MatProgressSpinnerModule],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+  ],
 })
 export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('notificationsOrigin') private _notificationsOrigin!: MatButton;
@@ -39,6 +49,7 @@ export class MapComponent implements OnInit, OnDestroy {
   @Input() approximity: [number, number] | null = null;
   @Input() effects: boolean = true;
   @Input() markerIcon: string | null = null;
+  @Input() track: string | null = null;
   isMapInitialized = false; // Add this flag
   @Output() markersChange = new EventEmitter<mapboxgl.Marker>();
   markers: mapboxgl.Marker[] = [];
@@ -49,16 +60,72 @@ export class MapComponent implements OnInit, OnDestroy {
   mapboxToken =
     'pk.eyJ1IjoieW9zcmEtbmFqYXIiLCJhIjoiY2xmdGw2a20wMDF4eTNxcDBiMHZycnZpdCJ9.PTo1tyEyJry6uEKaqRLkRQ';
   loading: boolean;
-  constructor(
-    private _changeDetectorRef: ChangeDetectorRef,
-    private _overlay: Overlay,
-    private _viewContainerRef: ViewContainerRef
-  ) {}
+  private _locationService = inject(LocationService);
+  private _viewContainerRef = inject(ViewContainerRef);
+  private _overlay = inject(Overlay);
+  locationSub!: Subscription;
+  private _trackingEnabled = false;
 
   ngOnInit(): void {
-
+    if (this.track) {
+      this._trackingEnabled = true;
+      this._locationService.subscribeToAgent(this.track);
+      this.getLocation();
+    }
   }
+  private initializeMap(): void {
+    if (this.isMapInitialized) return;
 
+    setTimeout(() => {
+      this.map = new mapboxgl.Map({
+        accessToken: this.mapboxToken,
+        container: 'map',
+        style: 'mapbox://styles/mapbox/standard',
+        center: this.approximity ?? [10.1956, 36.8625],
+        zoom: 15,
+      });
+
+      if (this.effects) {
+        this.map.on('click', (e) => {
+          this.addMarker(e.lngLat);
+        });
+      }
+      this.map.on('load', () => {
+        this.isMapInitialized = true;
+        if (this.approximity) {
+          this.addMarker(new mapboxgl.LngLat(...this.approximity));
+        }
+      });
+
+      // Add other map event listeners...
+    }, 0);
+  }
+  getLocation() {
+    this.locationSub = this._locationService
+      .getAgentLocations(this.track!)
+      .pipe(
+        filter(() => this._trackingEnabled),
+        takeUntil(this._unsubscribeAll)
+      )
+      .subscribe({
+        next: (location) => {
+          console.log('in');
+          this.approximity = location.coordinates;
+          if (this.map && this.isMapInitialized) {
+            this.map.flyTo({
+              center: this.approximity,
+              essential: true,
+              zoom:10,
+            });
+            this.clearMarkers();
+            this.addMarker(new mapboxgl.LngLat(...this.approximity));
+          }
+        },
+        error: (err) => {
+          console.error('Location tracking error:', err);
+        },
+      });
+  }
   ngOnDestroy(): void {
     // Unsubscribe from all subscriptions
     this._unsubscribeAll.next(null);
@@ -88,37 +155,7 @@ export class MapComponent implements OnInit, OnDestroy {
     this._overlayRef.attach(
       new TemplatePortal(this._notificationsPanel, this._viewContainerRef)
     );
-    let lnglat;
-    if(this.approximity){
-       lnglat= new mapboxgl.LngLat(
-        this.approximity[0],
-        this.approximity[1]
-      );
-    }
-    if (!this.isMapInitialized) {
-      console.log(this.approximity);
-      
-      setTimeout(() => {
-        this.map = new mapboxgl.Map({
-          accessToken: this.mapboxToken,
-          container: 'map',
-          style: 'mapbox://styles/mapbox/standard',
-          center: this.approximity==undefined?new mapboxgl.LngLat(10.1956,36.8625):this.approximity,
-          zoom: 15,
-        });
-        // Add click event listener for markers
-        if(this.effects){
-          this.map.on('click', (e) => {
-            this.addMarker(e.lngLat);
-          });
-        }
-
-        if(this.approximity){
-          this.addMarker(lnglat);
-        }
-      }, 0);
-    }
-    console.log(this.map);
+    this.initializeMap();
   }
   addMarker(lngLat: mapboxgl.LngLat) {
     this.clearMarkers();
@@ -152,6 +189,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
   closePanel(): void {
     this._overlayRef.detach();
+    this._locationService.unsubscribeFromAgent(this.track!);
   }
 
   trackByFn(index: number, item: any): any {
@@ -201,22 +239,23 @@ export class MapComponent implements OnInit, OnDestroy {
 
     // Detach the overlay from the portal on backdrop click
     this._overlayRef.backdropClick().subscribe(() => {
+      this.isMapInitialized = false;
       this._overlayRef.detach();
     });
   }
-  checkFullyLoaded(){
+  checkFullyLoaded() {
     if (this.map) {
-      this.loading=this.map._fullyLoaded===true?false:true;
+      this.loading = this.map._fullyLoaded === true ? false : true;
       console.log(this.loading);
       if (this.loading) {
-        setTimeout(()=>{
+        setTimeout(() => {
           this.checkFullyLoaded();
-        },1000)
+        }, 1000);
       }
-    }else{
-      setTimeout(()=>{
+    } else {
+      setTimeout(() => {
         this.checkFullyLoaded();
-      },1000)
+      }, 1000);
     }
   }
 }

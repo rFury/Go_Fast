@@ -18,11 +18,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { User } from '../../../../../../../../Shared/Models/User.model';
-import { UserService } from '../../../../../../../../Shared/Services/user.service';
+import { User } from '../../../../../../../Shared/Models/User.model';
+import { UserService } from '../../../../../../../Shared/Services/user.service';
 
 @Component({
-  selector: 'admin',
+  selector: 'agent',
   templateUrl: './user.component.html',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -69,6 +69,6 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 
   signOut(): void {
-    this._router.navigate(['/admin/sign-out']);
+    this._router.navigate(['/sign-out']);
   }
 }

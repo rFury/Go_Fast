@@ -23,7 +23,7 @@ import { User } from '../../../Shared/Models/User.model';
 import { UserService } from '../../../Shared/Services/user.service';
 
 @Component({
-  selector: 'reset-password',
+  selector: 'agent-reset-password',
   templateUrl: './reset-password.component.html',
   encapsulation: ViewEncapsulation.None,
   animations: Animations,
@@ -108,7 +108,7 @@ export class AuthResetPasswordComponent implements OnInit {
           const redirectURL =
             this._route.snapshot.queryParamMap.get('redirectURL') ||
             this._userService._defaultLink.getValue() ||
-            '/signed-in-redirect';
+            'agents/signed-in-redirect';
           localStorage.setItem('email', this.email);
           this.router.navigateByUrl(redirectURL);
         },

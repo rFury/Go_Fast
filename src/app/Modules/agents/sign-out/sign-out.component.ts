@@ -5,7 +5,7 @@ import { finalize, Subject, takeUntil, takeWhile, tap, timer } from 'rxjs';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
 
 @Component({
-    selector: 'sign-out',
+    selector: 'agent-sign-out',
     templateUrl: './sign-out.component.html',
     encapsulation: ViewEncapsulation.None,
     imports: [RouterLink, I18nPluralPipe]
