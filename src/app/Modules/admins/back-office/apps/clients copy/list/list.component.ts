@@ -185,7 +185,9 @@ export class ListComponent implements OnInit {
       }
     });
   }
-
+  assignRoutes(){
+    
+  }
   togglePassword(id: string) {
     if (this.visiblePasswords.has(id)) {
       this.visiblePasswords.delete(id);

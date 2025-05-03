@@ -40,8 +40,6 @@ import { UserService } from '../../../Shared/Services/user.service';
 export class BackOfficeComponent implements OnDestroy, OnInit {
   protected readonly isMobile = signal(false);
   protected expanded=false;
-  private _authService=inject(SuperAuthService);
-  private _userService=inject(UserService);
   
   searchForm = new FormGroup({
     search: new FormControl('', [Validators.required])
