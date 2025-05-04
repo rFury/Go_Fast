@@ -15,7 +15,7 @@ import { Animations } from '../../Animations/public-api';
   animations:Animations,
   templateUrl: './not-allowed.component.html',
 })
-export class NotAllowedComponent implements OnInit {
+export class LocationNotAllowedComponent implements OnInit {
   private router=inject(Router)
   private location=inject(LocationWebService)
   showAlert=false;
@@ -28,11 +28,11 @@ export class NotAllowedComponent implements OnInit {
     console.log(permission);
     if(permission === 'granted'){
       console.log('in ');
-      this.router.navigate(['/agents']);
+      this.router.navigate(['/admin/agents']);
     }else{
       if(navigator.geolocation){
         navigator.geolocation.getCurrentPosition((pos)=>{
-          this.router.navigate(['/agents']);
+          this.router.navigate(['/admin/agents']);
         },(err)=>{
           console.log(err);
           if(err.PERMISSION_DENIED){

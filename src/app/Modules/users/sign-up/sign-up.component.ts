@@ -28,6 +28,8 @@ import { AlertType } from '../../../Shared/Components/alert/alert.types';
 import { SuperAuthService } from '../../../Shared/Services/super-auth-service.service';
 import { CodeInputModule } from 'angular-code-input';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import { _Validators } from '../../../Shared/Validators/validators';
+
 
 @Component({
   selector: 'auth-sign-up',
@@ -51,171 +53,96 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs';
   styleUrl: './sign-up.component.scss',
 })
 export class SignUpComponent implements OnInit {
-  protected btn: boolean = true;
-  protected missingCode: boolean = false;
-  protected emailText: string = 'Email address';
-  protected attempts: number = 3;
-  protected verify: boolean = false;
-  protected isCodeComplete: boolean = false;
-  private code: string = '';
-  protected activeBtn: boolean = false;
-  protected btnText: string = 'Sign in';
-  @ViewChild('signInNgForm') signInNgForm!: NgForm;
+  @ViewChild('signUpNgForm') signUpNgForm: NgForm;
 
-  alert: { type: AlertType; message: string } = {
-    type: 'error',
-    message: '',
-  };
-  signInForm!: UntypedFormGroup;
-  showAlert: boolean = false;
-  user!: User | undefined;
-  private route = inject(ActivatedRoute);
-  constructor(
-    private _activatedRoute: ActivatedRoute,
-    private _authService: SuperAuthService,
-    private _userService: UserService,
-    private _formBuilder: UntypedFormBuilder,
-    private _router: Router
-  ) {}
-  ngOnInit(): void {
-    // Create the form
-    this.signInForm = this._formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
-      rememberMe: [''],
-    });
+    alert: { type: AlertType; message: string } = {
+        type   : 'success',
+        message: '',
+    };
+    signUpForm: UntypedFormGroup;
+    showAlert: boolean = false;
 
-    const verification = this.route.snapshot.queryParamMap.get('verif');
-    const email = this.route.snapshot.queryParamMap.get('email');
-    if (
-      verification &&
-      Boolean(verification) == true &&
-      email &&
-      email.length > 0
-    ) {
-      this.verify = true;
-      this.btnText = 'Verify Code';
-      this.emailText = 'Code sent to';
-      this.signInForm.get('email')?.setValue(email);
-      this.signInForm.get('password')?.setValue(' ');
-    } else {
-      this._router.navigate(['/sign-in']);
-    }
-  }
-  signIn(): void {
-    console.log('1', this.signInForm.value);
-    if (this.signInForm.invalid) {
-      console.log('2');
-      return;
-    } else if (this.code.length != 6 && this.verify) {
-      this.missingCode = true;
-      return;
+    /**
+     * Constructor
+     */
+    constructor(
+        private _authService: SuperAuthService,
+        private _formBuilder: UntypedFormBuilder,
+        private _router: Router,
+    )
+    {
     }
 
-    this.signInForm.disable();
-    this.btn = false;
-    this.showAlert = false;
+    // -----------------------------------------------------------------------------------------------------
+    // @ Lifecycle hooks
+    // -----------------------------------------------------------------------------------------------------
 
-    if (!this.verify) {
-      // fingerprint.service.ts
-
-
-
-      this._authService.signIn(this.signInForm?.value,'user').subscribe(
-        (res) => {
-          console.log('3');
-          this._router.navigate(['/sign-in/verif-code'], {
-            queryParams: {
-              email: this.signInForm.get('email')?.value,
-              verif: true,
+    /**
+     * On init
+     */
+    ngOnInit(): void
+    {
+        // Create the form
+        this.signUpForm = this._formBuilder.group({
+                first_name      : ['', Validators.required],
+                last_name      : ['', Validators.required],
+                email     : ['', [Validators.required, Validators.email]],
+                password  : ['', Validators.required],
+                passwordConfirm   : ['',Validators.required],
+                agreements: ['', Validators.requiredTrue],
             },
-          });
-        },
-        (err) => {
-          if (err.status === 400) {
-            console.log('4');
-            console.error(err);
-            this.alert.message = 'Wrong Credentials. Please try again';
-            this.showAlert = true;
-            this.signInForm?.enable();
-            this.btn = true;
-          } else if (err.status === 405) {
-            this._router.navigate(['/sign-in/verif-code'], {
-              queryParams: {
-                email: this.signInForm.get('email')?.value,
-                verif: true,
-              },
-            });
-          } else {
-            console.log(err.error.message);
-            this.alert.message = 'Something went wrong';
-            this.showAlert = true;
-            this.signInForm?.enable();
-            this.btn = true;
-          }
-        }
-      );
-    } else {
-      if (this.attempts != 0) {
-        this._authService
-          .verifCode({ email: this.signInForm.value.email, code: this.code },'user')
-          .subscribe(
-            (res) => {
-              this._userService.get().subscribe((user: User) => {
-                this.user = user;
-                console.log(user);
-              });
-              const redirectURL =
-                this._activatedRoute.snapshot.queryParamMap.get(
-                  'redirectURL'
-                ) ||
-                this._userService._defaultLink.getValue() ||
-                '/signed-in-redirect';
-              localStorage.setItem(
-                'email',
-                this.signInForm?.get('email')?.value
-              );
-              this._router.navigateByUrl('/' + redirectURL);
-            },
-            (err) => {
-              if (err.status == 405) {
-                this.showAlert = true;
-                this.attempts = Number.parseInt(err.error.message);
-                this.alert.message = 'Wrong code, ' + this.attempts + ' left !';
-                this.btn = true;
-              } else if (err.status == 403 || err.status == 402) {
-                this._router.navigate(['/sign-in']);
-              } else if (err.status === 455) {
-                this._router.navigate(['/reset-password'], {
-                  queryParams: {
-                    email: this.signInForm.get('email')?.value,
-                    token: err.error.token,
-                    type: true,
-                  },
-                });
-              } else {
-                console.error(err.error.message);
-                this.alert.message = 'Something went wrong';
-                this.showAlert = true;
-                this.signInForm?.enable();
-                this.btn = true;
-              }
+            {
+              validators: _Validators.mustMatch('password', 'passwordConfirm'),
             }
-          );
-      } else {
-        this._router.navigate(['/sign-in']);
-      }
+        );
     }
-  }
 
-  onCodeChanged(code: string) {
-    this.isCodeComplete = false;
-    this.missingCode = false;
-  }
+    // -----------------------------------------------------------------------------------------------------
+    // @ Public methods
+    // -----------------------------------------------------------------------------------------------------
 
-  onCodeCompleted(code: string) {
-    this.isCodeComplete = true;
-    this.code = code;
-    this.signIn();
-  }
+    /**
+     * Sign up
+     */
+    signUp(): void
+    {
+        // Do nothing if the form is invalid
+        if ( this.signUpForm.invalid )
+        {
+            return;
+        }
+
+        // Disable the form
+        this.signUpForm.disable();
+
+        // Hide the alert
+        this.showAlert = false;
+
+        // Sign up
+        /*this._authService.signUp(this.signUpForm.value)
+            .subscribe(
+                (response) =>
+                {
+                    // Navigate to the confirmation required page
+                    this._router.navigateByUrl('/confirmation-required');
+                },
+                (response) =>
+                {
+                    // Re-enable the form
+                    this.signUpForm.enable();
+
+                    // Reset the form
+                    this.signUpNgForm.resetForm();
+
+                    // Set the alert
+                    this.alert = {
+                        type   : 'error',
+                        message: 'Something went wrong, please try again.',
+                    };
+
+                    // Show the alert
+                    this.showAlert = true;
+                },
+            );*/
+    }
 }

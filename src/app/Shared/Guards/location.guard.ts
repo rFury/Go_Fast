@@ -16,15 +16,14 @@ export const locationGuard: CanActivateFn = (
     
     return from(location.checkPermission()).pipe(
       map(permission => {
-        console.log("hi");
-
+        console.log(permission);
         if (permission === 'granted') {
           return true;
         }
-        return router.parseUrl('agents/not-allowed');
+        return router.parseUrl('admin/agents/not-allowed');
       }),
       catchError((_) =>
-        of(router.parseUrl('agents/not-allowed'))
+        of(router.parseUrl('admin/agents/not-allowed'))
       )
     );
 };

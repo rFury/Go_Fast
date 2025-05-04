@@ -1,49 +1,69 @@
-<div class="flex flex-col sm:flex-row items-center md:items-start sm:justify-center md:justify-start flex-auto min-w-0">
+<div
+  class="flex flex-col sm:flex-row items-center md:items-center sm:justify-center  flex-auto min-w-0 min-h-screen max-h-screen">
   <div
-    class="md:flex md:items-center md:justify-end w-full sm:w-auto md:h-full md:w-1/2 py-8 px-4 sm:p-12 md:p-16 sm:rounded-2xl md:rounded-none sm:shadow md:shadow-none sm:bg-card min-h-screen max-h-screen">
-    <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0">
+    class="md:flex md:items-center md:justify-end w-full sm:w-auto md:h-full md:w-1/2 py-8 px-4 sm:p-12 md:p-16 sm:rounded-2xl md:rounded-none sm:shadow md:shadow-none sm:bg-card lg:min-h-screen md:min-h-screen">
+    <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0 mt-20 sm:mt-0">
 
 
       <!-- Title -->
-      <div class="mt-8 text-5xl font-bold tracking-tight leading-tight">Sign up</div>
-      @if(!verify){
+      <div class="mt-8 text-4xl font-extrabold tracking-tight leading-tight">Sign up</div>
       <div class="flex items-baseline mt-0.5 font-medium">
         <div>Already have an account?</div>
         <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['/sign-in']">Sign in
         </a>
       </div>
-      }
 
-
-
+      @if(showAlert){
       <!-- Alert -->
-      @if(showAlert) {
       <alert class="mt-8" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
         [@shake]="alert.type === 'error'">
         {{alert.message}}
       </alert>
       }
 
-      <!-- Sign in form -->
-      <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm">
+      <!-- Sign Up form -->
+      <form class="mt-8" [formGroup]="signUpForm" #signUpNgForm="ngForm">
+
+        <div class="flex gap-1">
+          <!-- Name field -->
+          <mat-form-field class="w-full">
+            <mat-label>First name</mat-label>
+            <input id="first_name" matInput [formControlName]="'first_name'">
+            @if(signUpForm.get('first_name').hasError('required')){
+            <mat-error>
+              First name is required
+            </mat-error>
+            }
+          </mat-form-field>
+
+          <!-- Name field -->
+          <mat-form-field class="w-full">
+            <mat-label>Last name</mat-label>
+            <input id="last_name" matInput [formControlName]="'last_name'">
+            @if(signUpForm.get('last_name').hasError('required')){
+            <mat-error>
+              Last name is required
+            </mat-error>
+            }
+          </mat-form-field>
+        </div>
 
         <!-- Email field -->
         <mat-form-field class="w-full">
-          <mat-label>{{emailText}}</mat-label>
-          <input id="email" matInput [formControlName]="'email'" [readonly]="verify">
-          @if (signInForm.get('email')!.hasError('required')) {
+          <mat-label>Email address</mat-label>
+          <input id="email" matInput [formControlName]="'email'">
+          @if(signUpForm.get('email').hasError('required')){
           <mat-error>
             Email address is required
           </mat-error>
           }
-          @if (signInForm.get('email')!.hasError('email')) {
+          @if(signUpForm.get('email').hasError('email')){
           <mat-error>
             Please enter a valid email address
           </mat-error>
           }
         </mat-form-field>
 
-        @if(!verify){
         <!-- Password field -->
         <mat-form-field class="w-full">
           <mat-label>Password</mat-label>
@@ -62,49 +82,56 @@
             Password is required
           </mat-error>
         </mat-form-field>
-        }@else{
 
-        <code-input class="code-input" [isCodeHidden]="false" [codeLength]="6" (codeChanged)="onCodeChanged($event)"
-          (codeCompleted)="onCodeCompleted($event)">
-        </code-input>
-        @if (missingCode) {
-        <mat-error>Verification code required</mat-error>
-        }
-
-        }
+        <!-- Password confirm field -->
+        <mat-form-field class="w-full">
+          <mat-label>Password (Confirm)</mat-label>
+          <input id="password-confirm" matInput type="password" [formControlName]="'passwordConfirm'"
+            #passwordConfirmField>
+          <button mat-icon-button type="button"
+            (click)="passwordConfirmField.type === 'password' ? passwordConfirmField.type = 'text' : passwordConfirmField.type = 'password'"
+            matSuffix>
+            @if (passwordConfirmField.type === 'password') {
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye'"></mat-icon>
+            }
+            @if (passwordConfirmField.type === 'text') {
+            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:eye-slash'"></mat-icon>
+            }
+          </button>
+          @if (signUpForm.get('passwordConfirm')!.hasError('required')) {
+          <mat-error>
+            Password confirmation is required
+          </mat-error>
+          }
+          @if (signUpForm.get('passwordConfirm')!.hasError('mustMatch')) {
+          <mat-error>
+            Passwords must match
+          </mat-error>
+          }
+        </mat-form-field>
+        <!-- ToS and PP -->
+        <div class="inline-flex items-end w-full mt-1.5">
+          <mat-checkbox class="-ml-2" [color]="'primary'" [formControlName]="'agreements'">
+            <span>I agree with</span>
+            <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['./']">Terms
+            </a>
+            <span>and</span>
+            <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['./']">Privacy Policy
+            </a>
+          </mat-checkbox>
+        </div>
 
         <!-- Submit button -->
-        <button class="fuse-mat-button-large w-full mt-6 rounded-full" mat-flat-button [color]="'primary'"
-          [disabled]="!btn" (click)="signIn()">
-          @if (btn) {
+        <button class="fuse-mat-button-large w-full mt-6" mat-flat-button [color]="'primary'"
+          [disabled]="signUpForm.disabled" (click)="signUp()">
+          @if(!signUpForm.disabled){
           <span>
-            {{btnText}}
+            Create your free account
           </span>
-          }
-          @if (!btn) {
-          <mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
-          }
+          }@else{
+          <mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>}
         </button>
-        <!-- Separator -->
-        @if(!verify){<div class="flex items-center mt-8">
-          <div class="flex-auto mt-px border-t"></div>
-          <div class="mx-2 text-secondary">Or continue with</div>
-          <div class="flex-auto mt-px border-t"></div>
-        </div>
 
-        <!-- Single sign-on buttons -->
-        <div class="flex items-center mt-8 space-x-4">
-          <button class="flex-auto" type="button" mat-stroked-button>
-            <mat-icon class="icon-size-5" [svgIcon]="'feather:facebook'"></mat-icon>
-          </button>
-          <button class="flex-auto" type="button" mat-stroked-button>
-            <mat-icon class="icon-size-5" [svgIcon]="'feather:mail'"></mat-icon>
-          </button>
-          <button class="flex-auto" type="button" mat-stroked-button>
-            <mat-icon class="icon-size-5" [svgIcon]="'feather:github'"></mat-icon>
-          </button>
-        </div>
-        }
       </form>
     </div>
   </div>

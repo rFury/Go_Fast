@@ -33,6 +33,7 @@ import { SideNavService } from '../../../../../../Shared/Services/sideNav.servic
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LocationService } from '../../../../../../Shared/Services/agent-location.service';
 import { LocationWebService } from '../../../../../../Shared/Services/location.service';
+import { Agent } from '../../../../../../Shared/Models/Agent.model';
 
 @Component({
   selector: 'classy-layout',
@@ -63,7 +64,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   showUser: boolean = false;
   isScreenSmall!: boolean;
   navigation!: FuseNavigationItem[];
-  user!: User;
+  user!: User | Agent;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
   isLoading: boolean = true;
   email: string = '';
@@ -83,7 +84,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     this.isLoading = true;
 
-    const admin= (this._authService.decodeToken().type === 'admin' || this._authService.decodeToken().type === 'super')
+    const admin= (this._authService.decodeToken().type === 'user' || this._authService.decodeToken().type === 'super')
     const agent= this._authService.decodeToken().type === 'agent'
 
     if (admin) {
@@ -105,8 +106,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
           next: async (res) => {
             this.user = res;
             this._userService.initializeUser(res);
+            this.showUser = true;
             this.isLoading = false;
-
             // Register agent with error handling
             try {
               await this._locationService.registerAgent(this.user._id!);
@@ -129,7 +130,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         });
     }else{
         console.log('error');
-        
     }
 
     this.menuService.getMenu().subscribe({

@@ -16,11 +16,17 @@ export default [
         pathMatch: 'full',
       },
       {
-        path: 'orders',loadChildren:()=>ordersRoutes
+        path: 'orders',loadChildren:()=>ordersRoutes,
+        data:{
+          who:'users'
+        }
       },
       {
         path: 'new-order',
         component:NewOrderComponent,
+        data:{
+          who:'users'
+        }
       },    
     ],
   }

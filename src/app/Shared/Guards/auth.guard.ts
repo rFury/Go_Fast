@@ -8,6 +8,9 @@ export const authGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const _router = inject(Router);
   const _route = inject(ActivatedRoute);
   const who = _route.snapshot.data['who'];
+  console.log(_route.snapshot.data);
+  console.log('Blocked URL:', state.url);
+
   
   if (_authService.isLoggedIn()) {
     return true;

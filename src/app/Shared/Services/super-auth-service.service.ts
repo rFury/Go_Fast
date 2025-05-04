@@ -90,6 +90,9 @@ export class SuperAuthService {
       who
     });
   }
+  signUp(credentials:{ first_name:string,last_name:string,email:string;password:string }){
+    return this._httpClient.post(`${this.apiUrl}/register`,{...credentials})
+  }
   verifCode(
     elems: { code: string; email: string },
     who: string

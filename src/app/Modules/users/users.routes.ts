@@ -1,6 +1,6 @@
 import { Route, Routes } from '@angular/router';
 import { UsersComponent } from './users.component';
-import { authGuard } from '../../Shared/Guards/auth.guard';
+import { userAuthGuard } from '../../Shared/Guards/userAuth.guard';
 import { SignInComponent } from './sign-in/sign-in.component';
 import { AuthForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { AuthResetPasswordComponent } from './reset-password/reset-password.component';
@@ -22,7 +22,7 @@ export default [
         path: '',
         component: ApplicationComponent,
         loadChildren: () => applicationRoutes,
-        canActivate: [authGuard,userGuard],
+        canActivate: [userAuthGuard,userGuard],
         data: {
           layout: 'classy',
           who: 'users',
@@ -41,6 +41,7 @@ export default [
         path: 'sign-up',
         component: SignUpComponent,
         data: {
+
           layout: 'empty',
         },
         canActivate: [noAuthGuard],
