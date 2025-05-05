@@ -1,0 +1,270 @@
+<div class="flex flex-col h-full w-full relative ">
+    <!-- Toggle Button -->
+    <button mat-icon-button
+        class="hidden sm:inline-flex absolute left-112 m-4 ml-0 top-9 z-20 rounded-full bg-white shadow-lg"
+        [class.left-4]="toggle" (click)="toggle = !toggle">
+        <mat-icon [svgIcon]="toggle ? 'heroicons_outline:plus' : 'heroicons_outline:x-mark'"></mat-icon>
+    </button>
+    @if(!toggle){
+    <!-- Order Details overlay -->
+    <div class="absolute left-0 bottom-0 sm:bottom-18 top-72 sm:top-0 m-0 sm:m-4 z-10 p-0 sm:p-6 w-full sm:w-112
+     bg-white sm:bg-transparent rounded-t-3xl sm:rounded-none border-rounded sm:border-none
+      overflow-y-auto overflow-x-hidden max-h-[calc(100vh-2rem)] scrollbar-hide transition-all duration-500" @expandCollapse
+        [class.top-160]="dragging()">
+        <form class="w-110 relative" #myForm="ngForm" ngForm="ngForm">
+            <!-- Add your form elements or content here -->
+            <div class="space-y-4 left-0">
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl sm:rounded-full shadow-sm p-2 border border-gray-200">
+                    <mat-button-toggle-group [(ngModel)]="Order.type" name="type" aria-label="Delivery type"
+                        class="w-full" [hideSingleSelectionIndicator]="hideSingleSelectionIndicator()" required>
+                        <mat-button-toggle [value]="DeliveryType.building"
+                            class="w-1/2 !rounded-full !px-2 !py-1 !border !border-gray-200"
+                            [class.bg-gray-300]="Order.type === DeliveryType.building">
+                            <span class="capitalize md:text-md text-gray-900">
+                                <span class="hidden md:inline">Delivery to </span>building
+                            </span>
+
+                        </mat-button-toggle>
+                        <mat-button-toggle [value]="DeliveryType.apartment"
+                            class="w-1/2 !rounded-full !px-2 !py-1 !border !border-gray-200 "
+                            [class.bg-gray-300]="Order.type === DeliveryType.apartment">
+                            <span class="capitalize md:text-md text-gray-900">
+                                <span class="hidden md:inline">Delivery to </span>apartment
+                            </span>
+                        </mat-button-toggle>
+                    </mat-button-toggle-group>
+                </div>
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 text-gray-900 flex gap-2 items-center">
+                        Pickup Details
+                    </h3>
+                    <div class="grid gap-6 "
+                        [ngClass]="{'md:grid-cols-2': Order.type !== DeliveryType.building, 'grid-cols-1': Order.type === DeliveryType.apartment}">
+                        <div class="relative space-y-2 z-50">
+                            <label class="text-md font-semibold text-gray-900 uppercase tracking-wide">Where to pick
+                                up
+                            </label>
+                            <div class="relative">
+                                <select-map [userLocation]="userLocation" [searchQuery]="searchQueryA" [icon]="'a'"
+                                    (selectPlace)="onSelectPlace($event,'a')"></select-map>
+                                @if (
+                                myForm.submitted &&
+                                PointA.place === undefined) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+
+                            </div>
+                        </div>
+                        @if(Order.type === DeliveryType.apartment){
+                        <div class="space-y-2">
+                            <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Entrance
+                                Type</label>
+                            <mat-form-field [subscriptSizing]="'fixed'" class="w-full">
+                                <mat-icon class="icon-size-5 text-gray-800" [svgIcon]="'meeting_room'"
+                                    matPrefix></mat-icon>
+                                <mat-select [(ngModel)]="PointA.entrance" name="entranceType" required>
+                                    <mat-option value="main">
+                                        <div class="flex items-center">
+                                            Main Entrance
+                                        </div>
+                                    </mat-option>
+                                    <mat-option value="side">
+                                        <div class="flex items-center">
+                                            Side Entrance
+                                        </div>
+                                    </mat-option>
+                                    <mat-option value="back">
+                                        <div class="flex items-center">
+                                            Back Entrance
+                                        </div>
+                                    </mat-option>
+                                </mat-select>
+                                @if ( myForm.controls['entranceType'] && (myForm.controls['entranceType'].dirty ||
+                                myForm.submitted) &&
+                                myForm.controls['entranceType'].hasError('required') ) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+
+                    @if(Order.type === DeliveryType.apartment){
+
+                    <!-- Address Details -->
+                    <div class="space-y-4 pb-4 !z-0">
+                        <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Address
+                            Details</label>
+                        <mat-form-field [subscriptSizing]="'fixed'" class="w-full">
+                            <mat-icon class="icon-size-5 text-gray-800"
+                                [svgIcon]="'heroicons_outline:ellipsis-horizontal'" matSuffix></mat-icon>
+                            <textarea matInput [(ngModel)]="PointA.adress_details" name="details" cdkTextareaAutosize
+                                [cdkAutosizeMinRows]="2" required></textarea>
+                            <mat-hint class="text-gray-900"><span class="text-gray-500">Floor, apartment, entryphone
+                                    ...</span></mat-hint>
+                            @if ( myForm.controls['details'] && (myForm.controls['details'].dirty ||
+                            myForm.submitted) &&
+                            myForm.controls['details'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                        </mat-form-field>
+                    </div>
+                    }
+
+                    <!-- Phone -->
+                    <div class="pt-4 border-t border-gray-200 z-0">
+                        <mat-form-field class="bot !z-0 w-full ">
+                            <mat-label class="text-md font-semibold text-gray-900 uppercase tracking-wide">Contact
+                                Number</mat-label>
+                            <span class="text-gray-900 mr-2">+216</span>
+                            <input matInput [(ngModel)]="PointA.phone" name="phone" type="tel" pattern="[0-9]{8}"
+                                placeholder="90-303-560" required>
+                            <mat-icon class="text-gray-900">call</mat-icon>
+                            <mat-hint class="text-sm text-gray-900"><span class="text-gray-500">Format:
+                                    90-303-560</span></mat-hint>
+                            @if ( myForm.controls['phone'] && (myForm.controls['phone'].dirty || myForm.submitted)
+                            &&
+                            myForm.controls['phone'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                        </mat-form-field>
+                    </div>
+                </div>
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 text-gray-900 flex gap-2 items-center">
+                        Destination Details
+                    </h3>
+                    <div class="grid gap-6 "
+                        [ngClass]="{'md:grid-cols-1': Order.type === DeliveryType.building, 'grid-cols-2': Order.type === DeliveryType.apartment}">
+                        <div class="relative space-y-2 z-50">
+                            <label class="text-md font-semibold text-gray-900 uppercase tracking-wide">Where to pick
+                                up
+                            </label>
+                            <div class="relative">
+                                <select-map [userLocation]="userLocation" [searchQuery]="searchQueryB" [icon]="'b'"
+                                    (selectPlace)="onSelectPlace($event,'b')"></select-map>
+                                @if (
+                                myForm.submitted &&
+                                PointB.place === undefined) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+
+                            </div>
+                        </div>
+                        @if(Order.type === DeliveryType.apartment){
+                        <div class="relative space-y-2">
+                            <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Entrance
+                                Type</label>
+                            <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
+                                <mat-icon class="icon-size-5 text-gray-800" [svgIcon]="'meeting_room'"
+                                    matPrefix></mat-icon>
+                                <mat-select name="entranceTypeB" [(ngModel)]="PointB.entrance" required>
+                                    <mat-option [value]="'main'">Main Entance</mat-option>
+                                    <mat-option [value]="'side'">Side Entrance</mat-option>
+                                    <mat-option [value]="'back'">Back Entrance</mat-option>
+                                </mat-select>
+                                @if ( myForm.controls['entranceTypeB'] && (myForm.controls['entranceTypeB'].dirty ||
+                                myForm.submitted) &&
+                                myForm.controls['entranceTypeB'].hasError('required') ) {
+                                <mat-error>
+                                    {{ 'This field is required' }}
+                                </mat-error>
+                                }
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+
+                    @if(Order.type === DeliveryType.apartment){
+
+                    <!-- Address Details -->
+                    <div class="space-y-4 pb-4 !z-0">
+                        <label class="text-md font-semibold text-gray-900 uppercase tracking-wide0">Address
+                            Details</label>
+                        <mat-form-field [subscriptSizing]="'fixed'" class="w-full">
+                            <mat-icon class="icon-size-5 text-gray-800"
+                                [svgIcon]="'heroicons_outline:ellipsis-horizontal'" matSuffix></mat-icon>
+                            <textarea matInput [(ngModel)]="PointB.adress_details" name="detailsb" cdkTextareaAutosize
+                                [cdkAutosizeMinRows]="2" required></textarea>
+                            <mat-hint class="text-gray-900"><span class="text-gray-500">Floor, apartment, entryphone
+                                    ...</span></mat-hint>
+                            @if ( myForm.controls['detailsb'] && (myForm.controls['detailsb'].dirty ||
+                            myForm.submitted) &&
+                            myForm.controls['detailsb'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                        </mat-form-field>
+                    </div>
+                    }
+
+                    <!-- Phone -->
+                    <div class="pt-4 border-t border-gray-200 z-0">
+                        <mat-form-field class="bot !z-0 w-full ">
+                            <mat-label class="text-md font-semibold text-gray-900 uppercase tracking-wide">Contact
+                                Number</mat-label>
+                            <span class="text-gray-900 mr-2">+216</span>
+                            <input matInput [(ngModel)]="PointB.phone" name="phoneb" type="tel" pattern="[0-9]{8}"
+                                placeholder="90-303-560" required>
+                            <mat-icon class="text-gray-900">call</mat-icon>
+                            <mat-hint class="text-sm text-gray-900"><span class="text-gray-500">Format:
+                                    90-303-560</span></mat-hint>
+                            @if ( myForm.controls['phoneb'] && (myForm.controls['phoneb'].dirty || myForm.submitted)
+                            &&
+                            myForm.controls['phoneb'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                        </mat-form-field>
+                    </div>
+                </div>
+                <div
+                    class="bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-3xl shadow-sm p-4 border border-gray-200">
+                    <div class="sm:col-span-4">
+                        <mat-form-field class="w-full" [subscriptSizing]="'fixed'">
+                            <mat-label class="text-md font-semibold text-gray-900 uppercase tracking-wide">Order
+                                Details</mat-label>
+                            <textarea placeholder="Describe your order" matInput [(ngModel)]="Order.productDesc"
+                                name="productDesc" cdkTextareaAutosize [cdkAutosizeMinRows]="3" required></textarea>
+                            @if ( myForm.controls['productDesc'] && (myForm.controls['productDesc'].dirty ||
+                            myForm.submitted)
+                            &&
+                            myForm.controls['productDesc'].hasError('required') ) {
+                            <mat-error>
+                                {{ 'This field is required' }}
+                            </mat-error>
+                            }
+                            <mat-hint><span class="text-gray-500">Brief description for your order</span></mat-hint>
+                        </mat-form-field>
+                    </div>
+                </div>
+                <div
+                    class="sm:fixed w-full sm:w-100 bottom-10 z-0 sm:z-50 bg-gray-400 backdrop-blur-sm bg-opacity-50 rounded-full shadow-sm p-2 border border-gray-200">
+
+                    <button class="fuse-mat-button-large w-full rounded-full" mat-flat-button [color]="'primary'"
+                        (click)="UserOrder()">Order</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    }
+    <!-- Map container -->
+    <div class="flex-1 min-h-0 relative z-0 ">
+        <div id="map" class="h-full w-full"></div>
+    </div>
+</div>

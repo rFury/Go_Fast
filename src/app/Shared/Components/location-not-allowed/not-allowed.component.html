@@ -1,0 +1,46 @@
+<div class="flex flex-col items-center justify-center h-screen p-6 bg-gray-50 text-gray-800">
+  @if(showAlert) {
+    <alert class="mt-8" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
+      [@shake]="alert.type === 'error'">
+      {{alert.message}}
+    </alert>
+    }
+  <div class="text-6xl mb-4 text-red-500">
+    📍🚫
+  </div>
+  <h1 class="text-2xl font-bold mb-2">Location Access Needed</h1>
+  <p class="text-center mb-6 max-w-md">
+    To use this feature we need your location. Please enable location services in your browser or device settings, then reload the page.
+  </p>
+
+  <div class="space-y-4 text-left max-w-sm w-full">
+    <div class="flex items-start">
+      <span class="mr-2 text-xl">🔒</span>
+      <div>
+        <p class="font-semibold">Click the lock icon</p>
+        <p class="text-sm text-gray-600">next to the URL in your browser.</p>
+      </div>
+    </div>
+    <div class="flex items-start">
+      <span class="mr-2 text-xl">⚙️</span>
+      <div>
+        <p class="font-semibold">Find “Location”</p>
+        <p class="text-sm text-gray-600">and set it to “Allow”.</p>
+      </div>
+    </div>
+    <div class="flex items-start">
+      <span class="mr-2 text-xl">🔄</span>
+      <div>
+        <p class="font-semibold">Reload the page</p>
+        <p class="text-sm text-gray-600">to apply changes.</p>
+      </div>
+    </div>
+  </div>
+
+  <button
+    (click)="reload()"
+    class="mt-8 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+  >
+    Try Again
+  </button>
+</div>

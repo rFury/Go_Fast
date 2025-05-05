@@ -8,6 +8,7 @@ import usersRouting from './apps/users/users.routing';
 import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 import userFeaturesRouting from './apps/user-features/user-features-routing';
 import clientsRouting from './apps/clients/clients.routing';
+import agentsRouting from './apps/clients copy/agents.routing';
 
 
 export default [
@@ -46,6 +47,14 @@ export default [
         data: {
           breadcrumb: 'Clients',
           feature: FeatureCodes.clients,
+      },
+      },
+      {
+        path: 'agents',
+        loadChildren: () => agentsRouting,
+        data: {
+          breadcrumb: 'Agents',
+          feature: FeatureCodes.agents,
       },
       },
       {

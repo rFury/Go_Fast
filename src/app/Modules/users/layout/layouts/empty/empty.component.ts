@@ -5,7 +5,7 @@ import { FuseLoadingBarComponent } from '../../../../../Shared/Components/loadin
 import { Subject } from 'rxjs';
 
 @Component({
-    selector: 'empty-layout',
+    selector: 'user-empty-layout',
     templateUrl: './empty.component.html',
     encapsulation: ViewEncapsulation.None,
     imports: [RouterOutlet,FuseLoadingBarComponent]

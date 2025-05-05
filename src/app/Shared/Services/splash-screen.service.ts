@@ -18,6 +18,8 @@ export class FuseSplashScreenService
             )
             .subscribe(() =>
             {
+                console.log("splash");
+                
                 this.hide();
             });
     }

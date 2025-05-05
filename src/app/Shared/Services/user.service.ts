@@ -10,6 +10,7 @@ import { Pagination } from '../Models/Pagination.model';
 import { FeatureActions } from '../enums/feature-actions';
 import { Client } from '../Models/Client.model';
 import { MenuService } from './menu.service';
+import { Agent } from '../Models/Agent.model';
 
 @Injectable({
   providedIn: 'root',
@@ -17,8 +18,8 @@ import { MenuService } from './menu.service';
 export class UserService {
   endpointUser = `${environment.api}/users`;
   endpointClient = `${environment.api}/clients`;
-  _user = signal<User | Client | null>(null);
-  private _statusTimeout: any;
+  endpointAgent = `${environment.api}/agents`;
+  _user = signal<User | Client | Agent | null>(null);
   private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
   features=signal<FeatureAuth[] | null>(null);
@@ -77,11 +78,13 @@ export class UserService {
   
   
 
-  get(): Observable<User> {
+  get(): Observable<User | Agent | Client> {
     return this.http.get<User>(`${this.endpointUser}/me`).pipe(
       tap((user)=>{
         if(user.type === "client"){
           this._user.set(user as Client);
+        }else if(user.type === "agent"){
+          this._user.set(user as Agent);
         }else{
           this._user.set(user);
         }
@@ -91,9 +94,11 @@ export class UserService {
       })
     );
   }
-  getAll(type:string): Observable<User[] | Client[]> {
+  getAll(type:string): Observable<User[] | Client[] | Agent[]> {
     if(type === "client"){
     return this.http.get<Client[]>(`${this.endpointClient}/all`,{params:{type:"client"}})
+    }else if(type === "agent"){
+      return this.http.get<Agent[]>(`${this.endpointAgent}/all`,{params:{type:"agent"}})
     }
     return this.http.get<User[]>(`${this.endpointUser}/all`,{params:{type:"user"}})
   }
@@ -146,9 +151,15 @@ export class UserService {
     );
   }
 
-  addUser(user: User | Client): Observable<any> {
-    const endpoint = user instanceof Client ?this.endpointClient: this.endpointUser ;
-    console.log(user instanceof Client);
+  addUser(user: User | Client | Agent): Observable<any> {
+    let endpoint;
+    if(user instanceof Client){
+      endpoint = this.endpointClient;
+    }else if(user instanceof Agent){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint= this.endpointUser
+    }
     
     return this.http.post<any>(`${endpoint}`, {
       user,
@@ -180,26 +191,52 @@ export class UserService {
     if (filterNewOld) {
       searchParams = searchParams.append('filterNewOld', filterNewOld);
     }
-    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
+    let endpoint;
+    if(who === "client"){
+      endpoint = this.endpointClient;
+    }else if(who === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.get<Pagination<User | Client>>(`${endpoint}`, {
       params: searchParams,
     });
   }
   getOne(id: string,who:string): Observable<User | Client> {
-    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
+    let endpoint;
+    if(who === "client"){
+      endpoint = this.endpointClient;
+    }else if(who === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.get<User>(`${endpoint}/${id}`);
   }
-  updateOne(user: User | Client): Observable<User | Client> {
-    const endpoint = user.type === 'client' ?this.endpointClient: this.endpointUser ;
-    console.log(user instanceof Client);
+  updateOne(user: User | Client | Agent): Observable<User | Client | Agent> {
+    let endpoint;
+    if(user.type === "client"){
+      endpoint = this.endpointClient;
+    }else if(user.type === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.put<User | Client>(`${endpoint}/${user._id}`, { user });
   }
   enableAccount(id: string): Observable<User> {
     return this.http.get<User>(`${this.endpointUser}/${id}/enable-disable`);
   }
   deleteOne(id: string,who?:string): Observable<null> {
-    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
-
+    let endpoint;
+    if(who === "client"){
+      endpoint = this.endpointClient;
+    }else if(who === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.delete<null>(`${endpoint}/${id}`);
   }
   updateAvatar(data: FormData, id: string): Observable<User> {

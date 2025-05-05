@@ -11,6 +11,11 @@ import backOfficeRoutes from './back-office/back-office.routes';
 import { tokenGuard } from '../../Shared/Guards/token.guard';
 import { NotAllowedComponent } from '../../Shared/Components/not-allowed/not-allowed.component';
 import { adminGuard } from '../../Shared/Guards/admin.guard';
+import { AgentsComponent } from './agents/agents.component';
+import agentsRoutes from './agents/agents.routes';
+import { agentGuard } from '../../Shared/Guards/agent.guard';
+import { locationGuard } from '../../Shared/Guards/location.guard';
+import { LocationNotAllowedComponent } from '../../Shared/Components/location-not-allowed/not-allowed.component';
 
 export default [
   {
@@ -22,6 +27,21 @@ export default [
         component: BackOfficeComponent,
         loadChildren: () => backOfficeRoutes,
         canActivate: [authGuard,adminGuard],
+        data: {
+          layout: 'classy',
+          data: {
+            breadcrumb: {
+                label: 'Dashboard',
+                info: { myData: { icon: 'home', iconType: 'material' } },
+            },
+        },
+        },
+      },
+      {
+        path:'agents',
+        component:AgentsComponent,
+        loadChildren:()=> agentsRoutes,
+        canActivate :[authGuard,agentGuard,locationGuard],
         data: {
           layout: 'classy',
           data: {
@@ -85,6 +105,13 @@ export default [
           layout: 'empty',
         },
       },
+      {
+        path:'agents/not-allowed',
+        component:LocationNotAllowedComponent,
+        data:{
+          layout:'empty'
+        }
+      }
     ],
   },
   { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: '' },

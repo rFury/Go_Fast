@@ -226,7 +226,6 @@ export class AddComponent implements OnInit {
         this.coordinatesB = place?.coordinates!;
       }
     });
-    
   }
 
 

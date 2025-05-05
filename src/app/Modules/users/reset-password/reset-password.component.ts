@@ -23,7 +23,7 @@ import { User } from '../../../Shared/Models/User.model';
 import { UserService } from '../../../Shared/Services/user.service';
 
 @Component({
-  selector: 'auth-reset-password',
+  selector: 'reset-password',
   templateUrl: './reset-password.component.html',
   encapsulation: ViewEncapsulation.None,
   animations: Animations,

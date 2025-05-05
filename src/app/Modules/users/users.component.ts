@@ -1,5 +1,5 @@
-import { Component, Provider, Renderer2, ViewEncapsulation,Inject, inject } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, provideRouter, Router, RouterOutlet } from '@angular/router';
+import { Component,  Renderer2, ViewEncapsulation,Inject } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Subject, combineLatest, takeUntil, map, filter } from 'rxjs';
 import { ClassyLayoutComponent } from './layout/layouts/vertical/classy/classy.component'
 import { FuseConfigService } from '../../Shared/Services/config/config.service';
@@ -8,7 +8,6 @@ import { FusePlatformService } from '../../Shared/Services/platform/platform.ser
 import { FuseConfig } from '../../Shared/Services/config/config.types';
 import { DOCUMENT } from '@angular/common';
 import { EmptyLayoutComponent } from './layout/layouts/empty/empty.component';
-import { UserService } from '../../Shared/Services/user.service';
 
 @Component({
   selector: 'app-users',

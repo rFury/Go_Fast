@@ -1,0 +1,93 @@
+<div class="flex flex-col h-full w-full relative ">
+    @if (Order) {
+    <div class="absolute top-15 left-4 z-50">
+        <div class=" bg-gray-200 w-fit rounded-xl p-4 backdrop-blur-sm bg-opacity-50">
+            <button mat-icon-button class="bg-white rounded-full" [matMenuTriggerFor]="listCard01Menu">
+
+                <mat-icon [svgIcon]="'heroicons_solid:ellipsis-horizontal'"></mat-icon>
+            </button>
+            <mat-menu #listCard01Menu="matMenu" class="bg-white p-2 rounded-3xl">
+                <button mat-menu-item class="rounded-lg" (click)="goBack()">Go back</button>
+                <button mat-menu-item class="text-red-500 hover:bg-red-100 rounded-lg" (click)="cancelOrder()">Cancel order</button>
+
+            </mat-menu>
+        </div>
+        <div>
+            <h2 class="font-bold text-7xl">We’re looking for<br>
+                delivery agents...</h2>
+            <h4 class="text-4xl">This may take a while!</h4>
+        </div>
+    </div>
+    <div class="absolute top-15 right-4 z-50">
+        <card class="flex-col w-full max-w-100 p-6 sm:py-12 sm:px-10 filter-pricing">
+            <div class="text-4xl font-bold tracking-tight leading-tight">Order</div>
+            <div class="mt-2 text-lg font-medium tracking-tight text-secondary">
+                Order went throught successfully please be patient...
+            </div>
+            <div class="w-8 h-1 my-2 rounded bg-accent"></div>
+            <!-- Price -->
+            <div class="flex items-baseline whitespace-nowrap">
+                <div class="mr-2 text-2xl">TND</div>
+                <div class="text-6xl font-semibold leading-tight tracking-tight">$6.00</div>
+            </div>
+            <!-- CTA -->
+            <button class="fuse-mat-button-large mt-4 mb-4" mat-stroked-button [color]="'warn'">
+                Cancel order
+            </button>
+            @if(details){
+            <div class="space-y-4 text-lg font-medium tracking-tight text-secondary" @expandCollapse>
+                <!-- Sender's number -->
+                <div class="flex items-baseline justify-between">
+                    <div class="font-bold text-gray-900">Sender's number</div>
+                    <div class="w-22 h-1 rounded bg-accent"></div>
+                    <span>+216
+                        {{Order.pick_up.phone.substring(0,2)
+                        +"-"+Order.pick_up.phone.substring(2,5)+"-"+Order.pick_up.phone.substring(5)}}</span>
+                </div>
+                <!-- Receiver's number -->
+                <div class="flex items-baseline justify-between">
+                    <div class="font-bold text-gray-900">Receiver's number</div>
+                    <div class="w-20 h-1 rounded bg-accent"></div>
+                    <span>+216
+                        {{Order.destination.phone.substring(0,2)
+                        +"-"+Order.destination.phone.substring(2,5)+"-"+Order.destination.phone.substring(5)}}</span>
+                </div>
+
+                <!-- Product Description -->
+                <div>
+                    <div class="mb-1 font-bold text-gray-900">Product Description:</div>
+                    <p class="text-base">{{Order.productDesc}}</p>
+                </div>
+            </div>
+
+            }
+            <div (click)="details=!details" class="cursor-pointer flex items-center gap-2">
+                Details
+                <mat-icon [svgIcon]="'heroicons_outline:chevron-up'"
+                    class="transform transition-transform duration-200 ease-in-out"
+                    [class.rotate-180]="!details"></mat-icon>
+            </div>
+            <div class="mt-4 flex flex-col gap-2">
+                <div class="flex gap-2">
+                    <div class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                        A</div>
+                    <div class="font-bold text-gray-900">
+                        {{Order.pick_up.place.name+" ,"+Order.pick_up.place.gouvernorat}}
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <div class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                        B</div>
+                    <div class="font-bold text-gray-900">
+                        {{Order.destination.place.name+" ,"+Order.destination.place.gouvernorat}}
+                    </div>
+                </div>
+            </div>
+        </card>
+    </div>
+    }
+    <!-- Map container -->
+    <div class="w-full min-h-screen max-h-screen z-0">
+        <div id="map" class="min-h-screen max-h-screen w-full"></div>
+    </div>
+</div>

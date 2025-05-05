@@ -161,18 +161,21 @@ export class SignInComponent implements OnInit {
               this._userService.get().subscribe((user: User) => {
                 this.user = user;
                 console.log(user);
-              });
-              const redirectURL =
-                this._activatedRoute.snapshot.queryParamMap.get(
-                  'redirectURL'
-                ) ||
-                this._userService._defaultLink.getValue() ||
-                '/admin/signed-in-redirect';
-              localStorage.setItem(
-                'email',
-                this.signInForm?.get('email')?.value
+                console.log(                this._userService._defaultLink.getValue()
               );
-              this._router.navigateByUrl('/admin/' + redirectURL);
+                
+                const redirectURL =
+                  this._activatedRoute.snapshot.queryParamMap.get(
+                    'redirectURL'
+                  ) ||
+                  this._userService._defaultLink.getValue() ||
+                  '/admin/signed-in-redirect';
+                localStorage.setItem(
+                  'email',
+                  this.signInForm?.get('email')?.value
+                );
+                this._router.navigateByUrl('/admin/' + redirectURL);
+              });
             },
             (err) => {
               if (err.status == 405) {

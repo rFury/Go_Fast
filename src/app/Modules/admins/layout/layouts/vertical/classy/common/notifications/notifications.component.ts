@@ -11,7 +11,7 @@ import { Notification } from './notifications.types';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
-    selector: 'notifications',
+    selector: 'admin-notifications',
     templateUrl: './notifications.component.html',
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
