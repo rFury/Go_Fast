@@ -15,14 +15,14 @@
 
       <!-- Alert -->
       @if(showAlert) {
-      <alert class="mt-8" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
+      <alert class="mt-2" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
         [@shake]="alert.type === 'error'">
         {{alert.message}}
       </alert>
       }
 
       <!-- Sign in form -->
-      <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm">
+      <form class="mt-2" [formGroup]="signInForm" #signInNgForm="ngForm">
 
         <!-- Email field -->
         <mat-form-field class="w-full">
@@ -104,7 +104,7 @@
           <button class="flex-auto" type="button" mat-stroked-button>
             <mat-icon class="icon-size-5" [svgIcon]="'feather:facebook'"></mat-icon>
           </button>
-          <button class="flex-auto" type="button" mat-stroked-button>
+          <button class="flex-auto" type="button" mat-stroked-button (click)="Google()">
             <mat-icon class="icon-size-5" [svgIcon]="'feather:mail'"></mat-icon>
           </button>
           <button class="flex-auto" type="button" mat-stroked-button>

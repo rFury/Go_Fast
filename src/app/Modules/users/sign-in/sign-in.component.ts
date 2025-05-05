@@ -192,6 +192,10 @@ export class SignInComponent implements OnInit {
     }
   }
 
+  Google(){
+    this._authService.loginWithGoogle();
+  }
+
   onCodeChanged(code: string) {
     this.isCodeComplete = false;
     this.missingCode = false;

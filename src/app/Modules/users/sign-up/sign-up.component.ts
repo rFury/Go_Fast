@@ -106,7 +106,6 @@ export class SignUpComponent implements OnInit {
      */
     signUp(): void
     {
-        // Do nothing if the form is invalid
         if ( this.signUpForm.invalid )
         {
             return;
@@ -119,30 +118,26 @@ export class SignUpComponent implements OnInit {
         this.showAlert = false;
 
         // Sign up
-        /*this._authService.signUp(this.signUpForm.value)
+        this._authService.signUp(this.signUpForm.value)
             .subscribe(
                 (response) =>
                 {
-                    // Navigate to the confirmation required page
-                    this._router.navigateByUrl('/confirmation-required');
-                },
-                (response) =>
+                  this._router.navigate(['/sign-in'], {
+                    queryParams: { verif: true,email:this.signUpForm.value.email},
+                  });                },
+                (error) =>
                 {
+                  console.error(error)
                     // Re-enable the form
                     this.signUpForm.enable();
-
-                    // Reset the form
-                    this.signUpNgForm.resetForm();
 
                     // Set the alert
                     this.alert = {
                         type   : 'error',
                         message: 'Something went wrong, please try again.',
                     };
-
-                    // Show the alert
                     this.showAlert = true;
                 },
-            );*/
+            );
     }
 }

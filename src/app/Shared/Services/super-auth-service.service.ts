@@ -8,6 +8,7 @@ import { JwtHelperService } from '@auth0/angular-jwt';
 import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import { Governorate } from '../Models/Gouvernorat.model';
 
 @Injectable({
   providedIn: 'root',
@@ -24,6 +25,24 @@ export class SuperAuthService {
 
   constructor() {
     this.loadToken();
+  }
+
+  loginWithGoogle() {
+    window.location.href = `${
+      this.apiUrl
+    }/google?redirect=${encodeURIComponent(window.location.href)}`;
+  }
+
+  loginWithFacebook() {
+    window.location.href = `${
+      this.apiUrl
+    }/facebook?redirect=${encodeURIComponent(window.location.href)}`;
+  }
+
+  handleCallback(token: string) {
+    this.saveToken(token);
+    const connectedUser = this.decodeToken();
+    this._userService._defaultLink.next(connectedUser?.defaultLink);
   }
 
   forgotPassword(email: string): Observable<any> {
@@ -75,11 +94,11 @@ export class SuperAuthService {
 
     if (who === 'user') {
       return this.getFingerprint$().pipe(
-        switchMap(fingerprint =>
+        switchMap((fingerprint) =>
           this._httpClient.post(`${this.apiUrl}/login`, {
             ...credentials,
             who,
-            fingerprint
+            fingerprint,
           })
         )
       );
@@ -87,11 +106,25 @@ export class SuperAuthService {
     // fallback for other roles
     return this._httpClient.post(`${this.apiUrl}/login`, {
       ...credentials,
-      who
+      who,
     });
   }
-  signUp(credentials:{ first_name:string,last_name:string,email:string;password:string }){
-    return this._httpClient.post(`${this.apiUrl}/register`,{...credentials})
+  signUp(credentials: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
+  }) {
+    return this._httpClient.post(`${this.apiUrl}/register`, { user:{...credentials} });
+  }
+  Complete(phone:string,city:Governorate):Observable<any>{
+    return this._httpClient.patch(`${this.apiUrl}/add-info`,{phone,city}).pipe(
+      switchMap((response: any) => {
+        this.removeToken();
+        this.saveToken(response.token);
+        return of(response);
+      })
+    )
   }
   verifCode(
     elems: { code: string; email: string },
@@ -99,7 +132,7 @@ export class SuperAuthService {
   ): Observable<any> {
     if (who === 'user') {
       return this.getFingerprint$().pipe(
-        switchMap(fingerprint =>
+        switchMap((fingerprint) =>
           this._httpClient
             .post(`${this.apiUrl}/verif-account`, { ...elems, fingerprint })
             .pipe(
@@ -111,7 +144,8 @@ export class SuperAuthService {
                 return of(response);
               })
             )
-      ));
+        )
+      );
     }
     return this._httpClient
       .post(`${this.apiUrl}/verif-account`, { ...elems })

@@ -1,0 +1,135 @@
+<div
+  class="flex flex-col sm:flex-row items-center md:items-center sm:justify-center  flex-auto min-w-0 min-h-screen max-h-screen">
+  <div
+    class="md:flex md:items-center md:justify-end w-full sm:w-auto md:h-full md:w-1/2 py-8 px-4 sm:p-12 md:p-16 sm:rounded-2xl md:rounded-none sm:shadow md:shadow-none sm:bg-card lg:min-h-screen md:min-h-screen">
+    <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0 mt-20 sm:mt-0">
+
+      <!-- Title -->
+      <div class="mt-8 text-4xl font-extrabold tracking-tight leading-tight">Complete your Sign-Up</div>
+      <div class="mt-0.5 font-medium">Please fill the form ...</div>
+
+      <!-- Alert -->
+      @if (showAlert) {
+      <alert class="mt-8" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
+        [@shake]="alert.type === 'error'">
+        {{alert.message}}
+      </alert>
+      }
+
+      <!-- Forgot password form -->
+      <form class="mt-8" #myForm="ngForm" ngForm="ngForm">
+
+        <!-- phone -->
+        <div class="sm:col-span-3">
+          <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+            <mat-label class="capitalize">{{ 'Phone' }}</mat-label>
+            <input [(ngModel)]="phone" matInput name="phone" type="text" required />
+          </mat-form-field>
+          @if ( myForm.controls['phone'] && (myForm.controls['phone'].dirty || myForm.submitted) &&
+          myForm.controls['phone'].hasError('required') ) {
+          <mat-error>
+            {{ 'This field is required' }}
+          </mat-error>
+          }
+        </div>
+        <!-- city -->
+        <div class="sm:col-span-3">
+          <mat-form-field class="fuse-mat-no-subscript fuse-mat-emphasized-affix w-full">
+            <mat-label class="capitalize">{{ 'City' }}</mat-label>
+            <mat-select [(ngModel)]="city" name="place" required>
+              <mat-option class="!sticky !top-0 !z-10 !bg-white">
+                <ngx-mat-select-search [formControl]="placeSearchControl" placeholder="Search address..."
+                  noEntriesFoundLabel="No locations found">
+                </ngx-mat-select-search>
+              </mat-option>
+              @if (city) {
+              <mat-select-trigger>
+                <div class="font-medium items-center flex flex-row">
+                  <span class="block"> {{ city.gouvernorat }} </span>
+                </div>
+              </mat-select-trigger>
+              }
+              @for (suggestion of suggestions; track suggestion) {
+              <mat-option [value]="suggestion">
+                <div class="flex justify-between items-center w-full">
+                  <div class="flex items-center">
+                    <mat-icon class="mr-2 text-gray-500">place</mat-icon>
+                    <div>
+                      <div class="font-medium">
+                        {{ suggestion.gouvernorat }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          @if ( city===null && myForm.submitted) {
+          <mat-error>
+            {{ 'This field is required' }}
+          </mat-error>
+          }
+        </div>
+
+        <!-- Submit button -->
+        <button class="fuse-mat-button-large w-full mt-3" mat-flat-button [color]="'primary'"
+          [disabled]="myForm.disabled" (click)="sendResetLink(myForm)">
+          @if (!myForm.disabled) {
+          <span>
+            Complete your sign-up
+          </span>
+          }
+          @if (myForm.disabled) {
+          <mat-progress-spinner [diameter]="24" [mode]="'indeterminate'"></mat-progress-spinner>
+          }
+        </button>
+
+        <!-- Form footer -->
+        <div class="mt-8 text-md font-medium text-secondary">
+          <span>Return to</span>
+          <a class="ml-1 text-primary-500 hover:underline" [routerLink]="['/sign-out']">sign in
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+  <div
+    class="relative hidden md:flex flex-auto items-center justify-center w-1/2 h-full p-16 lg:px-28 overflow-hidden bg-gray-800 dark:border-l min-h-screen">
+    <!-- Background - @formatter:off -->
+    <!-- Rings -->
+    <svg class="absolute inset-0 pointer-events-none" viewBox="0 0 960 540" width="100%" height="100%"
+      preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+      <g class="text-gray-700 opacity-25" fill="none" stroke="currentColor" stroke-width="100">
+        <circle r="234" cx="196" cy="23"></circle>
+        <circle r="234" cx="790" cy="491"></circle>
+      </g>
+    </svg>
+    <!-- Dots -->
+    <svg class="absolute -top-16 -right-16 text-gray-700" viewBox="0 0 220 192" width="220" height="192" fill="none">
+      <defs>
+        <pattern id="837c3e70-6c3a-44e6-8854-cc48c737b659" x="0" y="0" width="20" height="20"
+          patternUnits="userSpaceOnUse">
+          <rect x="0" y="0" width="4" height="4" fill="currentColor"></rect>
+        </pattern>
+      </defs>
+      <rect width="220" height="192" fill="url(#837c3e70-6c3a-44e6-8854-cc48c737b659)"></rect>
+    </svg>
+    <!-- @formatter:on -->
+    <!-- Content -->
+    <div class="z-10 relative w-full max-w-2xl">
+      <div class="text-7xl font-bold leading-none text-gray-100">
+        <div>Welcome to</div>
+        <div>our community</div>
+      </div>
+      <div class="mt-6 text-lg tracking-tight leading-6 text-gray-400">
+        Fuse helps developers to build organized and well coded dashboards full of beautiful and rich modules.
+        Join us and start building your application today.
+      </div>
+      <div class="flex items-center mt-8">
+        <div class="ml-4 font-medium tracking-tight text-gray-400">More than 17k people joined us, it's your turn</div>
+      </div>
+    </div>
+  </div>
+</div>

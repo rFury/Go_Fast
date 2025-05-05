@@ -12,6 +12,8 @@ import applicationRoutes from './App/application.routes';
 import { SignUpComponent } from './sign-up/sign-up.component';
 import { userGuard } from '../../Shared/Guards/user.guard';
 import { AuthSignOutComponent } from './sign-out/sign-out.component';
+import { CompleteComponent } from './complete-sign-up/complete.component';
+import { authGuard } from '../../Shared/Guards/auth.guard';
 
 export default [
   {
@@ -86,6 +88,15 @@ export default [
 
         },
         canActivate: [noAuthGuard,tokenGuard],
+      },
+      {
+        path: 'complete-credentials',
+        component: CompleteComponent,
+        data: {
+          layout: 'empty',
+          who: 'users',
+        },
+        canActivate: [userAuthGuard],
       },
       {
         path: 'unauthorized',
