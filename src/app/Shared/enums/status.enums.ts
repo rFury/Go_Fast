@@ -7,9 +7,7 @@ export enum Status {
         delivered= "delivered",
         canceled= "canceled",
         returned= "returned"
-}
-// order-status.config.ts (or in your component)
-export const OrderStatus = {
+}export const OrderStatus = {
     pending: {
       label: 'Pending',
       color: 'bg-yellow-500',

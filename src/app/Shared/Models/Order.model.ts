@@ -15,4 +15,6 @@ export class Order{
     client?:Client | string;
     agent?:Status;
     status?:string;
+    createdAt?:Date;
+    updatedAt?:Date;
 }

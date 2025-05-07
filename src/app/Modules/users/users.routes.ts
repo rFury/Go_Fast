@@ -14,6 +14,9 @@ import { userGuard } from '../../Shared/Guards/user.guard';
 import { AuthSignOutComponent } from './sign-out/sign-out.component';
 import { CompleteComponent } from './complete-sign-up/complete.component';
 import { authGuard } from '../../Shared/Guards/auth.guard';
+import { CallbackComponent } from './sign-in/callback.component';
+import { Error404Component } from '../../Shared/Components/error/error-404/error-404.component';
+import { Error500Component } from '../../Shared/Components/error/error-500/error-500.component';
 
 export default [
   {
@@ -38,6 +41,15 @@ export default [
           who: 'users',
         },
         canActivate: [noAuthGuard],
+      },
+      {
+        path: 'auth/callback',
+        component: CallbackComponent,
+        data: {
+          layout: 'empty',
+          who: 'users',
+        },
+        canActivate: [noAuthGuard,tokenGuard],
       },
       {
         path: 'sign-up',
@@ -99,8 +111,15 @@ export default [
         canActivate: [userAuthGuard],
       },
       {
-        path: 'unauthorized',
-        component: NotAllowedComponent,
+        path: '404',
+        component:Error404Component ,
+        data: {
+          layout: 'empty',
+        },
+      },
+      {
+        path: '500',
+        component:Error500Component ,
         data: {
           layout: 'empty',
         },

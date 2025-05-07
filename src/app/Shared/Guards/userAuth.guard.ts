@@ -19,6 +19,7 @@ export const userAuthGuard: CanActivateFn = (
       return isComplete ? true : false;
     } else {
       console.log('condition 2');
+      console.log(isComplete);
       return isComplete
         ? _router.createUrlTree(['/complete-credentials'], {
             queryParams: { returnUrl: state.url },

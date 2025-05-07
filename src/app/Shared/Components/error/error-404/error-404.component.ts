@@ -6,6 +6,7 @@ import { RouterLink } from '@angular/router';
     templateUrl    : './error-404.component.html',
     encapsulation  : ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
+    imports:[RouterLink],
     standalone     : true,
 })
 export class Error404Component

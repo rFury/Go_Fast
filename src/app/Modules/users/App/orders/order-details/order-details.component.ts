@@ -8,7 +8,8 @@ import { Order } from '../../../../../Shared/Models/Order.model';
 import { OrderService } from '../../../../../Shared/Services/order.service';
 import { Animations } from '../../../../../Shared/Animations/public-api';
 import { MatMenuModule } from '@angular/material/menu';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FuseSplashScreenService } from '../../../../../Shared/Services/splash-screen.service';
 @Component({
   selector: 'app-order-details',
   imports: [MatIconModule, MatButtonModule, CardComponent, MatMenuModule],
@@ -22,12 +23,16 @@ export class OrderDetailsComponent implements OnInit {
   private _mapService = inject(MapService);
   private _orderService = inject(OrderService);
   private router = inject(Router);
+  private splashService = inject(FuseSplashScreenService);
+  private route = inject(ActivatedRoute);
 
   Order: Order | null = null;
 
   ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id') || undefined;
+    if (!id) return;
     this.initializeMap();
-    this._orderService.getOrder('6808d9777d170b03b3dca626').subscribe({
+    this._orderService.getOrder(id).subscribe({
       next: (res) => {
         console.log(res);
         this.Order = res;
@@ -128,9 +133,9 @@ export class OrderDetailsComponent implements OnInit {
           animate: true,
         });
       });
-    }
-    cancelOrder() {}
-    goBack() {
-      this.router.navigate(['/orders']);
-    }
+  }
+  cancelOrder() {}
+  goBack() {
+    this.router.navigate(['/orders']);
+  }
 }

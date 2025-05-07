@@ -9,6 +9,7 @@ export const userGuard: CanActivateFn = (route, state): boolean | UrlTree => {
     if(_authService.decodeToken().type === 'client'  && _authService.isLoggedIn()){
       return true;
     }else{
+      console.log('dienied guard user');
     return false;
   }
 };
