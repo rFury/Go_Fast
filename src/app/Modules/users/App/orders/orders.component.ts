@@ -43,7 +43,6 @@ import {
   ],
   animations: Animations,
   templateUrl: './orders.component.html',
-  styleUrl: './orders.component.css',
   providers: [DatePipe],
 })
 export class OrdersComponent implements OnInit {
@@ -60,13 +59,14 @@ export class OrdersComponent implements OnInit {
   Orders: Order[] = [];
   date: Date = new Date();
   formattedDate: string = '';
-  currentSize = 10;
+  currentSize = 6;
   currentPage = 1;
   displayedList: Pagination<Order>;
   selectedOrderId: string | null = null;
   hidden=true;
   private markers: mapboxgl.Marker[] = [];
   private routeSources: string[] = [];
+  max=0;
 
   ngOnInit(): void {
     this.formattedDate = this._datePipe.transform(this.date, 'dd/MM/yyyy')!;
@@ -82,23 +82,23 @@ export class OrdersComponent implements OnInit {
     return this._datePipe.transform(date, 'HH:mm')!;
   }
   getOrders(status: string = ''): void {
+    console.log(status);
     this._orderService
       .getOrders(
         this.currentSize.toString(),
         this.currentPage.toString(),
         '',
-        status
+        status==='All'?'':status
       )
       .subscribe({
         next: (res) => {
           console.log(res);
           this.displayedList = res;
           this.Orders = this.displayedList.data;
-          if (this.currentSize === 10) {
             if (this.Orders.length > 0) {
               this.selectOrder(this.Orders[0]._id!);
             }
-          }
+          this.max=res.total;
         },
       });
   }
@@ -283,5 +283,11 @@ export class OrdersComponent implements OnInit {
   }
   orderDetails(id:string){
     this.router.navigate([`${id}`], { relativeTo: this._route }).then();
+  }
+  loadMore(){
+    if(this.max>this.currentSize){
+      this.currentSize+=1;
+      this.getOrders();
+    }
   }
 }

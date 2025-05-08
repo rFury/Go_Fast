@@ -10,7 +10,7 @@
                         <mat-tab label="All">
                             <ng-template matTabContent>
                                 <!-- Tab content -->
-                                <div class="mt-4 overflow-y-auto">
+                                <div class="mt-4 ">
                                     <!-- Filter Row -->
                                     <form class="flex flex-row gap-2 justify-center md:justify-between mb-4" #myForm="ngForm" ngForm="ngForm">
                                         <div class="relative flex items-center justify-center px-4 leading-9 rounded-md cursor-pointer bg-gray-200 w-1/2"
@@ -39,8 +39,8 @@
                                             </mat-form-field>
                                             </div>
                                         <mat-form-field class="w-1/2 rounded-full" [subscriptSizing]="'dynamic'">
-                                            <mat-select [value]="'all'" (selectionChange)="filterByCategory($event)">
-                                                <mat-option [value]="'all'">All</mat-option>
+                                            <mat-select [value]="''" (selectionChange)="filterByCategory($event)">
+                                                <mat-option [value]="''">All</mat-option>
                                                 @for (item of status; track $index) {
                                                     <ng-container>
                                                         <mat-option [value]="item.key">{{item.value}}</mat-option>
@@ -86,6 +86,9 @@
                                         </div>
                                     </div>
                                     }
+                                    <button mat-button (click)="loadMore()" class="w-full" [hidden]="max<=currentSize">
+                                        Load More
+                                    </button>
                                 </div>
                             </ng-template>
                         </mat-tab>

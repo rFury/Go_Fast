@@ -3,13 +3,13 @@
 <ng-container>
 
     <!-- Front -->
-    <div class="fuse-card-front">
-        <ng-content select="[fuseCardFront]"></ng-content>
+    <div class="card-front">
+        <ng-content select="[CardFront]"></ng-content>
     </div>
 
     <!-- Back -->
-    <div class="fuse-card-back">
-        <ng-content select="[fuseCardBack]"></ng-content>
+    <div class="card-back">
+        <ng-content select="[CardBack]"></ng-content>
     </div>
 
 </ng-container>
@@ -26,9 +26,9 @@
      @if (expanded
      ) {
     <div
-        class="fuse-card-expansion"
+        class="card-expansion"
         @expandCollapse>
-        <ng-content select="[fuseCardExpansion]"></ng-content>
+        <ng-content select="[CardExpansion]"></ng-content>
     </div>
 }
 
