@@ -84,21 +84,26 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     this.isLoading = true;
 
-    const admin= (this._authService.decodeToken().type === 'user' || this._authService.decodeToken().type === 'super')
-    const agent= this._authService.decodeToken().type === 'agent'
+    const admin =
+      this._authService.decodeToken().type === 'user' ||
+      this._authService.decodeToken().type === 'super';
+    const agent = this._authService.decodeToken().type === 'agent';
 
     if (admin) {
-      this._userService.get().subscribe({
-        next: (res) => {
-          this._userService.initializeUser(res);
-          this.showUser = true;
-          this._userService.updateState('online').subscribe((res) => {
-            this._cdr.markForCheck();
-          });
-        },
-        error: (err) => console.error(err),
-      });
-    } else if(agent){
+      this._userService
+        .get()
+        .pipe(takeUntil(this._unsubscribeAll))
+        .subscribe({
+          next: (res) => {
+            this._userService.initializeUser(res);
+            this.user = res;
+            this._userService.updateState('online').subscribe((res) => {
+              this._cdr.markForCheck();
+            });
+          },
+          error: (err) => console.error(err),
+        });
+    } else if (agent) {
       this._userService
         .get()
         .pipe(takeUntil(this._unsubscribeAll))
@@ -106,8 +111,10 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
           next: async (res) => {
             this.user = res;
             this._userService.initializeUser(res);
-            this.showUser = true;
             this.isLoading = false;
+            this._userService.updateState('online').subscribe((res) => {
+              this._cdr.markForCheck();
+            });
             // Register agent with error handling
             try {
               await this._locationService.registerAgent(this.user._id!);
@@ -128,8 +135,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
           },
           error: (err) => console.error(err),
         });
-    }else{
-        console.log('error');
+    } else {
+      console.log('error');
     }
 
     this.menuService.getMenu().subscribe({
@@ -157,15 +164,15 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Cleanup interval
     if (this._positionInterval) {
-        clearInterval(this._positionInterval);
-      }
-      // Unregister agent
-      this._locationService.unsubscribeFromAgent(this.user?._id!);
-      this._locationService.diconnect();
-  
-      // Existing cleanup
-      this._unsubscribeAll.next(null);
-      this._unsubscribeAll.complete();
+      clearInterval(this._positionInterval);
+    }
+    // Unregister agent
+    this._locationService.unsubscribeFromAgent(this.user?._id!);
+    this._locationService.diconnect();
+
+    // Existing cleanup
+    this._unsubscribeAll.next(null);
+    this._unsubscribeAll.complete();
   }
 
   toggleNavigation(name: string): void {

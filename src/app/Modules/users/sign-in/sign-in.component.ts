@@ -195,6 +195,9 @@ export class SignInComponent implements OnInit {
   Google(){
     this._authService.loginWithGoogle();
   }
+  Facebook(){
+    this._authService.loginWithFacebook();
+  }
 
   onCodeChanged(code: string) {
     this.isCodeComplete = false;

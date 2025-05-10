@@ -17,6 +17,7 @@ import { agentGuard } from '../../Shared/Guards/agent.guard';
 import { locationGuard } from '../../Shared/Guards/location.guard';
 import { LocationNotAllowedComponent } from '../../Shared/Components/location-not-allowed/not-allowed.component';
 
+
 export default [
   {
     path: '',
@@ -54,7 +55,7 @@ export default [
       },
       {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo:  'dashboard',
         pathMatch: 'full',
       },
       {

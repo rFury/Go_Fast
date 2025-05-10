@@ -1,1 +1,9 @@
-<p>orders works!</p>
+<div class="flex flex-col flex-1 min-w-0 bg-card dark:bg-transparent">
+@if(Agent.agentStatus=='offline'){
+<div class="flex items-center justify-center w-full h-screen">
+    <button mat-flat-button [color]="'primary'">
+        START JOURNEY
+    </button>
+</div>
+}
+</div>
