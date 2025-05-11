@@ -1,9 +1,283 @@
-<div class="flex flex-col flex-1 min-w-0 bg-card dark:bg-transparent">
-@if(Agent.agentStatus=='offline'){
-<div class="flex items-center justify-center w-full h-screen">
-    <button mat-flat-button [color]="'primary'">
-        START JOURNEY
-    </button>
-</div>
-}
+<div class="flex flex-col h-screen w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
+    <!-- Start Journey Screen (when offline) -->
+    @if (!journeyActive && agent?.agentStatus === 'offline') {
+    <div class="flex flex-col items-center justify-center w-full h-full">
+        <div class="text-center p-8 max-w-md bg-white dark:bg-slate-800 rounded-xl shadow-lg animate-fade-in">
+            <h2 class="text-2xl font-bold mb-4">Ready to start your delivery journey?</h2>
+            <p class="mb-6 text-slate-600 dark:text-slate-300">
+                You'll be guided through all your pickup and delivery locations with turn-by-turn navigation.
+            </p>
+            <button mat-flat-button color="primary" class="w-full py-3" (click)="startJourney()">
+                <span class="flex items-center justify-center">
+                    <mat-icon class="mr-2">navigation</mat-icon>
+                    START JOURNEY
+                </span>
+            </button>
+        </div>
+    </div>
+    }
+
+    <!-- Main Navigation Interface (when journey active) -->
+    @if (journeyActive) {
+    <div class="relative flex flex-col h-full w-full">
+        <!-- Simplified Header -->
+        <div class="bg-white dark:bg-slate-800 shadow-sm z-10 px-2 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <button mat-icon-button (click)="toggleSidebar()" class="ml-10 sm:ml-auto">
+                        <mat-icon [svgIcon]="!isSidebarOpen ? 'mat_solid:menu_open' : 'heroicons_solid:plus'"></mat-icon>
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                            {{ currentStopIndex + 1 }}
+                        </div>
+                        <span class="text-sm text-slate-600 dark:text-slate-400">
+                            of {{ stops.length }} stops
+                        </span>
+                    </div>
+                </div>
+                <mat-progress-bar mode="determinate" [value]="journeyProgress" color="primary"
+                    class="w-32"></mat-progress-bar>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Enhanced Sidebar -->
+            <div class="flex flex-col bg-white dark:bg-slate-800 shadow-lg transition-all duration-300 z-20 overflow-auto"
+                [class.w-72]="isSidebarOpen" [class.w-0]="!isSidebarOpen">
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 border-b dark:border-slate-700">
+                    <h2 class="font-semibold text-lg mb-1">Delivery Route</h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">
+                        @if (currentStopIndex < stops.length) { Next: {{ stops[currentStopIndex].isPickup ? 'Pickup'
+                            : 'Delivery' }} } </p>
+                </div>
+
+                <!-- Stops List -->
+                <div class="overflow-y-auto flex-1">
+                    @for (stop of stops; track $index) {
+                    <div class="p-3 border-b dark:border-slate-700 flex items-start cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                        [class.bg-blue-50]="stop.status === 'active'"
+                        [class.dark:bg-slate-600]="stop.status === 'active'"
+                        [class.opacity-50]="stop.status === 'completed'" (click)="openOrderDetails(stop.order)">
+                        <!-- Stop Indicator -->
+                        <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs mt-1 mr-3"
+                            [class.bg-green-500]="stop.status === 'completed'"
+                            [class.bg-blue-500]="stop.status === 'active'"
+                            [class.bg-amber-500]="stop.status === 'pending' && stop.isPickup"
+                            [class.bg-rose-500]="stop.status === 'pending' && !stop.isPickup">
+                            @if (stop.status === 'completed') {
+                            <mat-icon class="!text-xs !w-4 !h-4">check</mat-icon>
+                            } @else {
+                            {{ $index + 1 }}
+                            }
+                        </div>
+
+                        <!-- Stop Details -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="text-sm font-medium">
+                                    {{ stop.isPickup ? 'Pickup' : 'Delivery' }}
+                                </span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">
+                                    #{{ stop.order.code }}
+                                </span>
+                            </div>
+                            <div class="text-md text-slate-600 dark:text-slate-300">
+                                <p class="truncate flex">
+                                    <mat-icon mat-icon [svgIcon]="'heroicons_outline:phone'"></mat-icon>
+
+                                    {{ getOrderLabel(stop.order) }}</p>
+                                @if (stop.status === 'active' && isNavigating) {
+                                <div class="flex items-center space-x-2 mt-1 text-xs">
+                                    <span class="text-emerald-600 dark:text-emerald-400">
+                                        {{ distanceToNextStop | number:'1.1-1' }} km
+                                    </span>
+                                    <span class="text-slate-400">•</span>
+                                    <span class="text-sky-600 dark:text-sky-400">
+                                        {{ timeToNextStop | number:'1.0-0' }} min
+                                    </span>
+                                </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Map container -->
+            <div class="flex-1 relative overflow-hidden relative">
+                <div id="map" class="w-full h-full"></div>
+
+                <!-- Arrival Notification - Shows when close to destination -->
+                <div *ngIf="isNavigating && distanceToNextStop < 0.05"
+                    class="fixed top-1/4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-full shadow-lg z-20 animate-pulse">
+                    <div class="flex items-center space-x-2">
+                        <mat-icon>location_on</mat-icon>
+                        <span class="font-bold">You have arrived!</span>
+                    </div>
+                </div>
+
+                <!-- Start Route Screen (after journey started but before route begins) -->
+                @if (journeyActive && !routeStarted && !isNavigating) {
+                <div class="absolute bottom-20 left-0 right-0 mx-auto w-full max-w-sm px-4">
+                    <div class="bg-white dark:bg-slate-800 rounded-xl p-8 max-w-md mx-4 text-center animate-scale-in">
+                        <h2 class="text-2xl font-bold mb-4">Start Your Route</h2>
+                        <p class="mb-6 text-slate-600 dark:text-slate-300">
+                            You have {{ stops.length }} stops in your journey. Ready to begin navigation?
+                        </p>
+                        <button mat-flat-button color="primary" class="w-full py-3" (click)="startNavigation()">
+                            <span class="flex items-center justify-center">
+                                <mat-icon class="mr-2">directions</mat-icon>
+                                START ROUTE
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                }
+                <!-- Current navigation card (for active stop) -->
+                @else if (stops.length > currentStopIndex && routeStarted && !isNavigating) {
+                <div class="absolute bottom-20 left-0 right-0 mx-auto w-full max-w-sm px-4">
+                    <mat-card class="shadow-lg animate-slide-up">
+                        <mat-card-content>
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-white mr-3"
+                                    [class.bg-yellow-500]="stops[currentStopIndex].isPickup"
+                                    [class.bg-red-500]="!stops[currentStopIndex].isPickup">
+                                    <mat-icon>
+                                        {{ stops[currentStopIndex].isPickup ? 'shopping_bag' : 'home' }}
+                                    </mat-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold">
+                                        {{ stops[currentStopIndex].isPickup ? 'Pickup at' : 'Deliver to' }}
+                                    </h3>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 truncate">
+                                        {{ getOrderLabel(stops[currentStopIndex].order) || 'Customer' }}
+                                    </p>
+                                </div>
+                            </div>
+                            <button mat-flat-button color="primary" class="w-full" (click)="startNavigation()">
+                                <span class="flex items-center justify-center">
+                                    <mat-icon class="mr-2">navigation</mat-icon>
+                                    NAVIGATE TO LOCATION
+                                </span>
+                            </button>
+                        </mat-card-content>
+                    </mat-card>
+                </div>
+                }
+            </div>
+        </div>
+
+        @if(isNavigating){
+        <!-- Navigation Control Panel - Fixed at bottom during active navigation -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gray-900 text-white p-4 z-10 rounded-t-xl shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                <div>
+                    <h3 class="text-lg font-bold">{{ currentStep?.maneuver?.instruction || 'Navigating...' }}</h3>
+                    <p class="text-sm text-gray-300">
+                        {{ distanceToNextStop | number:'1.1-1' }} km • {{ timeToNextStop | number:'1.0-0' }} min
+                    </p>
+                </div>
+                <div>
+                    <button mat-icon-button color="warn" (click)="endNavigation()" aria-label="End navigation">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+            </div>
+            <!-- Navigation Progress -->
+            <mat-progress-bar mode="determinate" [value]="journeyProgress" color="accent"></mat-progress-bar>
+
+            <!-- Navigation Controls -->
+            <div class="flex justify-around mt-4">
+                <button mat-icon-button (click)="recenterOnUser()" aria-label="Center on user">
+                    <mat-icon>my_location</mat-icon>
+                </button>
+                <button mat-icon-button (click)="toggleNavigationView()" aria-label="Toggle 3D view">
+                    <mat-icon>3d_rotation</mat-icon>
+                </button>
+                <button mat-icon-button (click)="showUpcomingTurns()" aria-label="Show upcoming turns">
+                    <mat-icon>fork_right</mat-icon>
+                </button>
+                <button mat-icon-button *ngIf="distanceToNextStop < 0.05" color="primary"
+                    (click)="completeCurrentStop()" aria-label="Mark as complete">
+                    <mat-icon>check_circle</mat-icon>
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+
+    }
+
+    <!-- Order details modal -->
+    @if (isDetailModalOpen && selectedOrder) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-auto animate-scale-in">
+            <div class="p-4 bg-blue-500 text-white flex justify-between items-center">
+                <h2 class="font-bold text-lg">Order Details</h2>
+                <button mat-icon-button (click)="closeOrderDetails()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- Customer Info -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-2">Customer</h3>
+                    <div class="bg-slate-100 dark:bg-slate-700 p-3 rounded-lg">
+                        <p><strong>Phone:</strong> {{ getOrderLabel(selectedOrder) || 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <!-- Order Info -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-2">Order #{{ selectedOrder.code }}</h3>
+                    <div class="bg-slate-100 dark:bg-slate-700 p-3 rounded-lg">
+                        <p><strong>Status:</strong> {{ selectedOrder.status }}</p>
+                        <p><strong>Items:</strong> {{ selectedOrder.productDesc }}</p>
+                        <p><strong>Total:</strong> ${{ '6.00' }}</p>
+                    </div>
+                </div>
+
+                <!-- Pickup & Delivery -->
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Locations</h3>
+                    <div class="bg-slate-100 dark:bg-slate-700 p-3 rounded-lg mb-3">
+                        <div class="flex items-center">
+                            <div
+                                class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-white mr-2">
+                                <mat-icon class="text-sm">shopping_bag</mat-icon>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Pickup Location</h4>
+                                <p class="text-sm">{{ selectedOrder.pick_up?.adress_details }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-100 dark:bg-slate-700 p-3 rounded-lg">
+                        <div class="flex items-center">
+                            <div
+                                class="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white mr-2">
+                                <mat-icon class="text-sm">home</mat-icon>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Delivery Location</h4>
+                                <p class="text-sm">{{ selectedOrder.destination?.adress_details || 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t dark:border-slate-700 p-4 flex justify-end">
+                <button mat-button color="primary" (click)="closeOrderDetails()">CLOSE</button>
+            </div>
+        </div>
+    </div>
+    }
 </div>

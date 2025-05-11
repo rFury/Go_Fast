@@ -7,8 +7,8 @@ export const adminGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const _authService = inject(SuperAuthService);
   const router = inject(Router);
   
-    if((_authService.decodeToken().type === 'user' || _authService.decodeToken().type === 'super') && _authService.isLoggedIn()){
-      return true;
+    if( _authService.isLoggedIn()){
+      return (_authService.decodeToken().type === 'user' || _authService.decodeToken().type === 'super')?true:false;
     }else{
     return false;
   }

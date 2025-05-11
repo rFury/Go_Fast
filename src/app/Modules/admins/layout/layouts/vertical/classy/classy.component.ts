@@ -34,6 +34,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LocationService } from '../../../../../../Shared/Services/agent-location.service';
 import { LocationWebService } from '../../../../../../Shared/Services/location.service';
 import { Agent } from '../../../../../../Shared/Models/Agent.model';
+import { NgZone } from '@angular/core';
+import { Geolocation } from '@capacitor/geolocation';
 
 @Component({
   selector: 'classy-layout',
@@ -60,6 +62,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   private _cdr = inject(ChangeDetectorRef);
   protected _locationService = inject(LocationService);
   protected _locationWebService = inject(LocationWebService);
+  private _ngZone = inject(NgZone);
+  navigationAppearance: 'default' | 'dense' = 'default';
   private _positionInterval: any;
   showUser: boolean = false;
   isScreenSmall!: boolean;
@@ -73,6 +77,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     private _fuseMediaWatcherService: FuseMediaWatcherService,
     private _fuseNavigationService: FuseNavigationService
   ) {}
+  Admin: boolean = false;
+  Agent: boolean = false;
 
   @HostListener('window:beforeunload', ['$event'])
   onBeforeUnload(event: BeforeUnloadEvent) {
@@ -88,6 +94,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       this._authService.decodeToken().type === 'user' ||
       this._authService.decodeToken().type === 'super';
     const agent = this._authService.decodeToken().type === 'agent';
+    this.Admin = admin;
+    this.Agent = agent;
 
     if (admin) {
       this._userService
@@ -118,17 +126,29 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
             // Register agent with error handling
             try {
               await this._locationService.registerAgent(this.user._id!);
+              Geolocation.watchPosition(
+                {
+                  enableHighAccuracy: true,
+                  timeout: 30000,
+                  maximumAge: 5000,
+                },
+                (position, error) => {
+                  if (position) {
+                    this._ngZone.run(() => {
+                      const newLocation: [number, number] = [
+                        position.coords.longitude,
+                        position.coords.latitude,
+                      ];
+                      console.log('success', newLocation);
+        
+                      this._locationService.sendAgentLocation(this.user._id!, newLocation);
 
-              // Start position updates with cleanup
-              this._positionInterval = setInterval(async () => {
-                try {
-                  const pos =
-                    await this._locationWebService.getCurrentPosition();
-                  this._locationService.sendAgentLocation(this.user._id!, pos);
-                } catch (error) {
-                  console.error('Position update error:', error);
+                    });
+                  } else {
+                    console.error('Error watching position:', error);
+                  }
                 }
-              }, 3000);
+              );
             } catch (error) {
               console.error('Agent registration failed:', error);
             }
@@ -158,6 +178,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       .subscribe(({ matchingAliases }) => {
         this.isScreenSmall = !matchingAliases.includes('md');
         this._sideNavService.setOpen(!this.isScreenSmall);
+        if(agent){
+          this.navigationAppearance = this.isScreenSmall ? 'default' : 'dense';
+        }
       });
   }
 
@@ -188,5 +211,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         this._sideNavService.toggle();
       }
     }
+  }
+  toggleNavigationAppearance(): void
+  {
+      this.navigationAppearance = (this.navigationAppearance === 'default' ? 'dense' : 'default');
   }
 }

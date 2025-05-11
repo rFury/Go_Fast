@@ -55,7 +55,7 @@ export default [
       },
       {
         path: '',
-        redirectTo:  'dashboard',
+        redirectTo:  'agents',
         pathMatch: 'full',
       },
       {

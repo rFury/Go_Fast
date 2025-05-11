@@ -8,9 +8,15 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root',
 })
 export class AgentService {
-    private endpoint = `${environment.api}/journey`;
+    private endpoint = `${environment.api}/agents`;
     private http=inject(HttpClient);
     getJourney():Observable<any>{
+        return this.http.get<any>(`${this.endpoint}/journey`);
+    }
+    startJourney(): Observable<any> {
+        return this.http.get<any>(`${this.endpoint}/journey/start`);
+    }
+    endJourney():Observable<any>{
         return this.http.get<any>(this.endpoint);
     }
 }
