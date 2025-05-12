@@ -124,7 +124,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
               this._cdr.markForCheck();
             });
             // Register agent with error handling
-            try {
+            /*try {
               await this._locationService.registerAgent(this.user._id!);
               Geolocation.watchPosition(
                 {
@@ -151,7 +151,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
               );
             } catch (error) {
               console.error('Agent registration failed:', error);
-            }
+            }*/
           },
           error: (err) => console.error(err),
         });

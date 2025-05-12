@@ -22,6 +22,7 @@ import { Order } from '../../../../Shared/Models/Order.model';
 import { Subscription, interval } from 'rxjs';
 import { Status } from '../../../../Shared/enums/status.enums';
 import { Geolocation } from '@capacitor/geolocation';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 interface RouteStop {
   order: Order;
@@ -50,7 +51,7 @@ interface NavigationStep {
     MatCardModule,
     MatBadgeModule,
     MatProgressBarModule,
-    MatSpinnerModule
+    MatProgressSpinnerModule,
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
@@ -64,7 +65,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private _snackBar = inject(MatSnackBar);
 
   agent: Agent | null = null;
-  map: mapboxgl.Map;
+  map: mapboxgl.Map | null = null;
   journeyActive = false;
   journeyProgress = 0;
 
@@ -88,23 +89,24 @@ export class OrdersComponent implements OnInit, OnDestroy {
   currentBearing: number = 0;
   isFetchingLocation = false;
 
-
   private currentLegCoordinates: [number, number][] = [];
-  private simulationMode = false;
+  private forcedSimulationMode = false;
   private simulationSubscription: Subscription | null = null;
   private subscriptions: Subscription[] = [];
   private userLocation: [number, number] | null = null;
   private previousLocation: [number, number] | null = null;
   private previousHeading: number = 0;
   private routeBounds: mapboxgl.LngLatBounds | null = null;
+  private cumulativeDistances: number[] = [];
+  private simulatedSpeedKmh = 10; // 10 km/h for smooth simulation
+  private simulationStartTime: number | null = null;
+  private routeUpdateInterval: any = null;
 
   ngOnInit(): void {
     this.agent = this._userService.user() as Agent;
-    if (this.agent) {
-      if (this.agent.agentStatus !== 'offline') {
-        this.journeyActive = true;
-        this.fetchCurrentJourney();
-      }
+    if (this.agent && this.agent.agentStatus !== 'offline') {
+      this.journeyActive = true;
+      this.fetchCurrentJourney();
     }
   }
 
@@ -115,6 +117,9 @@ export class OrdersComponent implements OnInit, OnDestroy {
     }
     if (this.map) {
       this.map.remove();
+    }
+    if (this.routeUpdateInterval) {
+      clearInterval(this.routeUpdateInterval);
     }
   }
 
@@ -144,9 +149,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
           this.processJourneyOrders(data.orders);
         }
       },
-      error: (err) => {
-        console.error('Error fetching current journey:', err);
-      },
+      error: (err) => console.error('Error fetching current journey:', err),
     });
     this.subscriptions.push(sub);
   }
@@ -159,7 +162,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         order.pick_up?.place?.coordinates
       ) {
         this.stops.push({
-          order: order,
+          order,
           coordinates: order.pick_up.place.coordinates,
           isPickup: true,
           status: 'pending',
@@ -169,7 +172,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         order.destination?.place?.coordinates
       ) {
         this.stops.push({
-          order: order,
+          order,
           coordinates: order.destination.place.coordinates,
           isPickup: false,
           status: 'pending',
@@ -187,17 +190,13 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (!this.stops.length) return;
     const firstStopCoords = this.stops[0].coordinates;
     this.initializeMap(firstStopCoords[0], firstStopCoords[1]);
-    this.stops.forEach((stop, index) => {
-      this.addStopMarker(stop, index);
-    });
+    this.stops.forEach((stop, index) => this.addStopMarker(stop, index));
     this.createFullRoute();
     this.updateJourneyProgress();
   }
 
   private initializeMap(lng: number, lat: number): void {
-    if (this.map) {
-      this.map.remove();
-    }
+    if (this.map) this.map.remove();
     this.map = new mapboxgl.Map({
       accessToken: this._mapService.mapboxToken,
       container: 'map',
@@ -214,27 +213,22 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private addStopMarker(stop: RouteStop, index: number): void {
     const el = document.createElement('div');
     el.className = 'custom-marker';
-    let iconClass = '';
-    if (stop.status === 'completed') {
-      iconClass = 'bg-green-500';
-    } else if (stop.status === 'active') {
-      iconClass = 'bg-blue-500 animate-pulse';
-    } else {
-      iconClass = stop.isPickup ? 'bg-yellow-500' : 'bg-red-500';
-    }
-    el.innerHTML = `
-      <div class="flex items-center justify-center rounded-full ${iconClass} text-white w-8 h-8 shadow-lg">
-        ${index + 1}
-      </div>
-    `;
+    const iconClass =
+      stop.status === 'completed'
+        ? 'bg-green-500'
+        : stop.status === 'active'
+        ? 'bg-blue-500 animate-pulse'
+        : stop.isPickup
+        ? 'bg-yellow-500'
+        : 'bg-red-500';
+    el.innerHTML = `<div class="flex items-center justify-center rounded-full ${iconClass} text-white w-8 h-8 shadow-lg">${
+      index + 1
+    }</div>`;
     const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
       <div class="p-2">
         <strong>${stop.isPickup ? 'Pickup' : 'Delivery'}</strong>
         <p>${this.getOrderLabel(stop.order) || 'Customer'}</p>
-        <button class="view-details-btn bg-blue-500 text-white px-2 py-1 rounded text-xs mt-1" 
-                data-order-index="${index}">
-          View Details
-        </button>
+        <button class="view-details-btn bg-blue-500 text-white px-2 py-1 rounded text-xs mt-1" data-order-index="${index}">View Details</button>
       </div>
     `);
     popup.on('open', () => {
@@ -242,17 +236,16 @@ export class OrdersComponent implements OnInit, OnDestroy {
         const btn = document.querySelector(
           `.view-details-btn[data-order-index="${index}"]`
         );
-        if (btn) {
+        if (btn)
           btn.addEventListener('click', () =>
             this.openOrderDetails(stop.order)
           );
-        }
       }, 100);
     });
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat(stop.coordinates)
       .setPopup(popup)
-      .addTo(this.map);
+      .addTo(this.map!);
     this.markers.push(marker);
   }
 
@@ -297,8 +290,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
   ): void {
     const sourceId = `${id}-${Date.now()}`;
     this.routeSources.push(sourceId);
-    if (!this.map.isStyleLoaded()) {
-      this.map.once('styledata', () =>
+    if (!this.map!.isStyleLoaded()) {
+      this.map!.once('styledata', () =>
         this.addSourceAndLayer(sourceId, geometry, color, width)
       );
     } else {
@@ -312,11 +305,11 @@ export class OrdersComponent implements OnInit, OnDestroy {
     color: string,
     width: number
   ): void {
-    this.map.addSource(sourceId, {
+    this.map!.addSource(sourceId, {
       type: 'geojson',
       data: { type: 'Feature', properties: {}, geometry },
     });
-    this.map.addLayer({
+    this.map!.addLayer({
       id: sourceId,
       type: 'line',
       source: sourceId,
@@ -329,15 +322,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
     const coordinates = route.coordinates;
     if (!coordinates || coordinates.length === 0) return;
     const bounds = coordinates.reduce(
-      (b, coord) => b.extend(coord),
+      (b: mapboxgl.LngLatBounds, coord: [number, number]) => b.extend(coord),
       new mapboxgl.LngLatBounds(coordinates[0], coordinates[0])
     );
-    this.map.fitBounds(bounds, { padding: 80, animate: true });
+    this.map!.fitBounds(bounds, { padding: 80, animate: true });
   }
 
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
-    setTimeout(() => this.map.resize(), 300);
+    setTimeout(() => this.map!.resize(), 300);
   }
 
   openOrderDetails(order: Order): void {
@@ -356,9 +349,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (this.currentStopIndex < this.stops.length) {
       this.stops[this.currentStopIndex].status = 'active';
       this.updateMarkersStatus();
-      if (this.isNavigating) {
-        this.updateNavigationToNextStop();
-      } else {
+      this.updateNavigationToNextStop();
+      if (!this.isNavigating) {
         this.highlightActiveSegment();
       }
       this.centerMapOnCurrentStop();
@@ -377,7 +369,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private centerMapOnCurrentStop(): void {
     if (this.currentStopIndex >= this.stops.length) return;
     const currentCoords = this.stops[this.currentStopIndex].coordinates;
-    this.map.flyTo({
+    this.map!.flyTo({
       center: currentCoords,
       zoom: 15,
       pitch: 45,
@@ -399,69 +391,61 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   private clearRoutes(): void {
     this.routeSources.forEach((sourceId) => {
-      if (this.map.getLayer(sourceId)) this.map.removeLayer(sourceId);
-      if (this.map.getSource(sourceId)) this.map.removeSource(sourceId);
+      if (this.map!.getLayer(sourceId)) this.map!.removeLayer(sourceId);
+      if (this.map!.getSource(sourceId)) this.map!.removeSource(sourceId);
     });
     this.routeSources = [];
   }
 
   getOrderLabel(order: Order): string {
-    if (order.status === Status.assigned && order.pick_up?.phone) {
+    if (order.status === Status.assigned && order.pick_up?.phone)
       return order.pick_up.phone;
-    } else if (order.status === Status.picked_up && order.destination?.phone) {
+    if (order.status === Status.picked_up && order.destination?.phone)
       return order.destination.phone;
-    }
     return '';
   }
 
-
-private async getCurrentPosition(retries = 3): Promise<[number, number]> {
-  this.isFetchingLocation = true; // Show loading indicator
-  try {
-    if (navigator.permissions) {
-      const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
-      if (permissionStatus.state !== 'granted') {
-        this._snackBar.open('Location permission is not granted. Please enable location services.', 'Dismiss', { duration: 5000 });
-        this.simulationMode = true;
-        return this.stops[0]?.coordinates || [0, 0];
-      }
-    }
-
+  private async getCurrentPosition(): Promise<[number, number]> {
+    this.isFetchingLocation = true;
     const options: PositionOptions = {
       enableHighAccuracy: true,
       timeout: 60_000,
       maximumAge: 5_000,
     };
-
-    for (let i = 0; i < retries; i++) {
-      try {
-        const pos = await Geolocation.getCurrentPosition(options);
-        return [pos.coords.longitude, pos.coords.latitude];
-      } catch (error) {
-        console.error(`Attempt ${i + 1} failed:`, error);
-        if (i < retries - 1) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-      }
-    }
-
-    this._snackBar.open('Could not get location after multiple attempts. Using simulated navigation.', 'Dismiss', { duration: 5_000 });
-    this.simulationMode = true;
-    return this.stops[0]?.coordinates || [0, 0];
-  } finally {
-    this.isFetchingLocation = false; // Hide loading indicator
-  }
-}
-
-  async startNavigation() {
     try {
-      this.userLocation = await this.getCurrentPosition();
+      const pos = await Geolocation.getCurrentPosition(options);
+      this.isFetchingLocation = false;
+      return [pos.coords.longitude, pos.coords.latitude];
+    } catch (error) {
+      console.error('Error getting position:', error);
+      this.isFetchingLocation = false;
+      throw error;
+    }
+  }
+
+  async startNavigation(simulationMode = false): Promise<void> {
+    this.forcedSimulationMode = simulationMode;
+    try {
+      this.clearMarkersAndRoutes();
       this.routeStarted = true;
       this.isNavigating = true;
-      if (!this.userLocation) this.simulationMode = true;
-      this.initializeNavigationMap(this.userLocation);
-      this.setupLocationTracking();
-      this.createNavigationRoute();
+
+      if (simulationMode) {
+        this.userLocation =
+          this.currentStopIndex === 0
+            ? this.stops[0].coordinates
+            : this.stops[this.currentStopIndex - 1].coordinates;
+        this.initializeNavigationMap(this.userLocation);
+        await this.createNavigationRoute();
+        this.setupSimulatedLocationUpdates();
+      } else {
+        this.userLocation = await this.getCurrentPosition();
+        this.initializeNavigationMap(this.userLocation);
+        await this.createNavigationRoute();
+        this.setupLocationTracking();
+        this.startRouteUpdateInterval();
+      }
+
       if (this.isSidebarOpen) this.toggleSidebar();
     } catch (error) {
       console.error('Error starting navigation:', error);
@@ -469,12 +453,94 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
     }
   }
 
+  private clearMarkersAndRoutes(): void {
+    this.markers.forEach((marker) => marker.remove());
+    this.markers = [];
+    if (this.userLocationMarker) {
+      this.userLocationMarker.remove();
+      this.userLocationMarker = null;
+    }
+    if (this.directionArrow) {
+      this.directionArrow.remove();
+      this.directionArrow = null;
+    }
+    this.clearRoutes();
+  }
+
+  private setupSimulatedLocationUpdates(): void {
+    if (!this.currentLegCoordinates || this.currentLegCoordinates.length < 2) {
+      console.error('No valid route coordinates for simulation');
+      return;
+    }
+
+    this.cumulativeDistances = this.computeCumulativeDistances(
+      this.currentLegCoordinates
+    );
+    const totalDistance =
+      this.cumulativeDistances[this.cumulativeDistances.length - 1];
+    console.log('Total Distance:', totalDistance, 'km');
+
+    this.simulationStartTime = Date.now();
+    this.simulationSubscription = interval(100).subscribe(() => {
+      this._ngZone.run(() => {
+        if (!this.simulationStartTime) return;
+        const elapsedSeconds = (Date.now() - this.simulationStartTime) / 1000;
+        const distanceTraveled =
+          (this.simulatedSpeedKmh / 3600) * elapsedSeconds;
+        const position = this.getPositionAtDistance(distanceTraveled);
+
+        if (position) {
+          const [lng, lat] = position;
+          const nextPosition = this.getPositionAtDistance(
+            distanceTraveled + 0.01
+          );
+          const heading = nextPosition
+            ? this.calculateBearing(position, nextPosition)
+            : this.currentBearing;
+          this.updateUserLocation(position, heading);
+
+          console.log(
+            `Distance Traveled: ${distanceTraveled.toFixed(
+              3
+            )} km / ${totalDistance.toFixed(3)} km, Position: [${lng.toFixed(
+              4
+            )}, ${lat.toFixed(4)}]`
+          );
+
+          if (distanceTraveled >= totalDistance) {
+            this.showArrivalNotification();
+            this.simulationSubscription?.unsubscribe();
+            setTimeout(() => {
+              this.completeCurrentStop();
+              if (this.currentStopIndex < this.stops.length)
+                this.startNavigation(true);
+            }, 2000);
+          }
+        }
+      });
+    });
+  }
+
+  private computeCumulativeDistances(
+    coordinates: [number, number][]
+  ): number[] {
+    const distances: number[] = [0];
+    for (let i = 1; i < coordinates.length; i++) {
+      const distance = this.calculateDistance(
+        coordinates[i - 1],
+        coordinates[i]
+      );
+      distances.push(distances[i - 1] + distance);
+    }
+    return distances;
+  }
+
   private initializeNavigationMap([lng, lat]: [number, number]): void {
     if (this.map) this.map.remove();
     this.map = new mapboxgl.Map({
       accessToken: this._mapService.mapboxToken,
       container: 'map',
-      style: 'mapbox://styles/mapbox/navigation-guidance-night-v4',
+      style: 'mapbox://styles/mapbox/standard',
       center: [lng, lat],
       zoom: 17,
       pitch: 60,
@@ -489,81 +555,91 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
       }),
       'bottom-right'
     );
-    this.map.on('load', () => this.add3DBuildingsLayer());
-  }
-
-  private add3DBuildingsLayer(): void {
-    if (this.map.getLayer('building')) this.map.removeLayer('building');
-    this.map.addLayer({
-      id: '3d-buildings',
-      source: 'composite',
-      'source-layer': 'building',
-      filter: ['==', 'extrude', 'true'],
-      type: 'fill-extrusion',
-      minzoom: 14,
-      paint: {
-        'fill-extrusion-color': '#aaa',
-        'fill-extrusion-height': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          14,
-          0,
-          16,
-          ['get', 'height'],
-        ],
-        'fill-extrusion-base': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          14,
-          0,
-          16,
-          ['get', 'min_height'],
-        ],
-        'fill-extrusion-opacity': 0.6,
-      },
+    this.map.on('style.load', () => {
+      this.map!.setConfigProperty('basemap', 'lightPreset', 'dusk');
     });
   }
 
-  private setupLocationTracking(): void {
-    if (this.simulationMode) {
-      this.startSimulatedLocationUpdates();
+  private add3DBuildingsLayer(): void {
+    if (!this.map || this.map.getLayer('3d-buildings')) return;
+
+    const addLayer = () => {
+      this.map!.addLayer({
+        id: '3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 14,
+        paint: {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            14,
+            0,
+            16,
+            ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            14,
+            0,
+            16,
+            ['get', 'min_height'],
+          ],
+          'fill-extrusion-opacity': 0.6,
+        },
+      });
+    };
+
+    if (this.map.isStyleLoaded()) {
+      addLayer();
     } else {
-      Geolocation.watchPosition(
-        { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 },
-        (position, error) => {
-          if (position) {
-            this._ngZone.run(() => {
-              const newLocation: [number, number] = [
-                position.coords.longitude,
-                position.coords.latitude,
-              ];
-              let heading = position.coords.heading || 0;
-              if (
-                this.previousLocation &&
-                position.coords.speed &&
-                position.coords.speed > 1
-              ) {
-                heading = this.calculateBearing(
-                  this.previousLocation,
-                  newLocation
-                );
-              } else if (this.previousHeading) {
-                heading = this.previousHeading;
-              }
-              this.previousLocation = newLocation;
-              this.previousHeading = heading;
-              this.updateUserLocation(newLocation, heading);
-            });
-          } else {
-            console.error('Error watching position:', error);
-            this.simulationMode = true;
-            this.startSimulatedLocationUpdates();
-          }
-        }
-      );
+      this.map.once('styledata', addLayer);
     }
+  }
+
+  private setupLocationTracking(): void {
+    if (this.forcedSimulationMode) {
+      this.setupSimulatedLocationUpdates();
+      return;
+    }
+    Geolocation.watchPosition(
+      { enableHighAccuracy: true, timeout: 60000, maximumAge: 5000 },
+      (position, error) => {
+        if (position) {
+          this._ngZone.run(() => {
+            const newLocation: [number, number] = [
+              position.coords.longitude,
+              position.coords.latitude,
+            ];
+            let heading = position.coords.heading || 0;
+            if (
+              this.previousLocation &&
+              position.coords.speed &&
+              position.coords.speed > 1
+            ) {
+              heading = this.calculateBearing(
+                this.previousLocation,
+                newLocation
+              );
+            } else if (this.previousHeading) {
+              heading = this.previousHeading;
+            }
+            this.previousLocation = newLocation;
+            this.previousHeading = heading;
+            this.updateUserLocation(newLocation, heading);
+          });
+        } else {
+          console.error('Error watching position:', error);
+          this.startNavigation(true);
+        }
+      }
+    );
   }
 
   private updateUserLocation(
@@ -580,7 +656,7 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
         rotationAlignment: 'map',
       })
         .setLngLat(snappedLocation)
-        .addTo(this.map);
+        .addTo(this.map!);
     } else {
       this.userLocationMarker.setLngLat(snappedLocation);
     }
@@ -592,7 +668,7 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
   private snapToRoute(location: [number, number]): [number, number] {
     if (!this.currentLegCoordinates || this.currentLegCoordinates.length < 2)
       return location;
-    let closestPoint: [number, number] = this.currentLegCoordinates[0];
+    let closestPoint = this.currentLegCoordinates[0];
     let minDistance = this.calculateDistance(location, closestPoint);
     for (const point of this.currentLegCoordinates) {
       const distance = this.calculateDistance(location, point);
@@ -604,31 +680,28 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
     return minDistance > 0.1 ? location : closestPoint;
   }
 
-  private setupDirectionArrow(): void {
-    if (!this.userLocation) return;
-    const el = document.createElement('div');
-    el.innerHTML = `<div class="direction-arrow"><mat-icon style="font-size: 32px; color: #3b82f6;">navigation</mat-icon></div>`;
-    this.directionArrow = new mapboxgl.Marker({
-      element: el,
-      rotationAlignment: 'map',
-      anchor: 'center',
-    })
-      .setLngLat(this.userLocation)
-      .addTo(this.map);
-  }
-
   private updateDirectionArrow(heading: number): void {
-    if (!this.directionArrow || !this.userLocation) return;
+    if (!this.directionArrow) {
+      const el = document.createElement('div');
+      el.innerHTML = `<div class="direction-arrow"><mat-icon style="font-size: 32px; color: #3b82f6;">navigation</mat-icon></div>`;
+      this.directionArrow = new mapboxgl.Marker({
+        element: el,
+        rotationAlignment: 'map',
+        anchor: 'center',
+      })
+        .setLngLat(this.userLocation!)
+        .addTo(this.map!);
+    }
     this.currentBearing = heading;
-    this.directionArrow.setLngLat(this.userLocation);
-    const el = this.directionArrow.getElement();
-    const arrowEl = el.querySelector('.direction-arrow');
-    if (arrowEl) {
+    this.directionArrow.setLngLat(this.userLocation!);
+    const arrowEl = this.directionArrow
+      .getElement()
+      .querySelector('.direction-arrow');
+    if (arrowEl)
       arrowEl.setAttribute(
         'style',
         `transform: rotate(${heading}deg); display: flex; align-items: center; justify-content: center;`
       );
-    }
   }
 
   private updateCameraPosition(
@@ -636,18 +709,21 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
     heading: number
   ): void {
     if (!this.map) return;
+    const currentPitch = this.map.getPitch();
     this.map.jumpTo({
       center: location,
       zoom: 17,
-      pitch: 60,
+      pitch: currentPitch,
       bearing: heading,
     });
   }
 
   private checkDistanceToCurrentStop(location: [number, number]): void {
     if (this.currentStopIndex >= this.stops.length) return;
-    const currentStop = this.stops[this.currentStopIndex];
-    const distance = this.calculateDistance(location, currentStop.coordinates);
+    const distance = this.calculateDistance(
+      location,
+      this.stops[this.currentStopIndex].coordinates
+    );
     this.distanceToNextStop = distance;
     this.timeToNextStop = distance / 0.5;
     if (distance < 0.05) this.showArrivalNotification();
@@ -667,8 +743,7 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
         Math.cos(toRad(point2[1])) *
         Math.sin(dLon / 2) *
         Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   private showArrivalNotification(): void {
@@ -680,27 +755,39 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
       .subscribe(() => this.completeCurrentStop());
   }
 
-  private createNavigationRoute(): void {
-    if (!this.userLocation || this.currentStopIndex >= this.stops.length)
-      return;
+  private async createNavigationRoute(): Promise<void> {
+    if (this.currentStopIndex >= this.stops.length) return;
     const currentStop = this.stops[this.currentStopIndex];
-    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${this.userLocation[0]},${this.userLocation[1]};${currentStop.coordinates[0]},${currentStop.coordinates[1]}?steps=true&geometries=geojson&overview=full&access_token=${this._mapService.mapboxToken}`;
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.routes || data.routes.length === 0) return;
-        const route = data.routes[0];
-        const geometry = route.geometry;
-        this.clearRoutes();
-        this.navigationSteps = route.legs[0].steps;
-        this.currentStep = this.navigationSteps[0];
-        this.timeToNextStop = route.duration / 60;
-        this.currentLegCoordinates = geometry.coordinates;
-        this.addRouteToMap(geometry, 'active-navigation', '#0ea5e9', 6);
-        this.addDestinationMarker(currentStop);
-        this._cdr.detectChanges();
-      })
-      .catch((err) => console.error('Error fetching navigation route:', err));
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${
+      this.userLocation![0]
+    },${this.userLocation![1]};${currentStop.coordinates[0]},${
+      currentStop.coordinates[1]
+    }?steps=true&geometries=geojson&overview=full&access_token=${
+      this._mapService.mapboxToken
+    }`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (!data.routes || data.routes.length === 0)
+        throw new Error('No route found');
+      const route = data.routes[0];
+      this.clearRoutes();
+      this.navigationSteps = route.legs[0].steps;
+      this.currentStep = this.navigationSteps[0];
+      this.timeToNextStop = route.duration / 60;
+      this.currentLegCoordinates = route.geometry.coordinates;
+      this.cumulativeDistances = this.computeCumulativeDistances(
+        this.currentLegCoordinates
+      );
+      // Clear existing markers before adding new one
+      this.markers.forEach(marker => marker.remove());
+      this.markers = [];
+      this.addRouteToMap(route.geometry, 'active-navigation', '#0ea5e9', 6);
+      this.addDestinationMarker(currentStop);
+      this._cdr.detectChanges();
+    } catch (err) {
+      console.error('Error fetching navigation route:', err);
+    }
   }
 
   private addDestinationMarker(stop: RouteStop): void {
@@ -710,13 +797,12 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
     el.innerHTML = `<div class="flex items-center justify-center rounded-full ${colorClass} text-white w-12 h-12 shadow-lg animate-pulse"><img src="pick-up.svg" alt="Destination" class="w-8 h-8"></div>`;
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat(stop.coordinates)
-      .addTo(this.map);
+      .addTo(this.map!);
     this.markers.push(marker);
   }
 
   private updateNavigationToNextStop(): void {
-    if (!this.userLocation || this.currentStopIndex >= this.stops.length)
-      return;
+    if (this.currentStopIndex >= this.stops.length) return;
     this.clearRoutes();
     this.createNavigationRoute();
   }
@@ -724,7 +810,7 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
   endNavigation(): void {
     this.isNavigating = false;
     this.routeStarted = false;
-    if (this.simulationMode && this.simulationSubscription) {
+    if (this.forcedSimulationMode && this.simulationSubscription) {
       this.simulationSubscription.unsubscribe();
       this.simulationSubscription = null;
     }
@@ -741,69 +827,49 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
     this.distanceToNextStop = 0;
     this.timeToNextStop = 0;
     this.initializeMapWithRoute();
+    if (this.routeUpdateInterval) {
+      clearInterval(this.routeUpdateInterval);
+    }
   }
 
-  private startSimulatedLocationUpdates(): void {
-    if (!this.currentLegCoordinates || this.currentLegCoordinates.length < 2) {
-      this.createNavigationRoute();
-      return;
-    }
-    let pointIndex = 0;
-    const totalPoints = this.currentLegCoordinates.length;
-    this.simulationSubscription = interval(1000).subscribe(() => {
-      this._ngZone.run(() => {
-        if (pointIndex < totalPoints) {
-          const currentPoint = this.currentLegCoordinates[pointIndex];
-          const nextPoint =
-            this.currentLegCoordinates[
-              Math.min(pointIndex + 1, totalPoints - 1)
-            ];
-          const heading = this.calculateBearing(
-            [currentPoint[0], currentPoint[1]],
-            [nextPoint[0], nextPoint[1]]
-          );
-          this.updateUserLocation([currentPoint[0], currentPoint[1]], heading);
-          pointIndex++;
-          if (pointIndex >= totalPoints - 1) {
-            this.showArrivalNotification();
-            setTimeout(() => {
-              this.completeCurrentStop();
-              if (this.currentStopIndex < this.stops.length) {
-                this.simulationSubscription?.unsubscribe();
-                this.startSimulatedLocationUpdates();
-              } else {
-                this.simulationSubscription?.unsubscribe();
-              }
-            }, 5000);
-          }
-        }
-      });
-    });
+  private getPositionAtDistance(distance: number): [number, number] | null {
+    if (!this.cumulativeDistances.length) return null;
+    const totalDistance =
+      this.cumulativeDistances[this.cumulativeDistances.length - 1];
+    if (distance <= 0) return this.currentLegCoordinates[0];
+    if (distance >= totalDistance)
+      return this.currentLegCoordinates[this.currentLegCoordinates.length - 1];
+
+    let i = 1;
+    while (
+      i < this.cumulativeDistances.length &&
+      this.cumulativeDistances[i] < distance
+    )
+      i++;
+    const prevDistance = this.cumulativeDistances[i - 1];
+    const nextDistance = this.cumulativeDistances[i];
+    const fraction = (distance - prevDistance) / (nextDistance - prevDistance);
+    const prevPoint = this.currentLegCoordinates[i - 1];
+    const nextPoint = this.currentLegCoordinates[i];
+    return [
+      prevPoint[0] + fraction * (nextPoint[0] - prevPoint[0]),
+      prevPoint[1] + fraction * (nextPoint[1] - prevPoint[1]),
+    ];
   }
 
   private calculateBearing(
     start: [number, number],
     end: [number, number]
   ): number {
-    const startLat = this.toRadians(start[1]);
-    const startLng = this.toRadians(start[0]);
-    const endLat = this.toRadians(end[1]);
-    const endLng = this.toRadians(end[0]);
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const toDeg = (rad: number) => (rad * 180) / Math.PI;
+    const [startLng, startLat] = [toRad(start[0]), toRad(start[1])];
+    const [endLng, endLat] = [toRad(end[0]), toRad(end[1])];
     const y = Math.sin(endLng - startLng) * Math.cos(endLat);
     const x =
       Math.cos(startLat) * Math.sin(endLat) -
       Math.sin(startLat) * Math.cos(endLat) * Math.cos(endLng - startLng);
-    let bearing = Math.atan2(y, x);
-    bearing = this.toDegrees(bearing);
-    return (bearing + 360) % 360;
-  }
-
-  private toRadians(degrees: number): number {
-    return (degrees * Math.PI) / 180;
-  }
-
-  private toDegrees(radians: number): number {
-    return (radians * 180) / Math.PI;
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
   }
 
   getManeuverIcon(type: string): string {
@@ -854,7 +920,7 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
     this.map.flyTo({
       center: this.userLocation,
       zoom: 17,
-      pitch: 60,
+      pitch: this.map.getPitch(),
       bearing: this.currentBearing,
       duration: 1000,
     });
@@ -862,13 +928,23 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
 
   toggleNavigationView(): void {
     if (!this.map) return;
-    const currentPitch = this.map.getPitch();
-    const newPitch = currentPitch < 50 ? 60 : 0;
-    this.map.easeTo({ pitch: newPitch, duration: 1000 });
+
+    const isFlat = this.map.getPitch() === 0;
+    const targetPitch = isFlat ? 60 : 0;
+    const targetBearing = isFlat ? this.currentBearing : 0;
+
+    this.map.easeTo({
+      pitch: targetPitch,
+      bearing: targetBearing,
+      duration: 1000,
+      easing: (t) => t,
+    });
+
+    this.add3DBuildingsLayer();
   }
 
   showUpcomingTurns(): void {
-    if (!this.navigationSteps || this.navigationSteps.length === 0) return;
+    if (!this.navigationSteps.length) return;
     const currentStepIndex = this.navigationSteps.findIndex(
       (step) => step === this.currentStep
     );
@@ -878,5 +954,13 @@ private async getCurrentPosition(retries = 3): Promise<[number, number]> {
       currentStepIndex + 4
     );
     console.log('Upcoming turns:', upcomingTurns);
+  }
+
+  private startRouteUpdateInterval(): void {
+    this.routeUpdateInterval = setInterval(() => {
+      if (this.isNavigating && !this.forcedSimulationMode) {
+        this.updateNavigationToNextStop();
+      }
+    }, 10000);
   }
 }

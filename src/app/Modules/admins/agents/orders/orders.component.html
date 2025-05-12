@@ -180,7 +180,7 @@
               mat-flat-button
               color="primary"
               class="w-full py-3"
-              (click)="startNavigation()"
+              (click)="startNavigation(false)"
             >
               <span class="flex items-center justify-center">
                 <mat-icon class="mr-2">directions</mat-icon>
@@ -191,7 +191,7 @@
               mat-flat-button
               color="accent"
               class="w-full py-3 mt-2"
-              (click)="startNavigation()"
+              (click)="startNavigation(true)"
             >
               <span class="flex items-center justify-center">
                 <mat-icon class="mr-2">play_arrow</mat-icon>
@@ -309,6 +309,7 @@
           mat-icon-button
           (click)="recenterOnUser()"
           aria-label="Center on user"
+          MatTooltip="Center on user"
         >
           <mat-icon>my_location</mat-icon>
         </button>
@@ -316,6 +317,7 @@
           mat-icon-button
           (click)="toggleNavigationView()"
           aria-label="Toggle 3D view"
+          MatTooltip="Toggle 3D view"
         >
           <mat-icon>3d_rotation</mat-icon>
         </button>
@@ -323,6 +325,7 @@
           mat-icon-button
           (click)="showRouteOverview()"
           aria-label="Show route overview"
+          MatTooltip="Show route overview"
         >
           <mat-icon>map</mat-icon>
         </button>
@@ -332,6 +335,7 @@
           color="primary"
           (click)="completeCurrentStop()"
           aria-label="Mark as complete"
+          MatTooltip="Mark as complete"
         >
           <mat-icon>check_circle</mat-icon>
         </button>
@@ -430,10 +434,8 @@
 </div>
 
 @if (isFetchingLocation) {
-  <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-    <div class="bg-white p-4 rounded-lg shadow-lg">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p class="mt-2">Fetching your location...</p>
-    </div>
+  <div class="fixed inset-0 flex flex-col items-center justify-center backdrop-blur-sm bg-blur bg-opacity-50  z-50 p-4 rounded-lg shadow-lg">
+    <mat-spinner diameter="40"></mat-spinner>
+      <p class="mt-2 font-bold">Fetching your location...</p>
   </div>
 }
