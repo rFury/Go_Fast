@@ -5,8 +5,8 @@ import { SuperAuthService } from '../Services/super-auth-service.service';
 
 export const agentGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const _authService = inject(SuperAuthService);
-    if((_authService.decodeToken().type === 'agent') && _authService.isLoggedIn()){
-      return true;
+    if(_authService.isLoggedIn()){
+      return (_authService.decodeToken().type === 'agent')?true:false;
     }else{
     return false;
   }

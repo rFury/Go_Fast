@@ -28,10 +28,10 @@ export class CardComponent implements OnChanges
     @HostBinding('class') get classList(): any
     {
         return {
-            'fuse-card-expanded'  : this.expanded,
-            'fuse-card-face-back' : this.flippable && this.face === 'back',
-            'fuse-card-face-front': this.flippable && this.face === 'front',
-            'fuse-card-flippable' : this.flippable,
+            'card-expanded'  : this.expanded,
+            'card-face-back' : this.flippable && this.face === 'back',
+            'card-face-front': this.flippable && this.face === 'front',
+            'card-flippable' : this.flippable,
         };
     }
 

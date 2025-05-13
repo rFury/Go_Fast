@@ -1,14 +1,15 @@
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
-import { RouterLink } from '@angular/router';
 
 @Component({
-    selector       : 'error-404',
-    templateUrl    : './error-404.component.html',
+    selector       : 'compact',
+    templateUrl    : './compact.component.html',
     encapsulation  : ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
-    imports:[RouterLink],
     standalone     : true,
+    imports        : [CdkScrollable],
 })
-export class Error404Component
+export class CompactComponent
 {
+    
 }

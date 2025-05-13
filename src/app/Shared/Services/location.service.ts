@@ -45,11 +45,11 @@ export class LocationWebService {
             navigator.geolocation.getCurrentPosition(
               pos => resolve([pos.coords.longitude, pos.coords.latitude]),
               err => reject(err),
-              { enableHighAccuracy: true, timeout: 10000 }
+              { enableHighAccuracy: true, timeout: 30000, maximumAge: 5000 }
             );
           });
         } else {
-          const pos = await CapGeolocation.getCurrentPosition({ enableHighAccuracy: true,timeout:3000 });
+          const pos = await CapGeolocation.getCurrentPosition({ enableHighAccuracy: true,timeout:30000, maximumAge: 5000 });
           return [pos.coords.longitude, pos.coords.latitude];
           ;
         }

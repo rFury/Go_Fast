@@ -46,12 +46,13 @@ export class UserComponent implements OnInit, OnDestroy {
   constructor(){
     effect(() => {
       this.user = this._userService.user();
+      console.log(this.user?.avatar);
+      
       this._cdr.markForCheck();
     });
   }
 
   ngOnInit(): void {
-
   }
 
   ngOnDestroy(): void {

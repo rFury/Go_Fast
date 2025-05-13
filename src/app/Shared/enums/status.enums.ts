@@ -2,21 +2,19 @@ import { RefList } from "../Models/Ref-list.model";
 
 export enum Status {
         pending= "pending",
-        confirmed= "confirmed",
+        assigned= "assigned",
         picked_up= "picked-up",
         delivered= "delivered",
         canceled= "canceled",
         returned= "returned"
-}
-// order-status.config.ts (or in your component)
-export const OrderStatus = {
+}export const OrderStatus = {
     pending: {
       label: 'Pending',
       color: 'bg-yellow-500',
       icon: 'hourglass_empty', // Material icon
     },
-    confirmed: {
-      label: 'Confirmed',
+    assigned: {
+      label: 'Assigned',
       color: 'bg-blue-500',
       icon: 'check_circle',
     },
@@ -44,7 +42,7 @@ export const OrderStatus = {
 
   export const listOrderStatus: RefList<Status>[] = [
     { key: Status.canceled, value: 'canceled' },
-    { key: Status.confirmed, value: 'confirmed' },
+    { key: Status.assigned, value: 'assigned' },
     { key: Status.returned, value: 'returned' },
     { key: Status.picked_up, value: 'picked-up' },
     { key: Status.delivered, value: 'delivered' },

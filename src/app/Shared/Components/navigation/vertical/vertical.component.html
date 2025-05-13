@@ -9,8 +9,6 @@
   <div
     class="fuse-vertical-navigation-content"
     [ngClass]="bg==='white'?'bg-white':'bg'"
-    fuseScrollbar
-      [fuseScrollbarOptions]="{wheelPropagation: inner, suppressScrollX: true}"
     #navigationContent>
     
 
@@ -68,7 +66,7 @@
       }
     }
     <!-- Content footer -->
-    <div class="fuse-vertical-navigation-content-footer">
+    <div class="fuse-vertical-navigation-content-footer pt-8">
       <ng-content select="[fuseVerticalNavigationContentFooter]"></ng-content>
     </div>
 
