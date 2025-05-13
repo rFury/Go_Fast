@@ -2,6 +2,7 @@ import { Route } from '@angular/router';
 import { ApplicationComponent } from './application.component';
 import { NewOrderComponent } from './new-order/new-order.component';
 import ordersRoutes from './orders/orders.routes';
+import { SettingsComponent } from '../../../Shared/Components/settings/settings.component';
 
 
 
@@ -27,7 +28,11 @@ export default [
         data:{
           who:'users'
         }
-      },    
+      },   
+      {
+        path: 'settings',
+        component:SettingsComponent,
+      },   
     ],
   }
 ] satisfies Route[];

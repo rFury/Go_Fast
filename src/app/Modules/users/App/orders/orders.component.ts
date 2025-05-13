@@ -23,6 +23,8 @@ import {
   listOrderStatus,
   OrderStatus,
 } from '../../../../Shared/enums/status.enums';
+import { OrderDetailsCardComponent } from '../../../../Shared/Components/order details/order.details.component';
+import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-orders',
@@ -33,13 +35,13 @@ import {
     MatMenuModule,
     MatTabsModule,
     MatButtonToggleModule,
-    CardComponent,
     MatFormFieldModule,
     MatInputModule,
     MatDatepickerModule,
     FormsModule,
     NgClass,
     MatSelectModule,
+    OrderDetailsCardComponent,
   ],
   animations: Animations,
   templateUrl: './orders.component.html',
@@ -67,6 +69,9 @@ export class OrdersComponent implements OnInit {
   private markers: mapboxgl.Marker[] = [];
   private routeSources: string[] = [];
   max=0;
+  clicked=false;
+  _fuseMediaWatcherService: any;
+  isScreenSmall: boolean;
 
   ngOnInit(): void {
     this.formattedDate = this._datePipe.transform(this.date, 'dd/MM/yyyy')!;
@@ -96,7 +101,7 @@ export class OrdersComponent implements OnInit {
           this.displayedList = res;
           this.Orders = this.displayedList.data;
             if (this.Orders.length > 0) {
-              this.selectOrder(this.Orders[0]._id!);
+              this.selectOrder(this.Orders[0]._id!,true);
             }
           this.max=res.total;
         },
@@ -134,10 +139,14 @@ export class OrdersComponent implements OnInit {
         },
       });
   }
-  selectOrder(orderId: string): void {
+  selectOrder(orderId: string,firstTime:boolean=false): void {
     this.selectedOrderId = orderId;
     const order = this.Orders.find((order) => order._id === orderId);
     if (order) {
+      let isMobile = window.innerWidth <= 768; // Tailwind's 'md' breakpoint
+      if(!firstTime && isMobile){
+        this.clicked=true;
+      }
       this.Order = order;
       this._cdr.detectChanges();
       this.updateMap(order);

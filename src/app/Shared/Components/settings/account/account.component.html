@@ -1,7 +1,7 @@
-<div class="w-full max-w-3xl">
+<div class="flex w-full max-w-5xl">
 
     <!-- Form -->
-    <form [formGroup]="accountForm">
+    <form [formGroup]="accountForm" class="w-full ">
 
         <!-- Section -->
         <div class="w-full">
@@ -11,79 +11,50 @@
         <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
             <!-- Name -->
             <div class="sm:col-span-4">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Name</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:user'"
-                        matPrefix></mat-icon>
-                    <input
-                        [formControlName]="'name'"
-                        matInput>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:user'" matPrefix></mat-icon>
+                    <input [formControlName]="'name'" matInput>
                 </mat-form-field>
             </div>
             <!-- Username -->
             <div class="sm:col-span-4">
-                <mat-form-field
-                    class="fuse-mat-emphasized-affix w-full"
-                    [subscriptSizing]="'dynamic'">
+                <mat-form-field class="fuse-mat-emphasized-affix w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Username</mat-label>
-                    <div
-                        class="text-secondary"
-                        matPrefix>
+                    <div class="text-secondary" matPrefix>
                         fusetheme.com/
                     </div>
-                    <input
-                        [formControlName]="'username'"
-                        matInput>
+                    <input [formControlName]="'username'" matInput>
                 </mat-form-field>
             </div>
+            @if(user.type === 'agent') {
             <!-- Title -->
             <div class="sm:col-span-2">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Title</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:briefcase'"
-                        matPrefix></mat-icon>
-                    <input
-                        [formControlName]="'title'"
-                        matInput>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:briefcase'" matPrefix></mat-icon>
+                    <input [formControlName]="'title'" matInput>
                 </mat-form-field>
             </div>
             <!-- Company -->
             <div class="sm:col-span-2">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Company</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:building-office-2'"
-                        matPrefix></mat-icon>
-                    <input
-                        [formControlName]="'company'"
-                        matInput>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:building-office-2'" matPrefix></mat-icon>
+                    <input [formControlName]="'company'" matInput>
                 </mat-form-field>
             </div>
             <!-- About -->
             <div class="sm:col-span-4">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>About</mat-label>
-                    <textarea
-                        matInput
-                        [formControlName]="'about'"
-                        cdkTextareaAutosize
+                    <textarea matInput [formControlName]="'about'" cdkTextareaAutosize
                         [cdkAutosizeMinRows]="5"></textarea>
                 </mat-form-field>
-                <div class="mt-1 text-md text-hint">Brief description for your profile. Basic HTML and Emoji are allowed.</div>
+                <div class="mt-1 text-md text-hint">Brief description for your profile. Basic HTML and Emoji are
+                    allowed.</div>
             </div>
+            }
         </div>
 
         <!-- Divider -->
@@ -92,49 +63,45 @@
         <!-- Section -->
         <div class="w-full">
             <div class="text-xl">Personal Information</div>
-            <div class="text-secondary">Communication details in case we want to connect with you. These will be kept private.</div>
+            <div class="text-secondary">Communication details in case we want to connect with you. These will be kept
+                private.</div>
         </div>
         <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
             <!-- Email -->
             <div class="sm:col-span-2">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Email</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:envelope'"
-                        matPrefix></mat-icon>
-                    <input
-                        [formControlName]="'email'"
-                        matInput>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:envelope'" matPrefix></mat-icon>
+                    <input [formControlName]="'email'" matInput>
                 </mat-form-field>
             </div>
+            @if(user.type!=='user' && user.type!=='super') {
             <!-- Phone -->
             <div class="sm:col-span-2">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
-                    <mat-label>Phone</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:phone'"
-                        matPrefix></mat-icon>
-                    <input
-                        [formControlName]="'phone'"
-                        matInput>
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                    <mat-label>Phone 1</mat-label>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:phone'" matPrefix></mat-icon>
+                    <input [formControlName]="'phone1'" matInput>
                 </mat-form-field>
             </div>
-            <!-- Country -->
+            }
+            @if(user.type==='agent'){
+                <!-- Phone -->
             <div class="sm:col-span-2">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
+                    <mat-label>Phone 2</mat-label>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:phone'" matPrefix></mat-icon>
+                    <input [formControlName]="'phone2'" matInput>
+                </mat-form-field>
+                </div>
+            }
+
+            @if(user.type==='client'){
+                            <!-- Country -->
+            <div class="sm:col-span-2">
+                <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Country</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:map-pin'"
-                        matPrefix></mat-icon>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:map-pin'" matPrefix></mat-icon>
                     <mat-select [formControlName]="'country'">
                         <mat-option [value]="'usa'">United States</mat-option>
                         <mat-option [value]="'canada'">Canada</mat-option>
@@ -145,25 +112,7 @@
                     </mat-select>
                 </mat-form-field>
             </div>
-            <!-- Language -->
-            <div class="sm:col-span-2">
-                <mat-form-field
-                    class="w-full"
-                    [subscriptSizing]="'dynamic'">
-                    <mat-label>Language</mat-label>
-                    <mat-icon
-                        class="icon-size-5"
-                        [svgIcon]="'heroicons_solid:globe-alt'"
-                        matPrefix></mat-icon>
-                    <mat-select [formControlName]="'language'">
-                        <mat-option [value]="'english'">English</mat-option>
-                        <mat-option [value]="'french'">French</mat-option>
-                        <mat-option [value]="'spanish'">Spanish</mat-option>
-                        <mat-option [value]="'german'">German</mat-option>
-                        <mat-option [value]="'italian'">Italian</mat-option>
-                    </mat-select>
-                </mat-form-field>
-            </div>
+            }
         </div>
 
         <!-- Divider -->
@@ -171,16 +120,10 @@
 
         <!-- Actions -->
         <div class="flex items-center justify-end">
-            <button
-                mat-stroked-button
-                type="button">
+            <button mat-stroked-button type="button">
                 Cancel
             </button>
-            <button
-                class="ml-4"
-                mat-flat-button
-                type="button"
-                [color]="'primary'">Save
+            <button class="ml-4" mat-flat-button type="button" [color]="'primary'">Save
             </button>
         </div>
     </form>

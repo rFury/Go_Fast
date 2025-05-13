@@ -3,13 +3,11 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
-import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
+import { FuseMediaWatcherService } from '../../Services/media-watcher/media-watcher.service';
 import { Subject, takeUntil } from 'rxjs';
 import { SettingsAccountComponent } from './account/account.component';
-import { SettingsNotificationsComponent } from './notifications/notifications.component';
 import { SettingsPlanBillingComponent } from './plan-billing/plan-billing.component';
 import { SettingsSecurityComponent } from './security/security.component';
-import { SettingsTeamComponent } from './team/team.component';
 
 @Component({
     selector       : 'settings',
@@ -17,7 +15,7 @@ import { SettingsTeamComponent } from './team/team.component';
     encapsulation  : ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone     : true,
-    imports        : [MatSidenavModule, MatButtonModule, MatIconModule, NgFor, NgClass, NgSwitch, NgSwitchCase, SettingsAccountComponent, SettingsSecurityComponent, SettingsPlanBillingComponent, SettingsNotificationsComponent, SettingsTeamComponent],
+    imports        : [MatSidenavModule, MatButtonModule, MatIconModule, NgClass, NgSwitch, NgSwitchCase, SettingsAccountComponent, SettingsSecurityComponent, SettingsPlanBillingComponent],
 })
 export class SettingsComponent implements OnInit, OnDestroy
 {
@@ -67,21 +65,7 @@ export class SettingsComponent implements OnInit, OnDestroy
                 title      : 'Plan & Billing',
                 description: 'Manage your subscription plan, payment method and billing information',
             },
-            {
-                id         : 'notifications',
-                icon       : 'heroicons_outline:bell',
-                title      : 'Notifications',
-                description: 'Manage when you\'ll be notified on which channels',
-            },
-            {
-                id         : 'team',
-                icon       : 'heroicons_outline:user-group',
-                title      : 'Team',
-                description: 'Manage your existing team and change roles/permissions',
-            },
         ];
-
-        // Subscribe to media changes
         this._fuseMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe(({matchingAliases}) =>
@@ -103,9 +87,6 @@ export class SettingsComponent implements OnInit, OnDestroy
             });
     }
 
-    /**
-     * On destroy
-     */
     ngOnDestroy(): void
     {
         // Unsubscribe from all subscriptions
@@ -113,15 +94,6 @@ export class SettingsComponent implements OnInit, OnDestroy
         this._unsubscribeAll.complete();
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Navigate to the panel
-     *
-     * @param panel
-     */
     goToPanel(panel: string): void
     {
         this.selectedPanel = panel;
@@ -132,25 +104,8 @@ export class SettingsComponent implements OnInit, OnDestroy
             this.drawer.close();
         }
     }
-
-    /**
-     * Get the details of the panel
-     *
-     * @param id
-     */
     getPanelInfo(id: string): any
     {
         return this.panels.find(panel => panel.id === id);
-    }
-
-    /**
-     * Track by function for ngFor loops
-     *
-     * @param index
-     * @param item
-     */
-    trackByFn(index: number, item: any): any
-    {
-        return item.id || index;
     }
 }
