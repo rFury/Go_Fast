@@ -39,6 +39,7 @@ interface NavigationStep {
   };
   distance: number;
   duration: number;
+  location?: [number, number]; // Added to store step coordinates
 }
 
 @Component({
@@ -79,6 +80,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private userLocationMarker: mapboxgl.Marker | null = null;
   private directionArrow: mapboxgl.Marker | null = null;
   private routeSources: string[] = [];
+  private activeRouteSourceId: string | null = null;
 
   routeStarted = false;
   isNavigating = false;
@@ -88,6 +90,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   timeToNextStop: number = 0;
   currentBearing: number = 0;
   isFetchingLocation = false;
+  private isFollowingUser: boolean = true; // Add this new property
 
   private currentLegCoordinates: [number, number][] = [];
   private forcedSimulationMode = false;
@@ -98,7 +101,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private previousHeading: number = 0;
   private routeBounds: mapboxgl.LngLatBounds | null = null;
   private cumulativeDistances: number[] = [];
-  private simulatedSpeedKmh = 10; // 10 km/h for smooth simulation
+  private simulatedSpeedKmh = 80;
   private simulationStartTime: number | null = null;
   private routeUpdateInterval: any = null;
 
@@ -297,6 +300,9 @@ export class OrdersComponent implements OnInit, OnDestroy {
     } else {
       this.addSourceAndLayer(sourceId, geometry, color, width);
     }
+    if (id === 'active-navigation') {
+      this.activeRouteSourceId = sourceId;
+    }
   }
 
   private addSourceAndLayer(
@@ -342,14 +348,14 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.isDetailModalOpen = false;
   }
 
-  completeCurrentStop(): void {
+  async completeCurrentStop(): Promise<void> {
     if (this.currentStopIndex >= this.stops.length) return;
     this.stops[this.currentStopIndex].status = 'completed';
     this.currentStopIndex++;
     if (this.currentStopIndex < this.stops.length) {
       this.stops[this.currentStopIndex].status = 'active';
       this.updateMarkersStatus();
-      this.updateNavigationToNextStop();
+      await this.startNavigation(this.forcedSimulationMode);
       if (!this.isNavigating) {
         this.highlightActiveSegment();
       }
@@ -395,6 +401,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       if (this.map!.getSource(sourceId)) this.map!.removeSource(sourceId);
     });
     this.routeSources = [];
+    this.activeRouteSourceId = null;
   }
 
   getOrderLabel(order: Order): string {
@@ -435,12 +442,12 @@ export class OrdersComponent implements OnInit, OnDestroy {
           this.currentStopIndex === 0
             ? this.stops[0].coordinates
             : this.stops[this.currentStopIndex - 1].coordinates;
-        this.initializeNavigationMap(this.userLocation);
+        await this.initializeNavigationMap(this.userLocation);
         await this.createNavigationRoute();
         this.setupSimulatedLocationUpdates();
       } else {
         this.userLocation = await this.getCurrentPosition();
-        this.initializeNavigationMap(this.userLocation);
+        await this.initializeNavigationMap(this.userLocation);
         await this.createNavigationRoute();
         this.setupLocationTracking();
         this.startRouteUpdateInterval();
@@ -478,7 +485,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
     );
     const totalDistance =
       this.cumulativeDistances[this.cumulativeDistances.length - 1];
-    console.log('Total Distance:', totalDistance, 'km');
 
     this.simulationStartTime = Date.now();
     this.simulationSubscription = interval(100).subscribe(() => {
@@ -499,22 +505,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
             : this.currentBearing;
           this.updateUserLocation(position, heading);
 
-          console.log(
-            `Distance Traveled: ${distanceTraveled.toFixed(
-              3
-            )} km / ${totalDistance.toFixed(3)} km, Position: [${lng.toFixed(
-              4
-            )}, ${lat.toFixed(4)}]`
-          );
-
           if (distanceTraveled >= totalDistance) {
-            this.showArrivalNotification();
             this.simulationSubscription?.unsubscribe();
-            setTimeout(() => {
-              this.completeCurrentStop();
-              if (this.currentStopIndex < this.stops.length)
-                this.startNavigation(true);
-            }, 2000);
           }
         }
       });
@@ -535,7 +527,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     return distances;
   }
 
-  private initializeNavigationMap([lng, lat]: [number, number]): void {
+  private async initializeNavigationMap([lng, lat]: [number, number]): Promise<void> {
     if (this.map) this.map.remove();
     this.map = new mapboxgl.Map({
       accessToken: this._mapService.mapboxToken,
@@ -555,8 +547,16 @@ export class OrdersComponent implements OnInit, OnDestroy {
       }),
       'bottom-right'
     );
+    await new Promise((resolve) => this.map!.once('load', resolve));
     this.map.on('style.load', () => {
       this.map!.setConfigProperty('basemap', 'lightPreset', 'dusk');
+    });
+    this.add3DBuildingsLayer();
+
+    this.map.on('movestart', (event) => {
+      if (event.originalEvent) {
+        this.isFollowingUser = false;
+      }
     });
   }
 
@@ -641,31 +641,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       }
     );
   }
-
-  private updateUserLocation(
-    location: [number, number],
-    heading: number
-  ): void {
-    this.userLocation = location;
-    const snappedLocation = this.snapToRoute(location);
-    if (!this.userLocationMarker) {
-      const el = document.createElement('div');
-      el.innerHTML = `<div class="flex items-center justify-center rounded-full bg-blue-500 text-white w-10 h-10 shadow-lg"><div class="user-location-dot"></div></div>`;
-      this.userLocationMarker = new mapboxgl.Marker({
-        element: el,
-        rotationAlignment: 'map',
-      })
-        .setLngLat(snappedLocation)
-        .addTo(this.map!);
-    } else {
-      this.userLocationMarker.setLngLat(snappedLocation);
-    }
-    this.updateDirectionArrow(heading);
-    this.updateCameraPosition(location, heading);
-    this.checkDistanceToCurrentStop(location);
-  }
-
-  private snapToRoute(location: [number, number]): [number, number] {
+private snapToRoute(location: [number, number]): [number, number] {
     if (!this.currentLegCoordinates || this.currentLegCoordinates.length < 2)
       return location;
     let closestPoint = this.currentLegCoordinates[0];
@@ -679,11 +655,88 @@ export class OrdersComponent implements OnInit, OnDestroy {
     }
     return minDistance > 0.1 ? location : closestPoint;
   }
+private updateUserLocation(location: [number, number], heading: number): void {
+    this.userLocation = location;
+    const snappedLocation = this.snapToRoute(location);
+    if (!this.userLocationMarker) {
+      const el = document.createElement('div');
+      el.innerHTML = `<div class="flex items-center justify-center rounded-full bg-white text-white w-14 h-14 shadow-lg"><div class="user-location-dot"></div></div>`;
+      this.userLocationMarker = new mapboxgl.Marker({
+        element: el,
+        rotationAlignment: 'map',
+      })
+        .setLngLat(snappedLocation)
+        .addTo(this.map!);
+    } else {
+      this.userLocationMarker.setLngLat(snappedLocation);
+    }
+    this.updateDirectionArrow(heading);
+    if (this.isFollowingUser) {
+      this.updateCameraPosition(location, heading);
+    }
+    this.checkDistanceToCurrentStop(location);
+    this.updateRouteToFollowUser(location);
+    this.checkStepCompletion(location);
+  }
+    private checkStepCompletion(location: [number, number]): void {
+    if (!this.currentStep || !this.navigationSteps.length) return;
+
+    const currentStepIndex = this.navigationSteps.indexOf(this.currentStep);
+    if (currentStepIndex === -1) return;
+
+    const stepLocation = this.currentStep.location;
+    if (!stepLocation) return; // Skip if no location data
+
+    const distanceToStep = this.calculateDistance(location, stepLocation);
+    if (distanceToStep < 0.05) { // Within 50 meters
+      if (currentStepIndex < this.navigationSteps.length - 1) {
+        this.currentStep = this.navigationSteps[currentStepIndex + 1];
+        this._cdr.detectChanges(); // Update UI
+      }
+    }
+  }
+
+
+  private updateRouteToFollowUser(location: [number, number]): void {
+    if (!this.activeRouteSourceId || !this.map || !this.currentLegCoordinates)
+      return;
+
+    const currentIndex = this.findClosestPointIndex(location);
+    if (currentIndex !== -1) {
+      const remainingCoordinates = this.currentLegCoordinates.slice(
+        currentIndex
+      );
+      const source = this.map.getSource(
+        this.activeRouteSourceId
+      ) as mapboxgl.GeoJSONSource;
+      source.setData({
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'LineString',
+          coordinates: remainingCoordinates,
+        },
+      });
+    }
+  }
+
+  private findClosestPointIndex(location: [number, number]): number {
+    let minDistance = Infinity;
+    let closestIndex = -1;
+    this.currentLegCoordinates.forEach((coord, index) => {
+      const distance = this.calculateDistance(location, coord);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
+      }
+    });
+    return closestIndex;
+  }
 
   private updateDirectionArrow(heading: number): void {
     if (!this.directionArrow) {
       const el = document.createElement('div');
-      el.innerHTML = `<div class="direction-arrow"><mat-icon style="font-size: 32px; color: #3b82f6;">navigation</mat-icon></div>`;
+      el.innerHTML = `<div class="direction-arrow"><img src='navigation.svg' class="w-14"></img></div>`;
       this.directionArrow = new mapboxgl.Marker({
         element: el,
         rotationAlignment: 'map',
@@ -704,17 +757,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
       );
   }
 
-  private updateCameraPosition(
-    location: [number, number],
-    heading: number
-  ): void {
+private updateCameraPosition(location: [number, number], heading: number): void {
     if (!this.map) return;
     const currentPitch = this.map.getPitch();
-    this.map.jumpTo({
+    this.map.easeTo({
       center: location,
       zoom: 17,
       pitch: currentPitch,
       bearing: heading,
+      duration: 100,
     });
   }
 
@@ -726,7 +777,9 @@ export class OrdersComponent implements OnInit, OnDestroy {
     );
     this.distanceToNextStop = distance;
     this.timeToNextStop = distance / 0.5;
-    if (distance < 0.05) this.showArrivalNotification();
+    if (distance < 0.05) {
+      //this.showArrivalNotification();
+    }
   }
 
   private calculateDistance(
@@ -755,7 +808,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       .subscribe(() => this.completeCurrentStop());
   }
 
-  private async createNavigationRoute(): Promise<void> {
+private async createNavigationRoute(): Promise<void> {
     if (this.currentStopIndex >= this.stops.length) return;
     const currentStop = this.stops[this.currentStopIndex];
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${
@@ -772,15 +825,20 @@ export class OrdersComponent implements OnInit, OnDestroy {
         throw new Error('No route found');
       const route = data.routes[0];
       this.clearRoutes();
-      this.navigationSteps = route.legs[0].steps;
+      // Update navigationSteps with location data
+      this.navigationSteps = route.legs[0].steps.map((step: any) => ({
+        maneuver: step.maneuver,
+        distance: step.distance,
+        duration: step.duration,
+        location: step.maneuver.location, // Mapbox provides this
+      }));
       this.currentStep = this.navigationSteps[0];
       this.timeToNextStop = route.duration / 60;
       this.currentLegCoordinates = route.geometry.coordinates;
       this.cumulativeDistances = this.computeCumulativeDistances(
         this.currentLegCoordinates
       );
-      // Clear existing markers before adding new one
-      this.markers.forEach(marker => marker.remove());
+      this.markers.forEach((marker) => marker.remove());
       this.markers = [];
       this.addRouteToMap(route.geometry, 'active-navigation', '#0ea5e9', 6);
       this.addDestinationMarker(currentStop);
@@ -789,6 +847,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       console.error('Error fetching navigation route:', err);
     }
   }
+
 
   private addDestinationMarker(stop: RouteStop): void {
     const el = document.createElement('div');
@@ -807,9 +866,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.createNavigationRoute();
   }
 
-  endNavigation(): void {
+endNavigation(): void {
     this.isNavigating = false;
     this.routeStarted = false;
+    this.isFollowingUser = false;
     if (this.forcedSimulationMode && this.simulationSubscription) {
       this.simulationSubscription.unsubscribe();
       this.simulationSubscription = null;
@@ -915,15 +975,21 @@ export class OrdersComponent implements OnInit, OnDestroy {
     return bounds;
   }
 
-  recenterOnUser(): void {
+recenterOnUser(): void {
     if (!this.userLocation || !this.map || !this.isNavigating) return;
+  if(this.isFollowingUser){
+        this.isFollowingUser = false;
+
+  }else{
+        this.isFollowingUser = true;
     this.map.flyTo({
       center: this.userLocation,
       zoom: 17,
-      pitch: this.map.getPitch(),
+      pitch: 60,
       bearing: this.currentBearing,
       duration: 1000,
     });
+  }
   }
 
   toggleNavigationView(): void {
