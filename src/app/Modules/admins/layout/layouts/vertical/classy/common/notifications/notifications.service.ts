@@ -53,7 +53,7 @@ export class NotificationsService
     {
         return this.notifications$.pipe(
             take(1),
-            switchMap(notifications => this._httpClient.post<Notification>('api/common/notifications', {notification}).pipe(
+            switchMap(notifications => this._httpClient.post<Notification>('api/notifications', {notification}).pipe(
                 map((newNotification) =>
                 {
                     // Update the notifications with the new notification
@@ -83,7 +83,7 @@ export class NotificationsService
                 map((updatedNotification: Notification) =>
                 {
                     // Find the index of the updated notification
-                    const index = notifications.findIndex(item => item.id === id);
+                    const index = notifications.findIndex(item => item._id === id);
 
                     // Update the notification
                     notifications[index] = updatedNotification;
@@ -111,7 +111,7 @@ export class NotificationsService
                 map((isDeleted: boolean) =>
                 {
                     // Find the index of the deleted notification
-                    const index = notifications.findIndex(item => item.id === id);
+                    const index = notifications.findIndex(item => item._id === id);
 
                     // Delete the notification
                     notifications.splice(index, 1);

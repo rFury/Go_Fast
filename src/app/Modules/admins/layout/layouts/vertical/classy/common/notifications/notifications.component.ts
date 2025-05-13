@@ -132,7 +132,7 @@ export class NotificationsComponent implements OnInit, OnDestroy
         notification.read = !notification.read;
 
         // Update the notification
-        this._notificationsService.update(notification.id, notification).subscribe();
+        this._notificationsService.update(notification._id, notification).subscribe();
     }
 
     /**
@@ -141,7 +141,7 @@ export class NotificationsComponent implements OnInit, OnDestroy
     delete(notification: Notification): void
     {
         // Delete the notification
-        this._notificationsService.delete(notification.id).subscribe();
+        this._notificationsService.delete(notification._id).subscribe();
     }
 
     /**
