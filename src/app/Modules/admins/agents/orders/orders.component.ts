@@ -23,6 +23,8 @@ import { Subscription, interval } from 'rxjs';
 import { Status } from '../../../../Shared/enums/status.enums';
 import { Geolocation } from '@capacitor/geolocation';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { OrderDetailsCardComponent } from '../../../../Shared/Components/order details/order.details.component';
+
 type StopStatus = 'pending' | 'active' | 'completed';
 
 interface RouteStop {
@@ -54,6 +56,7 @@ interface NavigationStep {
     MatBadgeModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
+    OrderDetailsCardComponent,
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
@@ -435,7 +438,8 @@ private processJourneyOrders(orders: Order[]): void {
     });
     this.map.addControl(new mapboxgl.NavigationControl({ showCompass: true, showZoom: true, visualizePitch: true }), 'bottom-right');
     await new Promise((resolve) => this.map!.once('load', resolve));
-    this.map.on('style.load', () => this.map!.setConfigProperty('basemap', 'lightPreset', 'dusk'));
+    this.map.on('style.load', () => this.map!.setConfigProperty('basemap', 'lightPreset', 'dusk')
+  );
     this.add3DBuildingsLayer();
     this.map.on('movestart', (event) => {
       if (event.originalEvent) this.isFollowingUser = false;

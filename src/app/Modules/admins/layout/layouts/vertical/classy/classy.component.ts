@@ -25,7 +25,6 @@ import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Compon
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
 import { NotificationsComponent } from './common/notifications/notifications.component';
-import { UserComponent } from './common/user/user.component';
 import { ShortcutsComponent } from './common/shortcuts/shortcuts.component';
 import { SearchComponent } from './common/search/search.component';
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
@@ -36,6 +35,7 @@ import { LocationWebService } from '../../../../../../Shared/Services/location.s
 import { Agent } from '../../../../../../Shared/Models/Agent.model';
 import { NgZone } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
+import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
 
 @Component({
   selector: 'classy-layout',

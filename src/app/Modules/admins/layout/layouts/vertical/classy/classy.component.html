@@ -14,7 +14,7 @@
                     </div>
                 </div>
                 <div>
-                    <admin [showAvatar]="false"></admin>
+                    <user [showAvatar]="false"></user>
                     <admin-notifications></admin-notifications>
                 </div>
             </div>
@@ -61,7 +61,7 @@
                 <!-- User -->
                 <div class="flex items-center w-full gap-1 py-8 border-t">
                     <admin-notifications></admin-notifications>
-                    <admin></admin>
+                    <user></user>
                     @if(user){
                     <div class="flex flex-col w-full ml-4 overflow-hidden">
                         <div

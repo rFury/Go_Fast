@@ -16,6 +16,7 @@ import agentsRoutes from './agents/agents.routes';
 import { agentGuard } from '../../Shared/Guards/agent.guard';
 import { locationGuard } from '../../Shared/Guards/location.guard';
 import { LocationNotAllowedComponent } from '../../Shared/Components/location-not-allowed/not-allowed.component';
+import { SettingsComponent } from '../../Shared/Components/settings/settings.component';
 
 
 export default [
@@ -112,7 +113,11 @@ export default [
         data:{
           layout:'empty'
         }
-      }
+      },
+      {
+        path: 'settings',
+        component:SettingsComponent,
+      }, 
     ],
   },
   { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: '' },

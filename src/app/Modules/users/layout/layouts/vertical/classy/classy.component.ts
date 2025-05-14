@@ -12,7 +12,7 @@ import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Compon
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
 import { NotificationsComponent } from "./common/notifications/notifications.component";
-import { UserComponent } from "./common/user/user.component";
+import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';

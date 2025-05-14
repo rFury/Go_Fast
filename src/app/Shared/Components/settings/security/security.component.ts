@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { UserService } from '../../../Services/user.service';
 
 @Component({
     selector       : 'settings-security',
@@ -17,6 +18,9 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 export class SettingsSecurityComponent implements OnInit
 {
     securityForm: UntypedFormGroup;
+    private userService = inject(UserService);
+    user = this.userService.user();
+
 
     /**
      * Constructor

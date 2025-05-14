@@ -16,13 +16,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
-import { User } from '../../../../../../../../Shared/Models/User.model';
-import { UserService } from '../../../../../../../../Shared/Services/user.service';
+import { UserService } from '../../Services/user.service';
+import { User } from '../../Models/User.model';
+import { Agent } from '../../Models/Agent.model';
+import { Client } from '../../Models/Client.model';
 
 @Component({
-  selector: 'admin',
+  selector: 'user',
   templateUrl: './user.component.html',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,7 @@ import { UserService } from '../../../../../../../../Shared/Services/user.servic
     MatIconModule,
     NgClass,
     MatDividerModule,
+    RouterLink
   ],
 })
 export class UserComponent implements OnInit, OnDestroy {
@@ -41,17 +44,22 @@ export class UserComponent implements OnInit, OnDestroy {
   private _cdr = inject(ChangeDetectorRef);
   private _userService = inject(UserService);
   private _router = inject(Router);
-  user: User | null = this._userService._user();
-
+  user: User | Agent | Client | null = this._userService._user();
+  link='/settings';
   constructor(){
     effect(() => {
       this.user = this._userService.user();
+      console.log(this.user);
+      if(this.user?.type === 'super' || this.user?.type === 'user'){
+        this.link='/admin/settings';
+      }else if(this.user?.type === 'agent'){
+        this.link='/admin/agents/settings';
+      }      
       this._cdr.markForCheck();
     });
   }
 
   ngOnInit(): void {
-
   }
 
   ngOnDestroy(): void {
@@ -69,6 +77,6 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 
   signOut(): void {
-    this._router.navigate(['/admin/sign-out']);
+    this._router.navigate(['/sign-out']);
   }
 }
