@@ -16,6 +16,9 @@ export class Order{
     client?:Client | string;
     agent?:Agent | string;
     status?:Status;
+    height?:number;
+    width?:number;
+    length?:number;
     createdAt?:Date;
     updatedAt?:Date;
 }

@@ -28,7 +28,7 @@ export class NotificationService {
       },
       duration: duration, // Optional: auto-dismiss after specified milliseconds
       verticalPosition: 'top', // Float on top of the screen
-      panelClass: ['custom-snackbar'], // Optional: for custom styling
+      panelClass: ['mat-snack-bar-container-custom'], // Optional: for custom styling
     });
   }
 }

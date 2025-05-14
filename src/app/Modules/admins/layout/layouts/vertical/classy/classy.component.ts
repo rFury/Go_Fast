@@ -36,6 +36,7 @@ import { Agent } from '../../../../../../Shared/Models/Agent.model';
 import { NgZone } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
+import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 
 @Component({
   selector: 'classy-layout',
@@ -63,6 +64,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   protected _locationService = inject(LocationService);
   protected _locationWebService = inject(LocationWebService);
   private _ngZone = inject(NgZone);
+  private _notifService = inject(FirebaseNotification);
   navigationAppearance: 'default' | 'dense' = 'default';
   private _positionInterval: any;
   showUser: boolean = false;
@@ -182,6 +184,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
           this.navigationAppearance = this.isScreenSmall ? 'default' : 'dense';
         }
       });
+
+      this._notifService.requestPermission();
   }
 
   ngOnDestroy(): void {

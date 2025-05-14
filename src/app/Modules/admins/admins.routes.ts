@@ -119,6 +119,4 @@ export default [
         component:SettingsComponent,
       }, 
     ],
-  },
-  { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: '' },
-] satisfies Route[];
+  }] satisfies Route[];

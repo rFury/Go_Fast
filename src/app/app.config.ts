@@ -11,6 +11,8 @@ import { provideFuse } from './Shared/Services/fuse.provider';
 import { authInterceptor } from './Shared/Interceptors/http-request.interceptor';
 import { SuperAuthService } from './Shared/Services/super-auth-service.service';
 import { LoadingInterceptor } from './Shared/Interceptors/http-loader.interceptor';
+import { provideServiceWorker } from '@angular/service-worker';
+
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -85,5 +87,9 @@ export const appConfig: ApplicationConfig = {
                 ],
             },
         }),
+        provideServiceWorker('firebase-messaging-sw.js', {
+            enabled: false,
+            registrationStrategy: 'registerWhenStable:30000'
+          })
     ],
 };

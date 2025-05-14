@@ -16,6 +16,8 @@ import { UserComponent } from '../../../../../../Shared/Components/user/user.com
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { NotificationService } from '../../../../../../Shared/Components/notification-prompt/notification.service';
+import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 
 
 @Component({
@@ -31,6 +33,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     protected _userService=inject(UserService);
     protected _sideNavService=inject(SideNavService);
     private _cdr = inject(ChangeDetectorRef);
+    private _notifService = inject(FirebaseNotification);
+
     showUser:boolean = false;
     isScreenSmall!: boolean;
     navigation!: FuseNavigationItem[];
@@ -93,6 +97,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
                 this.isScreenSmall = !matchingAliases.includes('md');
                 this._sideNavService.setOpen(!this.isScreenSmall);
             });
+        this._notifService.requestPermission();
+        
     }
 
     ngOnDestroy(): void
