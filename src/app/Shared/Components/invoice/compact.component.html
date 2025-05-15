@@ -1,12 +1,11 @@
 @if(Order){
-<div
-  class="absolute inset-0 min-w-0 text-center overflow-auto print:overflow-visible"
-  cdkScrollable
+<div 
+  class="absolute inset-0 min-w-0 w-full text-center overflow-auto print:overflow-visible"
 >
   <!-- Main -->
-  <div class="inline-block p-6 sm:p-10 text-left print:p-0">
+  <div class="inline-block p-6 sm:p-10 text-left print:p-0" #myDiv>
     <!-- Invoice -->
-    <div #myDiv
+    <div 
       class="w-240 p-16 rounded-2xl shadow bg-card print:w-auto print:rounded-none print:shadow-none print:bg-transparent"
     >
       <div class="flex items-start justify-between">
@@ -145,5 +144,5 @@
     </div>
   </div>
 </div>
-<button (click)="generatePDF()">Download PDF</button>
+<button mat-flat-button color="primary" (click)="generatePDF()">Generate PDF</button>
 }

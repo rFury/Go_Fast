@@ -35,6 +35,7 @@ export class NotificationsService {
           })
           .pipe(
             map((updatedNotification: Notification) => {
+              console.log('hi',updatedNotification);
               // Find the index of the updated notification
               const index = notifications.findIndex((item) => item._id === id);
 
@@ -101,5 +102,11 @@ export class NotificationsService {
           )
       )
     );
+  }
+  pushNotification(notification: Notification): void {
+    this._notifications.pipe(take(1)).subscribe(currentNotifications => {
+      const updatedNotifications = [notification, ...currentNotifications];
+      this._notifications.next(updatedNotifications);
+    });
   }
 }

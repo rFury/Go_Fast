@@ -130,7 +130,7 @@
         <div class="bg-white dark:bg-slate-800 rounded-xl p-8 max-w-md mx-4 text-center animate-scale-in">
           <h2 class="text-2xl font-bold mb-4">Start Your Route</h2>
           <p class="mb-6 text-slate-600 dark:text-slate-300">
-            You have {{ stops.length }} stops in your journey. Ready to begin
+            You have {{ stopsLength() }} stops in your journey. Ready to begin
             navigation?
           </p>
           <button mat-flat-button color="primary" class="w-full py-3" (click)="startNavigation(false)">
@@ -254,23 +254,20 @@
 
 <!-- Order details modal -->
 @if ((isDetailModalOpen || generatePDF) && selectedOrder) {
-<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-
-
-
-    @if(generatePDF){
-    <button mat-flat-button (click)="openPDF()" class="absolute top-4 right-4 z-99 ">
-          generatePDF
-    </button>
-      <compact [Order]="selectedOrder"></compact>
-    }@else{
-      <button mat-icon-button (click)="closeOrderDetails()" class="absolute top-4 right-4 z-99 ">
-      <mat-icon class="text-white">close</mat-icon>
-    </button>
-    <ordercarddetails [Order]="selectedOrder" [withMap]="false"></ordercarddetails>
-    }
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      @if(generatePDF){
+      <button mat-flat-button (click)="closeOrderDetails()" class="absolute top-4 right-4 z-99">
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+      <compact [Order]="selectedOrder" (pdfGenerated)="openPDF()"></compact>
+      }@else{
+      <button mat-icon-button (click)="closeOrderDetails()" class="absolute top-4 right-4 z-99">
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+      <ordercarddetails [Order]="selectedOrder" [withMap]="false"></ordercarddetails>
+      }
   </div>
-}
+  }
 </div>
 
 @if (isFetchingLocation) {

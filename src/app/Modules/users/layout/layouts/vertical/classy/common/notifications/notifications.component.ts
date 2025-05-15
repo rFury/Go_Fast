@@ -95,13 +95,11 @@ export class NotificationsComponent implements OnInit, OnDestroy
         {
             return;
         }
-
         // Create the overlay if it doesn't exist
         if ( !this._overlayRef )
         {
             this._createOverlay();
         }
-
         // Attach the portal to the overlay
         this._overlayRef.attach(new TemplatePortal(this._notificationsPanel, this._viewContainerRef));
     }
@@ -128,11 +126,7 @@ export class NotificationsComponent implements OnInit, OnDestroy
      */
     toggleRead(notification: Notification): void
     {
-        // Toggle the read status
-        notification.read = !notification.read;
-
-        // Update the notification
-        this._notificationsService.update(notification.id, notification).subscribe();
+        this._notificationsService.update(notification.id).subscribe();
     }
 
     /**

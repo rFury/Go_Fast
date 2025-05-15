@@ -3,10 +3,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
-  ViewEncapsulation,ViewChild, ElementRef
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Output,
+  EventEmitter,
 } from '@angular/core';
-import html2pdf from 'html2p
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Order } from '../../Models/Order.model';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'compact',
@@ -14,21 +20,26 @@ import { Order } from '../../Models/Order.model';
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [CdkScrollable],
+  imports: [CdkScrollable, MatButtonModule],
 })
 export class CompactComponent {
   @Input({ required: true }) Order: Order | null = null;
   @ViewChild('myDiv') myDiv: ElementRef;
+  @Output() pdfGenerated = new EventEmitter<void>(); // Emit event when PDF is generated
 
-  generatePDF() {
+  async generatePDF() {
     const element = this.myDiv.nativeElement;
-    const opt = {
-      margin: 1,
-      filename: 'myDiv.pdf',
-      image: { type: 'png', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-    html2pdf().from(element).set(opt).save();
+    const canvas = await html2canvas(element!);
+    const imgData = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`${this.Order?.code || 'order'}.pdf`, { returnPromise: true }).then(()=>{
+      this.pdfGenerated.emit(); // Notify parent component
+    });
   }
 }

@@ -82,6 +82,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
   isDetailModalOpen = false;
   selectedOrder: Order | null = null;
   generatePDF=false;
+  pdfGenerated = false;
+
 
   private markers: mapboxgl.Marker[] = [];
   private userLocationMarker: mapboxgl.Marker | null = null;
@@ -178,6 +180,15 @@ private processJourneyOrders(orders: Order[]): void {
     this.initializeMapWithRoute();
   }
 }
+  stopsLength(){
+    let n=0;
+    this.stops.forEach((stop) => {
+      if (stop.status !== 'completed') {
+        n++;
+      }
+    });
+    return n;
+  }
 
   private initializeMapWithRoute(): void {
     if (!this.stops.length) return;
@@ -282,19 +293,35 @@ private processJourneyOrders(orders: Order[]): void {
 
   closeOrderDetails(): void {
     this.isDetailModalOpen = false;
+    if (this.generatePDF) {
+      this.generatePDF = false;
+    }
   }
-  openPDF(){
 
+  openPDF(): void {
+    this.pdfGenerated = true;
+    this._snackBar.open('Invoice generated successfully!', 'Close', { duration: 3000 });
+    this.closeOrderDetails();
   }
 
   async completeCurrentStop(): Promise<void> {
     if (this.currentStopIndex >= this.stops.length) return;
-    this.stops[this.currentStopIndex].status = 'completed';
-    if(!this.isDetailModalOpen){
+
+    // Check if PDF has been generated
+    if (!this.pdfGenerated) {
       this.selectedOrder = this.stops[this.currentStopIndex].order;
       this.isDetailModalOpen = true;
-      this.generatePDF=true;
+      this.generatePDF = true;
+      this._snackBar.open('You must generate the invoice to complete this stop.', 'Close', { duration: 5000 });
+      return;
     }
+
+    // Proceed with the rest of the logic
+    await this.completeCurrentStopAfterPDF();
+  }
+
+  private async completeCurrentStopAfterPDF(): Promise<void> {
+    this.stops[this.currentStopIndex].status = 'completed';
     this.currentStopIndex++;
     if (this.currentStopIndex < this.stops.length) {
       this.stops[this.currentStopIndex].status = 'active';
@@ -305,6 +332,9 @@ private processJourneyOrders(orders: Order[]): void {
       this.completeJourney();
     }
     this.updateJourneyProgress();
+    this.isDetailModalOpen = false;
+    this.generatePDF = false;
+    this.pdfGenerated = false; // Reset for the next stop
   }
 
   private updateMarkersStatus(): void {

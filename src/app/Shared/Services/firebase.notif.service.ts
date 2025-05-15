@@ -15,6 +15,8 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { NotificationService } from '../Components/notification-prompt/notification.service';
 import { AgentService } from './agent.service';
+import { NotificationsService } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.service';
+import { Notification } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
 
 @Injectable({
   providedIn: 'root',
@@ -23,7 +25,7 @@ export class FirebaseNotification {
   private firebaseApp: FirebaseApp;
   private messaging: Messaging;
   private _agent=inject(AgentService)
-
+  private _notificationService=inject(NotificationsService)
   constructor(private http: HttpClient,private notif:NotificationService) {
     if (!Capacitor.isNativePlatform()) {
       this.firebaseApp = initializeApp(environmentFirebase.firebase);
@@ -112,7 +114,7 @@ export class FirebaseNotification {
         payload.notification?.body!,
         'order',
         true,
-        () => {
+        () => {          
           const orderId=payload.data!['orderId'];
           this._agent.addOrderToJourney(orderId).subscribe({
             next: () => {
@@ -121,11 +123,19 @@ export class FirebaseNotification {
             error: (err) => {
               console.error('Failed to add order to journey:', err);
             },
-          });
+          }); 
         },
         () => console.log('Declined'),
         50000
       );
+      const newNotification: Notification = {
+        _id: payload.data!['_id'],
+        title: payload.notification?.title,
+        description: payload.notification?.body,
+        read: false,
+        time: payload.data!['date'],
+      };
+      this._notificationService.pushNotification(newNotification);
     });
   }
 
