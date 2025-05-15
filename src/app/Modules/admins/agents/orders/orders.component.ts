@@ -24,6 +24,7 @@ import { Status } from '../../../../Shared/enums/status.enums';
 import { Geolocation } from '@capacitor/geolocation';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { OrderDetailsCardComponent } from '../../../../Shared/Components/order details/order.details.component';
+import { CompactComponent } from '../../../../Shared/Components/invoice/compact.component';
 
 type StopStatus = 'pending' | 'active' | 'completed';
 
@@ -57,6 +58,7 @@ interface NavigationStep {
     MatProgressBarModule,
     MatProgressSpinnerModule,
     OrderDetailsCardComponent,
+    CompactComponent
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
@@ -79,6 +81,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   isSidebarOpen = true;
   isDetailModalOpen = false;
   selectedOrder: Order | null = null;
+  generatePDF=false;
 
   private markers: mapboxgl.Marker[] = [];
   private userLocationMarker: mapboxgl.Marker | null = null;
@@ -280,10 +283,18 @@ private processJourneyOrders(orders: Order[]): void {
   closeOrderDetails(): void {
     this.isDetailModalOpen = false;
   }
+  openPDF(){
+
+  }
 
   async completeCurrentStop(): Promise<void> {
     if (this.currentStopIndex >= this.stops.length) return;
     this.stops[this.currentStopIndex].status = 'completed';
+    if(!this.isDetailModalOpen){
+      this.selectedOrder = this.stops[this.currentStopIndex].order;
+      this.isDetailModalOpen = true;
+      this.generatePDF=true;
+    }
     this.currentStopIndex++;
     if (this.currentStopIndex < this.stops.length) {
       this.stops[this.currentStopIndex].status = 'active';
