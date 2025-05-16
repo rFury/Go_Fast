@@ -33,9 +33,9 @@
         <div class="mr-2 text-2xl">TND</div>
         <div class="text-6xl font-semibold leading-tight tracking-tight">$6.00</div>
     </div>
-    @if(withMap){
-    <!-- CTA -->
-    <button class="fuse-mat-button-large mt-4 mb-4" mat-stroked-button [color]="'warn'">
+    @if (withMap && !['delivered', 'returned', 'canceled', 'picked-up'].includes(Order.status)) {
+        <!-- CTA -->
+    <button class="fuse-mat-button-large mt-4 mb-4" mat-stroked-button [color]="'warn'" (click)="cancelOrder()">
         Cancel order
     </button>
     }

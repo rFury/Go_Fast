@@ -50,4 +50,7 @@ export class OrderService {
   updateOrder(order: Order): Observable<null> {
     return this.http.put<null>(`${this.endpoint}/${order._id}`, { order });
   }
+  getOrdersAgent(orderId: string): Observable<string> {
+    return this.http.get<string>(`${this.endpoint}/agent/${orderId}`);
+  }
 }

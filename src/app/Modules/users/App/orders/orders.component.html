@@ -57,7 +57,23 @@
                                         <div class="bg-gray-50 p-4 rounded-lg mb-4" [ngClass]="{
                                             'border-2 border-indigo-400 bg-white shadow-lg': selectedOrderId === item._id
                                           }" (click)="selectOrder(item._id)">
-                                            <div class="text-gray-600 font-medium mb-2">Looking for a courier</div>
+                                          @if(item.status=="pending"){
+                                          <div class="text-gray-600 font-medium mb-2">Looking for a courier</div>
+                                          }@else if(item.status=="assigned") {
+                                            <div class="text-gray-600 font-medium mb-2">Courier assigned</div>
+                                          }
+                                          @else if(item.status=="delivered") {
+                                            <div class="text-gray-600 font-medium mb-2">Delivered</div>
+                                          }
+                                          @else if(item.status=="canceled") {
+                                            <div class="text-gray-600 font-medium mb-2">Canceled</div>
+                                          }
+                                          @else if(item.status=="picked-up") {
+                                            <div class="text-gray-600 font-medium mb-2">Picked up</div>
+                                          }
+                                          @else if(item.status=="returned") {
+                                            <div class="text-gray-600 font-medium mb-2">Returned</div>
+                                          }
                                             <div class="flex justify-between mb-1">
                                                 <div class="font-semibold">{{getDate(item.createdAt)}},
                                                     {{getTime(item.createdAt)}}</div>

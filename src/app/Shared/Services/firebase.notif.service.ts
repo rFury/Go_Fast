@@ -16,7 +16,7 @@ import { Capacitor } from '@capacitor/core';
 import { NotificationService } from '../Components/notification-prompt/notification.service';
 import { AgentService } from './agent.service';
 import { NotificationsService } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.service';
-import { Notification } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
+import type { Notification } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
 
 @Injectable({
   providedIn: 'root',
