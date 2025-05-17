@@ -1,4 +1,4 @@
-import { Component, Inject, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import { MapService } from '../../../../../Shared/Services/map.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,12 +9,12 @@ import { Order } from '../../../../../Shared/Models/Order.model';
 import { OrderService } from '../../../../../Shared/Services/order.service';
 import { Animations } from '../../../../../Shared/Animations/public-api';
 import { MatMenuModule } from '@angular/material/menu';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FuseSplashScreenService } from '../../../../../Shared/Services/splash-screen.service';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Agent } from '../../../../../Shared/Models/Agent.model';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SnackBarService } from '../../../../../Shared/Services/snack-bar.service';
-import { NgClass } from '@angular/common';
+import { Subscription } from 'rxjs';
+import { OrderStatus, Status } from '../../../../../Shared/enums/status.enums';
 @Component({
   selector: 'app-order-details',
   imports: [
@@ -23,13 +23,12 @@ import { NgClass } from '@angular/common';
     CardComponent,
     MatMenuModule,
     MatTooltipModule,
-    NgClass,
   ],
   animations: Animations,
   templateUrl: './order-details.component.html',
   styleUrl: './order-details.component.scss',
 })
-export class OrderDetailsComponent implements OnInit {
+export class OrderDetailsComponent implements OnInit, OnDestroy {
   details: boolean = true;
   map: mapboxgl.Map;
   dragging = signal(false);
@@ -40,8 +39,14 @@ export class OrderDetailsComponent implements OnInit {
   private clipboard = inject(Clipboard);
   private snackBar = inject(SnackBarService);
 
+  private orderUpdateInterval: any = null; // To store the interval ID
+  private orderSubscription: Subscription | null = null;
+  time = 0;
+
+  prevOrder: Order | null = null;
   Order: Order | null = null;
   Agent: Agent | null = null;
+  isActive = false;
 
   copied = false;
   agentDetails = false;
@@ -88,9 +93,44 @@ export class OrderDetailsComponent implements OnInit {
         console.log(err);
       },
       complete: () => {
-        console.log('zebi');
+        console.log('zebi complete');
+        this.orderUpdateInterval = setInterval(() => {
+          // Unsubscribe from previous subscription to prevent memory leaks
+          if (this.orderSubscription) {
+            this.orderSubscription.unsubscribe();
+          }
+          this.orderSubscription = this._orderService.getOrder(this.Order?._id!).subscribe({
+            next: (res) => {
+              this.prevOrder = this.Order;
+              this.Order = res;
+              if (this.prevOrder?.completed !== this.Order.completed || this.prevOrder?.active !== this.Order.active || this.prevOrder?.status !== this.Order.status) {
+                console.log('new data', this.Order,this.prevOrder);
+                if(this.Order.active===true){
+                  this.isActive=true;
+                }
+              }
+              if(this.isActive){
+                let orderLoc: [number, number] | null = null;
+                if(this.Order.status === Status.assigned){
+                  orderLoc= this.Order.pick_up?.place?.coordinates!;
+                }else if (this.Order.status === Status.picked_up){
+                  orderLoc= this.Order.destination?.place?.coordinates!;
+                }else{
+                  return;
+                }
+                const distance = this.calculateDistance(this.Agent?.coordinates!,orderLoc);
+                this.time = distance / 0.5;
+              }
+            },
+          });
+        }, 10000);
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.orderUpdateInterval) clearInterval(this.orderUpdateInterval);
+    if (this.orderSubscription) this.orderSubscription.unsubscribe();
   }
 
   private initializeMap(lng?: number, lat?: number): void {
@@ -173,4 +213,21 @@ export class OrderDetailsComponent implements OnInit {
       this.copied = false;
     }, 3000);
   }
+  private calculateDistance(
+    point1: [number, number],
+    point2: [number, number]
+  ): number {
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(point2[1] - point1[1]);
+    const dLon = toRad(point2[0] - point1[0]);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(point1[1])) *
+        Math.cos(toRad(point2[1])) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
 }

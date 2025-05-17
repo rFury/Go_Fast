@@ -19,6 +19,8 @@ export class Order{
     height?:number;
     width?:number;
     length?:number;
+    completed?:boolean;
+    active?:boolean;
     createdAt?:Date;
     updatedAt?:Date;
 }

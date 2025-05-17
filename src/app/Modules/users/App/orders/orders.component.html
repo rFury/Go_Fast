@@ -10,7 +10,7 @@
                         <mat-tab label="All">
                             <ng-template matTabContent>
                                 <!-- Tab content -->
-                                <div class="mt-4 ">
+                                <div class="mt-4 relative">
                                     <!-- Filter Row -->
                                     <form class="flex flex-row gap-2 justify-center md:justify-between mb-4"
                                         #myForm="ngForm" ngForm="ngForm">
@@ -50,36 +50,69 @@
                                             </mat-select>
                                         </mat-form-field>
                                     </form>
+                                    @if(Orders.length===0){
+                                    <div
+                                        class="flex flex-col items-center  min-h-full w-full rounded-xl p-8 text-center animate-fade-in">
+                                        <!-- Illustration Container -->
+                                        <div class="mb-6 transform transition-all duration-300 hover:scale-105">
+                                            <svg class="w-32 h-32 text-gray-900" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                                </path>
+                                            </svg>
+                                        </div>
 
+                                        <!-- Text Content -->
+                                        <div class="space-y-4">
+                                            <h2 class="text-3xl md:text-4xl font-bold  tracking-wide">
+                                                No Orders Found
+                                            </h2>
+
+                                            <p class="text-gray-600 max-w-md mx-auto text-lg">
+                                                It seems there are no orders matching your criteria.
+                                                Try adjusting your filters or check back later.
+                                            </p>
+                                        </div>
+
+                                        <!-- Optional Action Button -->
+                                        <div class="mt-8">
+                                            <button mat-flat-button (click)="getOrders()"
+                                                class="px-6 py-2.5 bg-indigo-100 text-indigo-600 rounded-lg font-medium hover:bg-indido-200 transition-colors duration-200">
+                                                Refresh Orders
+                                            </button>
+                                        </div>
+                                    </div>
+                                    }@else {
                                     <!-- Order Cards -->
                                     @for (item of Orders; track $index) {
                                     <div class="mt-6 cursor-pointer">
                                         <div class="bg-gray-50 p-4 rounded-lg mb-4" [ngClass]="{
                                             'border-2 border-indigo-400 bg-white shadow-lg': selectedOrderId === item._id
                                           }" (click)="selectOrder(item._id)">
-                                          @if(item.status=="pending"){
-                                          <div class="text-gray-600 font-medium mb-2">Looking for a courier</div>
-                                          }@else if(item.status=="assigned") {
+                                            @if(item.status=="pending"){
+                                            <div class="text-gray-600 font-medium mb-2">Looking for a courier</div>
+                                            }@else if(item.status=="assigned") {
                                             <div class="text-gray-600 font-medium mb-2">Courier assigned</div>
-                                          }
-                                          @else if(item.status=="delivered") {
+                                            }
+                                            @else if(item.status=="delivered") {
                                             <div class="text-gray-600 font-medium mb-2">Delivered</div>
-                                          }
-                                          @else if(item.status=="canceled") {
+                                            }
+                                            @else if(item.status=="canceled") {
                                             <div class="text-gray-600 font-medium mb-2">Canceled</div>
-                                          }
-                                          @else if(item.status=="picked-up") {
+                                            }
+                                            @else if(item.status=="picked-up") {
                                             <div class="text-gray-600 font-medium mb-2">Picked up</div>
-                                          }
-                                          @else if(item.status=="returned") {
+                                            }
+                                            @else if(item.status=="returned") {
                                             <div class="text-gray-600 font-medium mb-2">Returned</div>
-                                          }
+                                            }
                                             <div class="flex justify-between mb-1">
                                                 <div class="font-semibold">{{getDate(item.createdAt)}},
                                                     {{getTime(item.createdAt)}}</div>
                                                 <div class="font-semibold">TND6</div>
                                             </div>
-                                            <div class="mb-2">{{item.productDesc}}</div>
+                                            <div class="mb-2 w-full whitespace-wrap break-words">{{item.productDesc}}</div>
                                             <div class="mt-4 flex flex-col gap-2">
                                                 <div class="flex gap-2">
                                                     <div
@@ -106,6 +139,7 @@
                                     <button mat-button (click)="loadMore()" class="w-full" [hidden]="max<=currentSize">
                                         Load More
                                     </button>
+                                    }
                                 </div>
                             </ng-template>
                         </mat-tab>
@@ -125,15 +159,15 @@
 
                 @if(Order){
                 <!-- Right Panel -->
-                <div class="w-full h-screen md:w-1/2 pr-0 md:pr-8 pt-0 md:pt-4 pb-0 md:pb-4" 
-                [ngClass]="{'fixed inset-0 h-screen w-full z-50 bg-white overflow-y-auto': clicked}" >
+                <div class="w-full h-screen md:w-1/2 pr-0 md:pr-8 pt-0 md:pt-4 pb-0 md:pb-4"
+                    [ngClass]="{'fixed inset-0 h-screen w-full z-50 bg-white overflow-y-auto': clicked}">
                     @if(clicked) {
                     <button class="block md:hidden absolute top-2 right-2 bg-gray-100 z-50 p-2 rounded-full shadow-lg"
                         mat-icon-button (click)="clicked=false">
                         <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
                     </button>
                     }
-                    <ordercarddetails [Order]="Order"></ordercarddetails>
+                    <ordercarddetails [Order]="Order" (canceled)="canceled($event)"></ordercarddetails>
                 </div>
                 }
             </div>

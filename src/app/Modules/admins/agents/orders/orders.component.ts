@@ -27,6 +27,7 @@ import { OrderDetailsCardComponent } from '../../../../Shared/Components/order d
 import { CompactComponent } from '../../../../Shared/Components/invoice/compact.component';
 import { RouteService } from '../../../../Shared/Services/Journey.service';
 import { Routes } from '../../../../Shared/Models/Routes.model';
+import { LocationService } from '../../../../Shared/Services/agent-location.service';
 
 type StopStatus = 'pending' | 'active' | 'completed';
 
@@ -72,6 +73,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private _cdr = inject(ChangeDetectorRef);
   private _ngZone = inject(NgZone);
   private _snackBar = inject(MatSnackBar);
+  private _locationService = inject(LocationService);
 
   agent: Agent | null = null;
   map: mapboxgl.Map | null = null;
@@ -124,11 +126,40 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (this.agent && this.agent.agentStatus !== 'offline') {
       this.journeyActive = true;
       this.setupSocketConnection();
+      try {
+        this._locationService.registerAgent(this.agent._id!);
+        Geolocation.watchPosition(
+          {
+            enableHighAccuracy: true,
+            timeout: 30000,
+            maximumAge: 5000,
+          },
+          (position, error) => {
+            if (position) {
+              this._ngZone.run(() => {
+                const newLocation: [number, number] = [
+                  position.coords.longitude,
+                  position.coords.latitude,
+                ];
+                console.log('success', newLocation);
+                this._locationService.sendAgentLocation(
+                  this.agent?._id!,
+                  newLocation
+                );
+              });
+            } else {
+              console.error('Error watching position:', error);
+            }
+          }
+        );
+      } catch (error) {
+        console.error('Agent registration failed:', error);
+      }
     }
   }
   private setupSocketConnection(): void {
     if (!this.agent?._id) return;
-    console.log("hi");
+    console.log('hi');
 
     // Register and subscribe to journey updates
     this._socketService.registerJourney(this.agent?._id);
@@ -154,14 +185,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (this.simulationSubscription) this.simulationSubscription.unsubscribe();
     if (this.map) this.map.remove();
     if (this.routeUpdateInterval) clearInterval(this.routeUpdateInterval);
+    this.journeySubscription?.unsubscribe();
     this._socketService.unsubscribeFromJourney(this.agent?._id!);
-
+    this._socketService.disconnect();
   }
 
   startJourney(): void {
-    this.journeyActive = true;
     const sub = this._agentService.startJourney().subscribe({
       next: () => {
+        this.journeyActive = true;
         this.setupSocketConnection();
         this._cdr.detectChanges();
       },
@@ -492,7 +524,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   async startNavigation(simulationMode = false): Promise<void> {
-    this.distanceToNextStop=10000000;
+    this.distanceToNextStop = 10000000;
     this.forcedSimulationMode = simulationMode;
     try {
       this.clearMarkersAndRoutes();
@@ -535,7 +567,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
     }
     this.clearRoutes();
   }
-
   private setupSimulatedLocationUpdates(): void {
     if (!this.currentLegCoordinates?.length) {
       console.error('No valid route coordinates for simulation');

@@ -15,9 +15,6 @@ export class RouteService {
       transports: ['websocket'],
       path: '/socket.io',
       withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
     });
 
     this.socket.on('connect_error', (err) => {
@@ -47,11 +44,9 @@ export class RouteService {
         console.log('Journey data received:', data);
         observer.next(data);
       };
-
-      this.socket.on('journey', listener);
-
+      this.socket.on('journey-update', listener);
       return () => {
-        this.socket.off('journey', listener);
+        this.socket.off('journey-update', listener);
         this.unsubscribeFromJourney(agentId);
       };
     });

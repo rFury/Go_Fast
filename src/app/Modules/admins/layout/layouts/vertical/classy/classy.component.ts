@@ -125,35 +125,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
             this._userService.updateState('online').subscribe((res) => {
               this._cdr.markForCheck();
             });
-            // Register agent with error handling
-            /*try {
-              await this._locationService.registerAgent(this.user._id!);
-              Geolocation.watchPosition(
-                {
-                  enableHighAccuracy: true,
-                  timeout: 30000,
-                  maximumAge: 5000,
-                },
-                (position, error) => {
-                  if (position) {
-                    this._ngZone.run(() => {
-                      const newLocation: [number, number] = [
-                        position.coords.longitude,
-                        position.coords.latitude,
-                      ];
-                      console.log('success', newLocation);
-        
-                      this._locationService.sendAgentLocation(this.user._id!, newLocation);
-
-                    });
-                  } else {
-                    console.error('Error watching position:', error);
-                  }
-                }
-              );
-            } catch (error) {
-              console.error('Agent registration failed:', error);
-            }*/
           },
           error: (err) => console.error(err),
         });

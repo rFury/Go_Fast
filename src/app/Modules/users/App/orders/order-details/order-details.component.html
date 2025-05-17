@@ -25,7 +25,7 @@
                     matTooltip="Click agent name to see details">{{Agent.first_name+"
                     "+Agent.last_name}}</span> !
             </h2>
-            <h4 class="text-md sm:text-3xl"><span class="hidden sm:block">Driver on his way for pick-up</span>please wait!</h4>
+            <h4 class="text-md sm:text-3xl"><span class="hidden sm:block">Driver {{isActive?'is '+time+' away from':'on his way for'}} pick-up</span>please wait!</h4>
             }
         </div>
     </div>
@@ -93,7 +93,7 @@
                         <!-- Product Description -->
                         <div>
                             <div class="mb-1 font-bold text-gray-900">Product Description:</div>
-                            <p class="text-base">{{Order.productDesc}}</p>
+                            <p class="text-base w-4">{{Order.productDesc}}</p>
                         </div>
                     </div>
 

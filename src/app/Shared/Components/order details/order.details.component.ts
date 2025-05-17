@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnChanges, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnChanges, Output, ViewEncapsulation } from '@angular/core';
 import { Animations } from '../../Animations/public-api';
 import { CardComponent } from '../card/card.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { SnackBarService } from '../../Services/snack-bar.service';
 import { FuseConfirmationService } from '../confirmation/confirmation.service';
 import { OrderService } from '../../Services/order.service';
 import { RouteService } from '../../Services/Journey.service';
+import { Status } from '../../enums/status.enums';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class OrderDetailsCardComponent
     isFullScreen = false;
     @Input({required: true })Order: Order | null = null;
     @Input() withMap: boolean = true;
+    @Output() canceled = new EventEmitter<Order>();
     details: boolean = true;
     private router = inject(Router);
     _route= inject(ActivatedRoute);
@@ -70,6 +72,8 @@ export class OrderDetailsCardComponent
             this._orderService.getOrdersAgent(this.Order?._id!).subscribe((agentId) => {
               this._JourneyService.subscribeToJourney(agentId!);
               this._JourneyService.cancelOrder(agentId, this.Order!);
+              this.Order!.status=Status.canceled;
+              this.canceled.emit(this.Order!);
             });
           }
         });

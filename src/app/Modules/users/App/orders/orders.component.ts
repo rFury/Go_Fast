@@ -45,6 +45,25 @@ import { takeUntil } from 'rxjs';
   ],
   animations: Animations,
   templateUrl: './orders.component.html',
+  styles: [
+    `
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `,
+  ],
   providers: [DatePipe],
 })
 export class OrdersComponent implements OnInit {
@@ -55,7 +74,7 @@ export class OrdersComponent implements OnInit {
   protected _datePipe = inject(DatePipe);
   private _cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
-  _route= inject(ActivatedRoute);
+  _route = inject(ActivatedRoute);
   status = listOrderStatus;
   Order: Order | null = null;
   Orders: Order[] = [];
@@ -65,11 +84,11 @@ export class OrdersComponent implements OnInit {
   currentPage = 1;
   displayedList: Pagination<Order>;
   selectedOrderId: string | null = null;
-  hidden=true;
+  hidden = true;
   private markers: mapboxgl.Marker[] = [];
   private routeSources: string[] = [];
-  max=0;
-  clicked=false;
+  max = 0;
+  clicked = false;
   _fuseMediaWatcherService: any;
   isScreenSmall: boolean;
 
@@ -93,17 +112,17 @@ export class OrdersComponent implements OnInit {
         this.currentSize.toString(),
         this.currentPage.toString(),
         '',
-        status==='All'?'':status
+        status === 'All' ? '' : status
       )
       .subscribe({
         next: (res) => {
           console.log(res);
           this.displayedList = res;
           this.Orders = this.displayedList.data;
-            if (this.Orders.length > 0) {
-              this.selectOrder(this.Orders[0]._id!,true);
-            }
-          this.max=res.total;
+          if (this.Orders.length > 0) {
+            this.selectOrder(this.Orders[0]._id!, true);
+          }
+          this.max = res.total;
         },
       });
   }
@@ -139,13 +158,13 @@ export class OrdersComponent implements OnInit {
         },
       });
   }
-  selectOrder(orderId: string,firstTime:boolean=false): void {
+  selectOrder(orderId: string, firstTime: boolean = false): void {
     this.selectedOrderId = orderId;
     const order = this.Orders.find((order) => order._id === orderId);
     if (order) {
       let isMobile = window.innerWidth <= 768; // Tailwind's 'md' breakpoint
-      if(!firstTime && isMobile){
-        this.clicked=true;
+      if (!firstTime && isMobile) {
+        this.clicked = true;
       }
       this.Order = order;
       this._cdr.detectChanges();
@@ -290,13 +309,17 @@ export class OrdersComponent implements OnInit {
   filterByCategory($event: MatSelectChange<any>) {
     this.getOrders($event.value);
   }
-  orderDetails(id:string){
+  orderDetails(id: string) {
     this.router.navigate([`${id}`], { relativeTo: this._route }).then();
   }
-  loadMore(){
-    if(this.max>this.currentSize){
-      this.currentSize+=1;
+  loadMore() {
+    if (this.max > this.currentSize) {
+      this.currentSize += 1;
       this.getOrders();
     }
+  }
+  canceled(order: Order) {
+    this.Order = order;
+    this._cdr.detectChanges();
   }
 }
