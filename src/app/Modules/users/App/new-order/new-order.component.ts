@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, signal, OnDestroy, AfterViewInit } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import { MapService } from '../../../../Shared/Services/map.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -49,7 +49,7 @@ import { Router } from '@angular/router';
   templateUrl: './new-order.component.html',
   styleUrl: './new-order.component.scss',
 })
-export class NewOrderComponent implements OnInit, OnDestroy {
+export class NewOrderComponent implements OnInit,AfterViewInit, OnDestroy {
   toggle: boolean = false;
   private destroy$ = new Subject<void>();
   isScreenSmall: boolean = false;
@@ -81,6 +81,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
         this.isScreenSmall = !matchingAliases.includes('sm');
         this.handleMapResize();
       });
+  }
+  ngAfterViewInit(): void {
+    this.initializeMap();
   }
   ngOnDestroy(): void {
     this.destroyMap();
@@ -118,7 +121,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
     this.map = new mapboxgl.Map({
       accessToken: this._mapService.mapboxToken,
-      container: 'map',
+      container: 'OrderMap',
       style: 'mapbox://styles/mapbox/standard',
       center: new mapboxgl.LngLat(lng ?? 10.1956, lat ?? 36.8625),
       zoom: 12,
@@ -126,6 +129,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       bearing: 0,
     });
 
+    this.map.resize();
     this.setupMapEvents();
   }
 

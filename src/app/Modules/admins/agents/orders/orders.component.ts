@@ -28,6 +28,7 @@ import { CompactComponent } from '../../../../Shared/Components/invoice/compact.
 import { RouteService } from '../../../../Shared/Services/Journey.service';
 import { Routes } from '../../../../Shared/Models/Routes.model';
 import { LocationService } from '../../../../Shared/Services/agent-location.service';
+import { OrderService } from '../../../../Shared/Services/order.service';
 
 type StopStatus = 'pending' | 'active' | 'completed';
 
@@ -74,6 +75,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private _ngZone = inject(NgZone);
   private _snackBar = inject(MatSnackBar);
   private _locationService = inject(LocationService);
+  private _orderService = inject(OrderService);
 
   agent: Agent | null = null;
   map: mapboxgl.Map | null = null;
@@ -113,7 +115,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private previousHeading: number = 0;
   private routeBounds: mapboxgl.LngLatBounds | null = null;
   private cumulativeDistances: number[] = [];
-  private simulatedSpeedKmh = 80;
+  private simulatedSpeedKmh = 200;
   private simulationStartTime: number | null = null;
   private routeUpdateInterval: any = null;
 
@@ -128,6 +130,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       this.setupSocketConnection();
       try {
         this._locationService.registerAgent(this.agent._id!);
+        this._locationService.subscribeToAgent(this.agent._id!);
         Geolocation.watchPosition(
           {
             enableHighAccuracy: true,
@@ -145,7 +148,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
                 this._locationService.sendAgentLocation(
                   this.agent?._id!,
                   newLocation
-                );
+                ); 
               });
             } else {
               console.error('Error watching position:', error);
@@ -270,6 +273,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private initializeMapWithRoute(): void {
     if (!this.stops.length) return;
     const [lng, lat] = this.stops[0].coordinates;
+    console.log(this.stops);
+    
     this.initializeMap(lng, lat);
     this.stops.forEach((stop, index) => this.addStopMarker(stop, index));
     this.createFullRoute();
@@ -444,19 +449,33 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   private async completeCurrentStopAfterPDF(): Promise<void> {
     this.stops[this.currentStopIndex].status = 'completed';
-    this.currentStopIndex++;
-    if (this.currentStopIndex < this.stops.length) {
-      this.stops[this.currentStopIndex].status = 'active';
-      this.updateMarkersStatus();
-      await this.startNavigation(this.forcedSimulationMode);
-      this.centerMapOnCurrentStop();
-    } else {
-      this.completeJourney();
-    }
-    this.updateJourneyProgress();
-    this.isDetailModalOpen = false;
-    this.generatePDF = false;
-    this.pdfGenerated = false; // Reset for the next stop
+    this._orderService
+      .pickUpOrder(this.stops[this.currentStopIndex].order)
+      .subscribe({
+        next: (order) => {
+          if (order !== null) {
+            console.log('order added to route');
+          } else {
+            console.log('order not added to route');
+            this.currentStopIndex++;
+          }
+        },
+        error: (err) => console.error('Error picking up order:', err),
+        complete: async () => {
+          if (this.currentStopIndex < this.stops.length) {
+            this.stops[this.currentStopIndex].status = 'active';
+            this.updateMarkersStatus();
+            await this.startNavigation(this.forcedSimulationMode);
+            this.centerMapOnCurrentStop();
+          } else {
+            this.completeJourney();
+          }
+          this.updateJourneyProgress();
+          this.isDetailModalOpen = false;
+          this.generatePDF = false;
+          this.pdfGenerated = false; // Reset for the next stop
+        },
+      });
   }
 
   private updateMarkersStatus(): void {
@@ -524,18 +543,18 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   async startNavigation(simulationMode = false): Promise<void> {
+    if (this.isSidebarOpen) this.toggleSidebar();
     this.distanceToNextStop = 10000000;
     this.forcedSimulationMode = simulationMode;
     try {
       this.clearMarkersAndRoutes();
       this.routeStarted = true;
       this.isNavigating = true;
-
       if (simulationMode) {
-        this.userLocation =
-          this.currentStopIndex === 0
-            ? this.stops[0].coordinates
-            : this.stops[this.currentStopIndex - 1].coordinates;
+        this.userLocation =this.currentStopIndex=== 0?[10.276214, 36.759965]:this.stops[this.currentStopIndex-1].coordinates;
+        this.currentStopIndex === 0
+          ? this.stops[0].coordinates
+          : this.stops[this.currentStopIndex - 1].coordinates;
         await this.initializeNavigationMap(this.userLocation);
         await this.createNavigationRoute();
         this.setupSimulatedLocationUpdates();
@@ -546,8 +565,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
         this.setupLocationTracking();
         this.startRouteUpdateInterval();
       }
-
-      if (this.isSidebarOpen) this.toggleSidebar();
     } catch (error) {
       console.error('Error starting navigation:', error);
       this.initializeMapWithRoute();
@@ -718,7 +735,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     heading: number
   ): void {
     this.userLocation = location;
-    const snappedLocation = this.snapToRoute(location);
+    const snappedLocation = location;
     if (!this.userLocationMarker) {
       const el = document.createElement('div');
       el.innerHTML = `<div class="flex items-center justify-center rounded-full bg-white text-white w-14 h-14 shadow-lg"><div class="user-location-dot"></div></div>`;
@@ -736,20 +753,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.checkDistanceToCurrentStop(location);
     this.updateRouteToFollowUser(location);
     this.checkStepCompletion(location);
-  }
-
-  private snapToRoute(location: [number, number]): [number, number] {
-    if (!this.currentLegCoordinates?.length) return location;
-    let closestPoint = this.currentLegCoordinates[0];
-    let minDistance = this.calculateDistance(location, closestPoint);
-    for (const point of this.currentLegCoordinates) {
-      const distance = this.calculateDistance(location, point);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestPoint = point;
-      }
-    }
-    return minDistance > 0.1 ? location : closestPoint;
   }
 
   private updateDirectionArrow(heading: number): void {
