@@ -37,10 +37,10 @@ export class RouteService {
     this.socket.emit('unsubscribe-from-journey', agentId);
   }
 
-  getJourney(agentId: string): Observable<Routes> {
+  getJourney(agentId: string): Observable<{journey: Routes; id: string | null }> {
     if (!agentId) throw new Error('Agent ID is required');
     return new Observable((observer) => {
-      const listener = (data: Routes) => {
+      const listener = (data: {journey: Routes; id: string | null }) => {
         console.log('Journey data received:', data);
         observer.next(data);
       };

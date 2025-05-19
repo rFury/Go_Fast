@@ -25,8 +25,26 @@
                     matTooltip="Click agent name to see details">{{Agent.first_name+"
                     "+Agent.last_name}}</span> !
             </h2>
-            <h4 class="text-md sm:text-3xl"><span class="hidden sm:block">Driver {{isActive?'is '+time+' away from':'on his way for'}} pick-up</span>please wait!</h4>
-            }
+            <h4 class="text-md sm:text-3xl">
+                <span class="hidden sm:block">
+                  Driver 
+                    @if(isActive){
+                    <ng-container *ngTemplateOutlet="active"></ng-container>
+                  }@else {
+                    <ng-container *ngTemplateOutlet="waiting"></ng-container>
+                  }
+                  <ng-template #active>
+                    is <span class="font-bold text-green-500">{{ time | number: '1.0-0' }} minutes</span> away from
+                  </ng-template>
+                  <ng-template #waiting>
+                    on his way for
+                  </ng-template>
+                  pick‑up, please wait!
+                </span>
+              </h4>
+              
+                          }                    
+
         </div>
     </div>
 

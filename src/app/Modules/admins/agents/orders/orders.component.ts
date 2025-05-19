@@ -30,7 +30,6 @@ import { Routes } from '../../../../Shared/Models/Routes.model';
 import { LocationService } from '../../../../Shared/Services/agent-location.service';
 import { OrderService } from '../../../../Shared/Services/order.service';
 
-type StopStatus = 'pending' | 'active' | 'completed';
 
 interface RouteStop {
   order: Order;
@@ -131,30 +130,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
       try {
         this._locationService.registerAgent(this.agent._id!);
         this._locationService.subscribeToAgent(this.agent._id!);
-        Geolocation.watchPosition(
-          {
-            enableHighAccuracy: true,
-            timeout: 30000,
-            maximumAge: 5000,
-          },
-          (position, error) => {
-            if (position) {
-              this._ngZone.run(() => {
-                const newLocation: [number, number] = [
-                  position.coords.longitude,
-                  position.coords.latitude,
-                ];
-                console.log('success', newLocation);
-                this._locationService.sendAgentLocation(
-                  this.agent?._id!,
-                  newLocation
-                ); 
-              });
-            } else {
-              console.error('Error watching position:', error);
-            }
-          }
-        );
       } catch (error) {
         console.error('Agent registration failed:', error);
       }
@@ -162,8 +137,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
   private setupSocketConnection(): void {
     if (!this.agent?._id) return;
-    console.log('hi');
-
     // Register and subscribe to journey updates
     this._socketService.registerJourney(this.agent?._id);
     this._socketService.subscribeToJourney(this.agent?._id);
@@ -172,11 +145,33 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.journeySubscription = this._socketService
       .getJourney(this.agent?._id)
       .subscribe({
-        next: (journey: Routes) => {
-          console.log('hi2');
-          if (journey.orders?.length) {
-            this.processJourneyOrders(journey.orders);
-            this._cdr.markForCheck();
+        next: async (data: { journey: Routes; id: string | null }) => {
+          if (data.journey.orders?.length) {
+            if (data.id != null && this.isNavigating) {
+              if (this.stops[this.currentStopIndex].order._id === data.id) {
+                this._snackBar.open(
+                  'Order canceled! Rerouting yout to the next order',
+                  'Close',
+                  {
+                    duration: 3000,
+                  }
+                );
+                this.stops.splice(this.currentStopIndex, 1);
+                if (this.currentStopIndex < this.stops.length) {
+                  this.stops[this.currentStopIndex].status = 'active';
+                  this.updateMarkersStatus();
+                  await this.startNavigation(this.forcedSimulationMode);
+                  this.centerMapOnCurrentStop();
+                } else {
+                  this.completeJourney();
+                }
+                this.updateJourneyProgress();
+                this._cdr.markForCheck();
+              }
+            } else {
+              this.processJourneyOrders(data.journey.orders);
+              this._cdr.markForCheck();
+            }
           }
         },
         error: (err) => console.error('Socket error:', err),
@@ -225,7 +220,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       order: Order;
       coordinates: [number, number];
       isPickup: boolean;
-      status: 'pending';
+      status: 'pending' | 'completed';
     }
 
     this.stops = orders
@@ -248,7 +243,17 @@ export class OrdersComponent implements OnInit, OnDestroy {
             order,
             coordinates: order.destination.place.coordinates,
             isPickup: false,
-            status: 'pending',
+            status: order.completed ? 'completed' : 'pending',
+          };
+        } else if (
+          order.status === Status.delivered &&
+          order.destination?.place?.coordinates
+        ) {
+          return {
+            order,
+            coordinates: order.destination?.place?.coordinates,
+            isPickup: false,
+            status: 'completed',
           };
         }
         return null;
@@ -256,7 +261,11 @@ export class OrdersComponent implements OnInit, OnDestroy {
       .filter((stop): stop is PendingRouteStop => stop !== null) as RouteStop[];
 
     if (this.stops.length) {
-      this.stops[0].status = 'active';
+      const i = this.stops.findIndex((stop) => stop.status === 'pending');
+      this.currentStopIndex = i;
+
+      this.stops[i].status = 'active';
+
       this.initializeMapWithRoute();
     }
   }
@@ -274,7 +283,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (!this.stops.length) return;
     const [lng, lat] = this.stops[0].coordinates;
     console.log(this.stops);
-    
+
     this.initializeMap(lng, lat);
     this.stops.forEach((stop, index) => this.addStopMarker(stop, index));
     this.createFullRoute();
@@ -449,6 +458,11 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   private async completeCurrentStopAfterPDF(): Promise<void> {
     this.stops[this.currentStopIndex].status = 'completed';
+    if (this.stops[this.currentStopIndex].isPickup) {
+      this.stops[this.currentStopIndex].order.status = Status.picked_up;
+    } else {
+      this.stops[this.currentStopIndex].order.status = Status.delivered;
+    }
     this._orderService
       .pickUpOrder(this.stops[this.currentStopIndex].order)
       .subscribe({
@@ -551,7 +565,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
       this.routeStarted = true;
       this.isNavigating = true;
       if (simulationMode) {
-        this.userLocation =this.currentStopIndex=== 0?[10.276214, 36.759965]:this.stops[this.currentStopIndex-1].coordinates;
+        this.userLocation =
+          this.currentStopIndex === 0
+            ? [10.276214, 36.759965]
+            : this.stops[this.currentStopIndex - 1].coordinates;
         this.currentStopIndex === 0
           ? this.stops[0].coordinates
           : this.stops[this.currentStopIndex - 1].coordinates;
@@ -735,6 +752,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     heading: number
   ): void {
     this.userLocation = location;
+    this._locationService.sendAgentLocation(this.agent?._id!, location);
     const snappedLocation = location;
     if (!this.userLocationMarker) {
       const el = document.createElement('div');

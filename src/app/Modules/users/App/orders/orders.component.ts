@@ -21,10 +21,8 @@ import * as mapboxgl from 'mapbox-gl';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import {
   listOrderStatus,
-  OrderStatus,
 } from '../../../../Shared/enums/status.enums';
 import { OrderDetailsCardComponent } from '../../../../Shared/Components/order details/order.details.component';
-import { takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-orders',
@@ -314,7 +312,7 @@ export class OrdersComponent implements OnInit {
   }
   loadMore() {
     if (this.max > this.currentSize) {
-      this.currentSize += 1;
+      this.currentSize += 6;
       this.getOrders();
     }
   }

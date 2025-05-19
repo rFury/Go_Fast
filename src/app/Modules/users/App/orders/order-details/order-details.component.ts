@@ -14,10 +14,15 @@ import { Agent } from '../../../../../Shared/Models/Agent.model';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SnackBarService } from '../../../../../Shared/Services/snack-bar.service';
 import { Subscription } from 'rxjs';
-import { OrderStatus, Status } from '../../../../../Shared/enums/status.enums';
+import { Status } from '../../../../../Shared/enums/status.enums';
+import { CommonModule } from '@angular/common';
+import { NotificationService } from '../../../../../Shared/Components/notification-prompt/notification.service';
+import { LocationService } from '../../../../../Shared/Services/agent-location.service';
+
 @Component({
   selector: 'app-order-details',
   imports: [
+    CommonModule,
     MatIconModule,
     MatButtonModule,
     CardComponent,
@@ -34,22 +39,31 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   dragging = signal(false);
   private _mapService = inject(MapService);
   private _orderService = inject(OrderService);
+  private _agentLocationService = inject(LocationService); // Inject the service
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private clipboard = inject(Clipboard);
   private snackBar = inject(SnackBarService);
+  private _notificationService = inject(NotificationService);
 
-  private orderUpdateInterval: any = null; // To store the interval ID
+  private orderUpdateInterval: any = null;
   private orderSubscription: Subscription | null = null;
+  private locationSubscription: Subscription | null = null; // Subscription for agent location updates
   time = 0;
 
   prevOrder: Order | null = null;
   Order: Order | null = null;
+  prevAgent: Agent | null = null;
   Agent: Agent | null = null;
   isActive = false;
+  notificationShown: boolean = false;
+  notification15Shown: boolean = false;
+  notification10Shown: boolean = false;
+  notification5Shown: boolean = false;
 
   copied = false;
   agentDetails = false;
+  agentMarker: mapboxgl.Marker | null = null; // Marker for agent's location
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') || undefined;
@@ -88,6 +102,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
         if (this.Order.agent as Agent) {
           this.Agent = this.Order.agent as Agent;
         }
+        this.handleTracking(); // Start tracking after initial fetch
       },
       error: (err) => {
         console.log(err);
@@ -95,34 +110,131 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       complete: () => {
         console.log('zebi complete');
         this.orderUpdateInterval = setInterval(() => {
-          // Unsubscribe from previous subscription to prevent memory leaks
           if (this.orderSubscription) {
             this.orderSubscription.unsubscribe();
           }
-          this.orderSubscription = this._orderService.getOrder(this.Order?._id!).subscribe({
-            next: (res) => {
-              this.prevOrder = this.Order;
-              this.Order = res;
-              if (this.prevOrder?.completed !== this.Order.completed || this.prevOrder?.active !== this.Order.active || this.prevOrder?.status !== this.Order.status) {
-                console.log('new data', this.Order,this.prevOrder);
-                if(this.Order.active===true){
-                  this.isActive=true;
+          this.orderSubscription = this._orderService
+            .getOrder(this.Order?._id!)
+            .subscribe({
+              next: (res) => {
+                this.prevOrder = this.Order;
+                this.prevAgent = this.Agent;
+                this.Order = res;
+                this.Agent = this.Order.agent as Agent;
+                if (
+                  this.prevOrder?.completed !== this.Order.completed ||
+                  this.prevOrder?.status !== this.Order.status ||
+                  this.prevAgent?.coordinates !== this.Agent?.coordinates
+                ) {
+                  console.log('new data', this.Order, this.prevOrder);
+                  if (this.Order.completed === false) {
+                    this.isActive = true;
+                  }
                 }
-              }
-              if(this.isActive){
-                let orderLoc: [number, number] | null = null;
-                if(this.Order.status === Status.assigned){
-                  orderLoc= this.Order.pick_up?.place?.coordinates!;
-                }else if (this.Order.status === Status.picked_up){
-                  orderLoc= this.Order.destination?.place?.coordinates!;
-                }else{
-                  return;
+                if (this.isActive) {
+                  let orderLoc: [number, number] | null = null;
+                  if (this.Order.status === Status.assigned) {
+                    orderLoc = this.Order.pick_up?.place?.coordinates!;
+                  } else if (this.Order.status === Status.picked_up) {
+                    orderLoc = this.Order.destination?.place?.coordinates!;
+                  } else {
+                    return;
+                  }
+                  const distance = this.calculateDistance(
+                    this.Agent?.coordinates!,
+                    orderLoc
+                  );
+                  this.time = distance / 0.5;
+                  if(distance < 0.05 && this.notificationShown === false){
+                    this.showNotification(
+                      'Driver is at pick-up location !',
+                      'Your driver is at your location please contact !'
+                    );
+                    this._notificationService.openNotification(
+                      'Driver is at pick-up location !',
+                      'Your driver is at your location please contact !',
+                      'order',
+                      false,
+                      () => {},
+                      () => {},
+                      50000
+                    );
+                    this.notificationShown = true;
+                    this.notification5Shown = true;
+                    this.notification10Shown = true;
+                    this.notification15Shown = true;
+                  }
+                  else if (this.time < 5 && this.notification5Shown === false) {
+                    this.showNotification(
+                      'Driver is almost here!',
+                      'Your driver is ' +
+                        5 +
+                        ' minutes away from your location'
+                    );
+                    this._notificationService.openNotification(
+                      'Driver is almost here!',
+                      'Driver is ' +
+                        5 +
+                        ' minutes away from your location',
+                      'order',
+                      false,
+                      () => {},
+                      () => {},
+                      50000
+                    );
+                    this.notification5Shown = true;
+                    this.notification10Shown = true;
+                    this.notification15Shown = true;
+                  } else if (
+                    this.time < 10 &&
+                    this.notification10Shown === false
+                  ) {
+                    this.showNotification(
+                      'Driver is almost here!',
+                      'Your driver is ' +
+                        10 +
+                        ' minutes away from your location'
+                    );
+                    this._notificationService.openNotification(
+                      'Driver is almost here!',
+                      'Driver is ' +
+                        10 +
+                        ' minutes away from your location',
+                      'order',
+                      false,
+                      () => {},
+                      () => {},
+                      50000
+                    );
+                    this.notification10Shown = true;
+                    this.notification15Shown = true;
+                  } else if (
+                    this.time < 15 &&
+                    this.notification15Shown === false
+                  ) {
+                    this.showNotification(
+                      'Driver is almost here!',
+                      'Your driver is ' +
+                        15 +
+                        ' minutes away from your location'
+                    );
+                    this._notificationService.openNotification(
+                      'Driver is almost here!',
+                      'Driver is ' +
+                        15 +
+                        ' minutes away from your location',
+                      'order',
+                      false,
+                      () => {},
+                      () => {},
+                      50000
+                    );
+                    this.notification15Shown = true;
+                  }
                 }
-                const distance = this.calculateDistance(this.Agent?.coordinates!,orderLoc);
-                this.time = distance / 0.5;
-              }
-            },
-          });
+                this.handleTracking(); // Check and update tracking after each fetch
+              },
+            });
         }, 10000);
       },
     });
@@ -131,6 +243,8 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.orderUpdateInterval) clearInterval(this.orderUpdateInterval);
     if (this.orderSubscription) this.orderSubscription.unsubscribe();
+    if (this.locationSubscription) this.locationSubscription.unsubscribe(); // Clean up location subscription
+    if (this.map) this.map.remove(); // Remove the map to free resources
   }
 
   private initializeMap(lng?: number, lat?: number): void {
@@ -148,6 +262,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     this.map.on('dragstart', () => this.dragging.set(true));
     this.map.on('dragend', () => this.dragging.set(false));
   }
+
   getRoute(start: [number, number], end: [number, number]) {
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&access_token=${this._mapService.mapboxToken}`;
     fetch(url)
@@ -156,7 +271,6 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
         const route = data.routes[0].geometry;
 
         if (!this.map) return;
-        // Remove old route layer if it exists
         if (this.map.getSource('route')) {
           this.map.removeLayer('route');
           this.map.removeSource('route');
@@ -196,6 +310,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
         });
       });
   }
+
   cancelOrder() {}
   goBack() {
     this.router.navigate(['/orders']);
@@ -230,4 +345,47 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
+  private showNotification(title: string, text: string) {
+    const notificationOptions = {
+      body: text,
+      icon: 'logo-white-canvas-removebg-preview.png',
+    };
+    navigator.serviceWorker.ready.then((registration) => {
+      registration.showNotification(title, notificationOptions);
+    });
+  }
+
+  // Method to handle starting/stopping tracking based on order status
+  private handleTracking(): void {
+    if (this.Order?.status === Status.picked_up && this.Agent && !this.locationSubscription) {
+      console.log('hi'); 
+      this.locationSubscription = this._agentLocationService
+        .getAgentLocations(this.Agent._id!)
+        .subscribe((data) => {
+          console.log(data);
+          this.updateAgentMarker(data.coordinates);
+        });
+    } else if (this.Order?.status !== Status.picked_up && this.locationSubscription) {
+      this.locationSubscription.unsubscribe();
+      this.locationSubscription = null;
+      if (this.agentMarker) {
+        this.agentMarker.remove();
+        this.agentMarker = null;
+      }
+    }
+  }
+
+  // Method to create or update the agent's marker on the map
+  private updateAgentMarker(coordinates: [number, number]): void {
+    if (!this.agentMarker) {
+      const el = document.createElement('div');
+      el.className = 'agent-marker';
+      el.innerHTML = `<img src="agent-icon.svg" alt="Agent" class="w-8 h-8">`; // Ensure this icon exists
+      this.agentMarker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat(coordinates)
+        .addTo(this.map);
+    } else {
+      this.agentMarker.setLngLat(coordinates);
+    }
+  }
 }

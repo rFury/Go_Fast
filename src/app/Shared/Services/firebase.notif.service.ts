@@ -142,7 +142,7 @@ export class FirebaseNotification {
   private showNotification(payload: any) {
     const notificationOptions = {
       body: payload.notification.body,
-      icon: payload.notification.icon,
+      icon: 'logo-white-canvas-removebg-preview.png',
     };
     navigator.serviceWorker.ready.then((registration) => {
       registration.showNotification(

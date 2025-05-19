@@ -79,19 +79,26 @@
             <!-- Stop Details -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-2 mb-1">
-                <span class="text-sm font-medium">
-                  {{ stop.isPickup ? "Pickup" : "Delivery" }}
-                </span>
+                @if(stop.order.completed===false){
+                  <span class="text-sm font-medium">
+                    {{ stop.isPickup ? "Pick-up" : "Delivery" }}
+                  </span>
+                }@else {
+                  <span class="text-sm font-medium">
+                    {{ stop.isPickup ? "Picked-up" : "Delivered" }}
+                  </span>
+                }
                 <span class="text-xs text-slate-500 dark:text-slate-400">
                   #{{ stop.order.code }}
                 </span>
               </div>
               <div class="text-md text-slate-600 dark:text-slate-300">
-                <p class="truncate flex">
-                  <mat-icon mat-icon [svgIcon]="'heroicons_outline:phone'"></mat-icon>
-
-                  {{ getOrderLabel(stop.order) }}
-                </p>
+                @if(stop.status !== 'completed'){
+                    <p class="truncate flex">
+                      <mat-icon mat-icon [svgIcon]="'heroicons_outline:phone'"></mat-icon>
+                      {{ getOrderLabel(stop.order) }}
+                    </p>
+                }
                 @if (stop.status === 'active' && isNavigating) {
                 <div class="flex items-center space-x-2 mt-1 text-xs">
                   <span class="text-emerald-600 dark:text-emerald-400">
