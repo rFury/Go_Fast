@@ -33,7 +33,7 @@ export class OrderDetailsCardComponent
     _fuseConfirmationService = inject(FuseConfirmationService);
     _orderService = inject(OrderService);
     _JourneyService = inject(RouteService);
-
+    Status = Status;
     
     hidden=true;
     copied = false;

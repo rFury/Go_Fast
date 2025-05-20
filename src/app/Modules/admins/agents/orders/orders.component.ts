@@ -88,6 +88,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   selectedOrder: Order | null = null;
   generatePDF = false;
   pdfGenerated = false;
+  previousStop = [10.276214, 36.759965];
 
   private markers: mapboxgl.Marker[] = [];
   private userLocationMarker: mapboxgl.Marker | null = null;
@@ -114,7 +115,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private previousHeading: number = 0;
   private routeBounds: mapboxgl.LngLatBounds | null = null;
   private cumulativeDistances: number[] = [];
-  private simulatedSpeedKmh = 200;
+  private simulatedSpeedKmh = 4000;
   private simulationStartTime: number | null = null;
   private routeUpdateInterval: any = null;
 
@@ -124,12 +125,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.agent = this._userService.user() as Agent;
+    console.log(this.agent);
+    
     if (this.agent && this.agent.agentStatus !== 'offline') {
       this.journeyActive = true;
       this.setupSocketConnection();
       try {
         this._locationService.registerAgent(this.agent._id!);
         this._locationService.subscribeToAgent(this.agent._id!);
+        this.userLocation=this.agent.coordinates!;
       } catch (error) {
         console.error('Agent registration failed:', error);
       }
@@ -159,6 +163,14 @@ export class OrdersComponent implements OnInit, OnDestroy {
                 this.stops.splice(this.currentStopIndex, 1);
                 if (this.currentStopIndex < this.stops.length) {
                   this.stops[this.currentStopIndex].status = 'active';
+                  this._orderService.activateOrder(this.stops[this.currentStopIndex].order._id!).subscribe({
+                    next:(data:boolean)=>{
+                      console.log('order onroute '+data);
+                    },
+                    error:(err:any)=>{
+                      console.log(err);
+                    }
+                  })
                   this.updateMarkersStatus();
                   await this.startNavigation(this.forcedSimulationMode);
                   this.centerMapOnCurrentStop();
@@ -263,10 +275,19 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (this.stops.length) {
       const i = this.stops.findIndex((stop) => stop.status === 'pending');
       this.currentStopIndex = i;
-
       this.stops[i].status = 'active';
+      this._orderService.activateOrder(this.stops[i].order._id!).subscribe({
+        next:(data:boolean)=>{
+          console.log('order onroute '+data);
+        },
+        error:(err:any)=>{
+          console.log(err);
+        }
+      })
 
-      this.initializeMapWithRoute();
+      if(!this.isNavigating){
+        this.initializeMapWithRoute();
+      }
     }
   }
   stopsLength() {
@@ -472,6 +493,14 @@ export class OrdersComponent implements OnInit, OnDestroy {
           } else {
             console.log('order not added to route');
             this.currentStopIndex++;
+            this._orderService.activateOrder(this.stops[this.currentStopIndex].order._id!).subscribe({
+              next:(data:boolean)=>{
+                console.log('order onroute '+data);
+              },
+              error:(err:any)=>{
+                console.log(err);
+              }
+            })
           }
         },
         error: (err) => console.error('Error picking up order:', err),
@@ -565,14 +594,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
       this.routeStarted = true;
       this.isNavigating = true;
       if (simulationMode) {
-        this.userLocation =
-          this.currentStopIndex === 0
-            ? [10.276214, 36.759965]
-            : this.stops[this.currentStopIndex - 1].coordinates;
-        this.currentStopIndex === 0
-          ? this.stops[0].coordinates
-          : this.stops[this.currentStopIndex - 1].coordinates;
-        await this.initializeNavigationMap(this.userLocation);
+        this.userLocation===null?[10.276214, 36.759965]:this.userLocation;
+        await this.initializeNavigationMap(this.userLocation!);
         await this.createNavigationRoute();
         this.setupSimulatedLocationUpdates();
       } else {

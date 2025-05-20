@@ -27,9 +27,9 @@
     <div class="bg-white dark:bg-slate-800 shadow-sm z-10 px-2 py-3">
       <div class="flex justify-between items-center">
         <div class="flex items-center space-x-3">
-          <button mat-icon-button (click)="toggleSidebar()" class="ml-10 sm:ml-auto">
+          <button mat-icon-button (click)="toggleSidebar()" class="ml-10 md:ml-auto">
             <mat-icon [svgIcon]="
-                !isSidebarOpen ? 'mat_solid:menu_open' : 'heroicons_solid:plus'
+                isSidebarOpen ? 'mat_solid:menu_open' : 'heroicons_solid:plus'
               "></mat-icon>
           </button>
           <div class="flex items-center space-x-2">
@@ -247,7 +247,7 @@
         MatTooltip="Show route overview">
         <mat-icon>map</mat-icon>
       </button>
-      @if(distanceToNextStop < 0.05){ <button mat-icon-button color="primary" (click)="completeCurrentStop()"
+      @if(distanceToNextStop < 0.07){ <button mat-icon-button color="primary" (click)="completeCurrentStop()"
         aria-label="Mark as complete" MatTooltip="Mark as complete">
         <mat-icon>check_circle</mat-icon>
         </button>

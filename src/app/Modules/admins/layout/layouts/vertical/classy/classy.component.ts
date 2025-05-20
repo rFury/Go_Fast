@@ -61,7 +61,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   protected _userService = inject(UserService);
   protected _sideNavService = inject(SideNavService);
   private _cdr = inject(ChangeDetectorRef);
-  protected _locationService = inject(LocationService);
   protected _locationWebService = inject(LocationWebService);
   private _ngZone = inject(NgZone);
   private _notifService = inject(FirebaseNotification);
@@ -164,9 +163,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     if (this._positionInterval) {
       clearInterval(this._positionInterval);
     }
-    // Unregister agent
-    this._locationService.unsubscribeFromAgent(this.user?._id!);
-    this._locationService.diconnect();
 
     // Existing cleanup
     this._unsubscribeAll.next(null);

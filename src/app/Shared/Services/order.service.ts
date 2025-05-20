@@ -59,4 +59,10 @@ export class OrderService {
   deliverOrder(order: Order): Observable<null> {
     return this.http.put<null>(`${this.endpoint}/${order._id}/deliver`,{});
   }
+  activateOrder(orderId: string): Observable<boolean> {
+    return this.http.put<boolean>(`${this.endpoint}/${orderId}/activate`,{});
+  }
+  deactivateOrder(orderId: string): Observable<boolean> {
+    return this.http.put<boolean>(`${this.endpoint}/${orderId}/deactivate`,{});
+  }
 }

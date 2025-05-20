@@ -4,8 +4,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatRippleModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatTabsModule } from '@angular/material/tabs';
-import { CardComponent } from '../../../../Shared/Components/card/card.component';
+import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Order } from '../../../../Shared/Models/Order.model';
 import { MapService } from '../../../../Shared/Services/map.service';
@@ -23,6 +22,7 @@ import {
   listOrderStatus,
 } from '../../../../Shared/enums/status.enums';
 import { OrderDetailsCardComponent } from '../../../../Shared/Components/order details/order.details.component';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-orders',
@@ -40,6 +40,7 @@ import { OrderDetailsCardComponent } from '../../../../Shared/Components/order d
     NgClass,
     MatSelectModule,
     OrderDetailsCardComponent,
+    MatProgressSpinnerModule
   ],
   animations: Animations,
   templateUrl: './orders.component.html',
@@ -65,6 +66,7 @@ import { OrderDetailsCardComponent } from '../../../../Shared/Components/order d
   providers: [DatePipe],
 })
 export class OrdersComponent implements OnInit {
+  Loading=false;
   details: boolean = true;
   map: mapboxgl.Map;
   private _mapService = inject(MapService);
@@ -104,6 +106,7 @@ export class OrdersComponent implements OnInit {
     return this._datePipe.transform(date, 'HH:mm')!;
   }
   getOrders(status: string = ''): void {
+    this.Loading=true;
     console.log(status);
     this._orderService
       .getOrders(
@@ -121,6 +124,9 @@ export class OrdersComponent implements OnInit {
             this.selectOrder(this.Orders[0]._id!, true);
           }
           this.max = res.total;
+        },
+        complete: () => {
+          this.Loading=false;
         },
       });
   }
@@ -319,5 +325,18 @@ export class OrdersComponent implements OnInit {
   canceled(order: Order) {
     this.Order = order;
     this._cdr.detectChanges();
+  }
+  onTabChange(event: MatTabChangeEvent) {
+    switch (event.index) {
+      case 0:
+        this.getOrders();                                // All
+        break;
+      case 1:
+        this.getOrders('pending,assigned,picked-up');    // Active
+        break;
+      case 2:
+        this.getOrders('delivered,returned,canceled');   // Completed
+        break;
+    }
   }
 }
