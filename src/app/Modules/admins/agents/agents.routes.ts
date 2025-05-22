@@ -4,7 +4,7 @@ import { OrdersComponent } from './orders/orders.component';
 import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 import { agentGuard } from '../../../Shared/Guards/agent.guard';
 import { SettingsComponent } from '../../../Shared/Components/settings/settings.component';
-
+import chatRoutes from '../../../Shared/Components/chat/chat.routes';
 
 export default [
   {
@@ -23,6 +23,10 @@ export default [
         path: 'settings',
         component:SettingsComponent,
       }, 
+      {
+        path: 'chat',
+        loadChildren:()=>chatRoutes,
+      },
     ],
   }
 ] satisfies Route[];

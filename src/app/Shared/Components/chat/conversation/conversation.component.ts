@@ -1,0 +1,146 @@
+import { TextFieldModule } from '@angular/cdk/text-field';
+import { DatePipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { RouterLink } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { ContactInfoComponent } from '../contact-info/contact-info.component';
+import { Chat } from '../../../Models/chat.types';
+import { ChatService } from '../chat.service';
+import { FuseMediaWatcherService } from '../../../Services/media-watcher/media-watcher.service';
+import { UserService } from '../../../Services/user.service';
+@Component({
+    selector       : 'chat-conversation',
+    templateUrl    : './conversation.component.html',
+    encapsulation  : ViewEncapsulation.None,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    standalone     : true,
+    imports        : [NgIf, MatSidenavModule, ContactInfoComponent, MatButtonModule, RouterLink, MatIconModule, MatMenuModule, NgFor, NgClass, NgTemplateOutlet, MatFormFieldModule, MatInputModule, TextFieldModule, DatePipe],
+})
+export class ConversationComponent implements OnInit, OnDestroy
+{
+    @ViewChild('messageInput') messageInput: ElementRef;
+    chat: Chat;
+    drawerMode: 'over' | 'side' = 'side';
+    drawerOpened: boolean = false;
+    private _unsubscribeAll: Subject<any> = new Subject<any>();
+    myId: string;
+
+
+    constructor(
+        private _changeDetectorRef: ChangeDetectorRef,
+        private _chatService: ChatService,
+        private _fuseMediaWatcherService: FuseMediaWatcherService,
+        private _ngZone: NgZone,
+        private _userService: UserService
+    )
+    {
+    }
+
+    @HostListener('input')
+    @HostListener('ngModelChange')
+    private _resizeMessageInput(): void
+    {
+        // This doesn't need to trigger Angular's change detection by itself
+        this._ngZone.runOutsideAngular(() =>
+        {
+            setTimeout(() =>
+            {
+                // Set the height to 'auto' so we can correctly read the scrollHeight
+                this.messageInput.nativeElement.style.height = 'auto';
+
+                // Detect the changes so the height is applied
+                this._changeDetectorRef.detectChanges();
+
+                // Get the scrollHeight and subtract the vertical padding
+                this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
+
+                // Detect the changes one more time to apply the final height
+                this._changeDetectorRef.detectChanges();
+            });
+        });
+    }
+
+    ngOnInit(): void
+    {
+        this.myId = this._userService.user()!._id!;
+        // Chat
+        this._chatService.chat$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((chat: Chat | null) =>
+            {
+                this.chat = chat!;
+
+                // Mark for check
+                this._changeDetectorRef.markForCheck();
+            });
+
+        // Subscribe to media changes
+        this._fuseMediaWatcherService.onMediaChange$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(({matchingAliases}) =>
+            {
+                // Set the drawerMode if the given breakpoint is active
+                if ( matchingAliases.includes('lg') )
+                {
+                    this.drawerMode = 'side';
+                }
+                else
+                {
+                    this.drawerMode = 'over';
+                }
+
+                // Mark for check
+                this._changeDetectorRef.markForCheck();
+            });
+    }
+
+    ngOnDestroy(): void
+    {
+        // Unsubscribe from all subscriptions
+        this._unsubscribeAll.next(null);
+        this._unsubscribeAll.complete();
+    }
+
+    openContactInfo(): void
+    {
+        // Open the drawer
+        this.drawerOpened = true;
+
+        // Mark for check
+        this._changeDetectorRef.markForCheck();
+    }
+
+    resetChat(): void
+    {
+        this._chatService.resetChat();
+
+        // Close the contact info in case it's opened
+        this.drawerOpened = false;
+
+        // Mark for check
+        this._changeDetectorRef.markForCheck();
+    }
+
+    toggleMuteNotifications(): void
+    {
+        // Ensure this.chat.muted is a Map<string, boolean>
+        const userId = this._userService.user()!._id; // Assuming you have access to the current user's id
+
+        if (!this.chat.muted) {
+            this.chat.muted = new Map<string, boolean>();
+        }
+
+        // Toggle the muted state for the current user
+        const isMuted = this.chat.muted.get(userId!) ?? false;
+        this.chat.muted.set(userId!, !isMuted);
+
+        // Update the chat on the server
+        this._chatService.updateChat(this.chat._id!, this.chat).subscribe();
+    }
+}

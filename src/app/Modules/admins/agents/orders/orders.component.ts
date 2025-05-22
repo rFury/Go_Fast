@@ -29,6 +29,7 @@ import { RouteService } from '../../../../Shared/Services/Journey.service';
 import { Routes } from '../../../../Shared/Models/Routes.model';
 import { LocationService } from '../../../../Shared/Services/agent-location.service';
 import { OrderService } from '../../../../Shared/Services/order.service';
+import { MessagesComponent } from "../../../../Shared/Components/messages/messages.component";
 
 
 interface RouteStop {
@@ -62,7 +63,8 @@ interface NavigationStep {
     MatProgressSpinnerModule,
     OrderDetailsCardComponent,
     CompactComponent,
-  ],
+    MessagesComponent
+],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
 })

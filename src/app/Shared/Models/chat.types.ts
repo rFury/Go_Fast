@@ -1,0 +1,39 @@
+import { User } from "./User.model";
+
+interface Attachment {
+    _id?: string;
+    type: 'media' | 'doc' | 'link';
+    url: string;
+    name?: string;
+    size?: number;
+    mimeType?: string;
+    uploadedBy: User;
+    uploadedAt: Date;
+  }
+  
+  interface Message {
+    _id?: string;
+    chatId?: string;
+    senderId: User;
+    content: string;
+    attachments: Attachment[];
+    read: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+  
+export interface Chat {
+    _id?: string;
+    contact: User;
+    lastMessage?: Message;
+    unreadCount: number;
+    muted: Map<string, boolean>;
+    sharedAttachments: {
+      attachment: Attachment;
+      sharedBy: User;
+      sharedAt: Date;
+    }[];
+    createdAt: Date;
+    updatedAt: Date;
+    messages: Message[];
+  }
