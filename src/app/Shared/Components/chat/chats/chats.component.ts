@@ -7,13 +7,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink, RouterOutlet } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, filter, take, switchMap, tap, throwError } from 'rxjs';
 import { Chat } from '../../../Models/chat.types';
 import { ChatService } from '../chat.service';
 import { NewChatComponent } from '../new-chat/new-chat.component';
 import { User } from '../../../Models/User.model';
 import { UserService } from '../../../Services/user.service';
 import { EmptyConversationComponent } from '../empty-conversation/empty-conversation.component';
+import { Agent } from '../../../Models/Agent.model';
 
 @Component({
     selector       : 'chat-chats',
@@ -25,60 +26,83 @@ import { EmptyConversationComponent } from '../empty-conversation/empty-conversa
 })
 export class ChatsComponent implements OnInit, OnDestroy
 {
-    chats: Chat[];
+    chats: Chat[] = [];
     drawerComponent: 'new-chat';
     drawerOpened: boolean = false;
-    filteredChats: Chat[];
-    selectedChat: Chat | null;
+    filteredChats: Chat[] = [];
+    selectedChat: Chat | null = null;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-    profile: User | null;
-
+    profile: User | Agent | null = null;
+    loading: boolean = true;
+    type: string = '';
 
     constructor(
         private _chatService: ChatService,
         private _changeDetectorRef: ChangeDetectorRef,
         private _userService: UserService
-    )
-    {
+    ) {}
 
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Lifecycle hooks
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * On init
-     */
     ngOnInit(): void
     {
-        this.profile = this._userService.user();
-        this._chatService.connect(this.profile!._id!);
+        console.log('ChatsComponent: Initializing...');
+        
+        // Wait for user initialization before proceeding
+        this._chatService.userInitialized$.pipe(
+            tap(initialized => console.log('ChatsComponent: User initialized status:', initialized)),
+            filter(initialized => initialized),
+            tap(() => console.log('ChatsComponent: User is initialized, proceeding...')),
+            take(1),
+            switchMap(() => {
+                console.log('ChatsComponent: Inside switchMap');
+                this.profile = this._userService.user();
+                console.log('ChatsComponent: User profile:', this.profile);
+                
+                if (!this.profile?._id) {
+                    console.error('ChatsComponent: No user ID available');
+                    return throwError(() => new Error('No user ID available'));
+                }
+                
+                this.type = this.profile.type || '';
+                console.log('ChatsComponent: Connecting to chat with user ID:', this.profile._id);
+                return this._chatService.connect(this.profile._id);
+            })
+        ).subscribe({
+            next: () => {
+                console.log('ChatsComponent: Successfully connected to chat');
+                this.loading = false;
+                this._changeDetectorRef.markForCheck();
+            },
+            error: (error) => {
+                console.error('ChatsComponent: Failed to initialize chat:', error);
+                this.loading = false;
+                this._changeDetectorRef.markForCheck();
+            },
+            complete: () => {
+                console.log('ChatsComponent: Initialization complete');
+            }
+        });
 
-        // Chats
+        // Subscribe to chats
         this._chatService.chats$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((chats: Chat[] | null) =>
-            {
+            .pipe(
+                tap(chats => console.log('ChatsComponent: Received chats update:', chats?.length || 0)),
+                takeUntil(this._unsubscribeAll)
+            )
+            .subscribe((chats: Chat[] | null) => {
                 this.chats = this.filteredChats = chats || [];
-
-                // Mark for check
                 this._changeDetectorRef.markForCheck();
             });
 
-
-        // Selected chat
+        // Subscribe to selected chat
         this._chatService.chat$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((chat: Chat | null) =>
-            {
-                this.selectedChat = chat || null;
-                console.log(this.selectedChat);
-
-                // Mark for check
+            .pipe(
+                tap(chat => console.log('ChatsComponent: Received chat update:', chat?._id)),
+                takeUntil(this._unsubscribeAll)
+            )
+            .subscribe((chat: Chat | null) => {
+                this.selectedChat = chat;
                 this._changeDetectorRef.markForCheck();
             });
-
     }
 
     /**

@@ -81,13 +81,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   Admin: boolean = false;
   Agent: boolean = false;
 
-  @HostListener('window:beforeunload', ['$event'])
-  onBeforeUnload(event: BeforeUnloadEvent) {
-    // Synchronous “offline” ping so the browser doesn’t cancel it
-    const url = `${this._userService.endpointUser}/status`;
-    const data = JSON.stringify({ status: 'not-visible' });
-    navigator.sendBeacon(url, data);
-  }
   async ngOnInit() {
     this.isLoading = true;
 

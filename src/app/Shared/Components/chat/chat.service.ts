@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, filter, map, Observable, of, switchMap, take, tap, throwError } from 'rxjs';
+import { ChangeDetectorRef, Injectable, inject   } from '@angular/core';
+import { BehaviorSubject, filter, map, Observable, of, switchMap, take, tap, throwError, firstValueFrom } from 'rxjs';
 import { Chat } from '../../Models/chat.types';
 import { environment } from '../../../../environments/environment';
 import { User } from '../../Models/User.model';
@@ -9,6 +9,7 @@ import { NotificationsService } from '../../../Modules/admins/layout/layouts/ver
 import type { Notification } from '../../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
 import type { Attachment, Message } from '../../Models/chat.types';
 import { UserService } from '../../Services/user.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({providedIn: 'root'})
 export class ChatService
@@ -17,29 +18,67 @@ export class ChatService
     private _chats: BehaviorSubject<Chat[] | null> = new BehaviorSubject<Chat[] | null>(null);
     private _contact: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
     private _contacts: BehaviorSubject<User[] | null> = new BehaviorSubject<User[] | null>(null);
-    private socket: Socket;
+    private socket: Socket | null = null;
     private currentUser: User | null = null;
+    private _userInitialized: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     private _notificationService = inject(NotificationsService);
 
     /**
      * Constructor
      */
-    constructor(private _httpClient: HttpClient, private _userService: UserService)
+    constructor(
+        private _httpClient: HttpClient, 
+        private _userService: UserService,
+        private _snackBar: MatSnackBar,
+    )
     {
+        console.log('ChatService: Initializing...');
+        this._userService.get().pipe(
+            tap(user => {
+                console.log('ChatService: Received user:', user);
+                if (!user) {
+                    console.error('ChatService: No user received from UserService');
+                    return;
+                }
+                this.currentUser = user;
+                console.log('ChatService: Setting user initialized to true');
+                this._userInitialized.next(true);
+                this.initializeSocket();
+            })
+        ).subscribe({
+            error: (error) => {
+                console.error('ChatService: Error getting user:', error);
+                this._snackBar.open('Failed to initialize chat: User not available', 'Close', {
+                    duration: 3000,
+                    horizontalPosition: 'end',
+                    verticalPosition: 'top',
+                });
+            }
+        });
+    }
+
+    private initializeSocket(): void {
+        console.log('ChatService: Initializing socket...');
+        if (!this.currentUser) {
+            console.error('ChatService: Cannot initialize socket - no current user');
+            return;
+        }
+
         this.socket = io('http://localhost:3000/chat', {
             transports: ['websocket'],
             path: '/socket.io',
             withCredentials: true,
+            auth: { userId: this.currentUser._id }
         });
 
+        console.log('ChatService: Socket created, setting up listeners');
         this.setupSocketListeners();
-        this.initializeUser();
     }
 
-    private async initializeUser(): Promise<void>
-    {
-        this.currentUser = await this._userService.user();
+    // Add a getter for user initialization status
+    get userInitialized$(): Observable<boolean> {
+        return this._userInitialized.asObservable();
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -92,31 +131,32 @@ export class ChatService
 
     private setupSocketListeners(): void
     {
-        this.socket.on('connect', () =>
+        console.log('setupSocketListeners');
+        this.socket?.on('connect', () =>
         {
             console.log('Connected to chat namespace');
         });
 
-        this.socket.on('disconnect', () =>
+        this.socket?.on('disconnect', () =>
         {
             console.log('Disconnected from chat namespace');
         });
 
-        this.socket.on('error', (error: { message: string }) =>
+        this.socket?.on('error', (error: { message: string }) =>
         {
             console.error('Socket error:', error.message);
         });
 
-        this.socket.on('new-message', (message: Message) =>
+        this.socket?.on('new-message', (message: Message) =>
         {
             this.handleNewMessage(message);
         });
 
-        this.socket.on('chat-update', (update: { chatId: string; lastMessage: Message; unreadCount: number }) => {
+        this.socket?.on('chat-update', (update: { chatId: string; lastMessage: Message; unreadCount: number }) => {
             this.handleChatUpdate(update);
         });
 
-        this.socket.on('messages-read', (data: { chatId: string; readBy: string }) => {
+        this.socket?.on('messages-read', (data: { chatId: string; readBy: string }) => {
             this.handleMessagesRead(data);
         });
     }
@@ -223,54 +263,59 @@ export class ChatService
         });
     }
 
-    async connect(userId: string): Promise<void>
-    {
-        if (!this.currentUser)
-        {
-            await this.initializeUser();
+    // Modify connect method to wait for user initialization
+    async connect(userId: string): Promise<void> {
+        console.log('ChatService: Connecting with userId:', userId);
+        if (!this._userInitialized.value) {
+            console.log('ChatService: Waiting for user initialization...');
+            await firstValueFrom(this._userInitialized.pipe(
+                filter(initialized => initialized)
+            ));
+            console.log('ChatService: User initialization complete');
         }
 
-        if (!this.socket.connected)
-        {
-            this.socket.auth = { userId };
-            this.socket.connect();
+        if (!this.socket?.connected) {
+            console.log('ChatService: Connecting socket...');
+            this.socket?.connect();
         }
 
+        console.log('ChatService: Registering user...');
         await this.registerUser(userId);
+        console.log('ChatService: User registered successfully');
     }
 
     disconnect(): void
     {
-        if (this.socket.connected)
+        if (this.socket?.connected)
         {
             this.socket.disconnect();
         }
     }
 
-    private async registerUser(userId: string): Promise<void>
-    {
-        if (this.socket.connected)
-        {
-            return new Promise((resolve, reject) =>
-            {
-                this.socket.emit('register-user', userId, (response: { success: boolean; error?: string }) =>
-                {
-                    if (response.success)
-                    {
-                        resolve();
-                    }
-                    else
-                    {
-                        reject(new Error(response.error || 'Failed to register user'));
-                    }
-                });
-            });
+    private async registerUser(userId: string): Promise<void> {
+        console.log('ChatService: Registering user:', userId);
+        if (!this.socket?.connected) {
+            console.error('ChatService: Cannot register user - socket not connected');
+            throw new Error('Socket not connected');
         }
+
+        return new Promise((resolve, reject) => {
+            console.log('ChatService: Emitting register-user event');
+            this.socket!.emit('register-user', userId, (response: { success: boolean; error?: string }) => {
+                if (response.success) {
+                    console.log('ChatService: User registration successful');
+                    resolve();
+                } else {
+                    console.error('ChatService: User registration failed:', response.error);
+                    reject(new Error(response.error || 'Failed to register user'));
+                }
+            });
+        });
     }
 
     joinChat(chatId: string): void
     {
-        if (this.socket.connected)
+        if (this.socket?.connected)
         {
             this.socket.emit('join-chat', chatId);
         }
@@ -278,7 +323,7 @@ export class ChatService
 
     leaveChat(chatId: string): void
     {
-        if (this.socket.connected)
+        if (this.socket?.connected)
         {
             this.socket.emit('leave-chat', chatId);
             this.chat$.pipe(take(1)).subscribe(currentChat =>
@@ -294,9 +339,16 @@ export class ChatService
         }
     }
 
-    sendMessage(chatId: string, content: string, attachments?: Attachment[]): void
-    {
-        if (!this.socket.connected || !this.currentUser) return;
+    // Modify sendMessage to check for socket and user
+    sendMessage(chatId: string, content: string, attachments?: Attachment[]): void {
+        if (!this.socket?.connected || !this.currentUser) {
+            this._snackBar.open('Cannot send message: Not connected to chat server', 'Close', {
+                duration: 3000,
+                horizontalPosition: 'end',
+                verticalPosition: 'top',
+            });
+            return;
+        }
 
         const message: Partial<Message> = {
             content,
@@ -308,33 +360,36 @@ export class ChatService
             attachments
         };
 
-        this.socket.emit('send-message', { chatId, content, attachments });
+        this.socket.emit('send-message', { chatId, content, attachments }, (response: { success: boolean; error?: string }) => {
+            if (response.success) {
+                // Update UI only after successful message send
+                this.chat$.pipe(take(1)).subscribe(chat => {
+                    if (chat && chat._id === chatId) {
+                        const updatedChat = {
+                            ...chat,
+                            messages: [...(chat.messages || []), message as Message],
+                            lastMessage: message as Message
+                        };
+                        this._chat.next(updatedChat);
 
-        // Optimistically update UI
-        this.chat$.pipe(take(1)).subscribe(chat =>
-        {
-            if (chat && chat._id === chatId)
-            {
-                const updatedChat = {
-                    ...chat,
-                    messages: [...(chat.messages || []), message as Message],
-                    lastMessage: message as Message
-                };
-                this._chat.next(updatedChat);
-
-                // Update chat in chats list
-                this.chats$.pipe(take(1)).subscribe(chats =>
-                {
-                    if (chats)
-                    {
-                        const index = chats.findIndex(c => c._id === chatId);
-                        if (index >= 0)
-                        {
-                            const updatedChats = [...chats];
-                            updatedChats[index] = updatedChat;
-                            this._chats.next(updatedChats);
-                        }
+                        // Update chat in chats list
+                        this.chats$.pipe(take(1)).subscribe(chats => {
+                            if (chats) {
+                                const index = chats.findIndex(c => c._id === chatId);
+                                if (index >= 0) {
+                                    const updatedChats = [...chats];
+                                    updatedChats[index] = updatedChat;
+                                    this._chats.next(updatedChats);
+                                }
+                            }
+                        });
                     }
+                });
+            } else {
+                this._snackBar.open(`Failed to send message: ${response.error || 'Unknown error'}`, 'Close', {
+                    duration: 3000,
+                    horizontalPosition: 'end',
+                    verticalPosition: 'top',
                 });
             }
         });
@@ -342,7 +397,7 @@ export class ChatService
 
     markMessagesAsRead(chatId: string): void
     {
-        if (this.socket.connected)
+        if (this.socket?.connected)
         {
             this.socket.emit('mark-read', { chatId });
         }

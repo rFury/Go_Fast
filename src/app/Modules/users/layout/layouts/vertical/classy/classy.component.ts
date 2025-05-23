@@ -18,6 +18,7 @@ import { SideNavService } from '../../../../../../Shared/Services/sideNav.servic
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from '../../../../../../Shared/Components/notification-prompt/notification.service';
 import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
+import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
 
 
 @Component({
@@ -48,13 +49,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
     )
     {
     }
-
-    @HostListener('window:beforeunload', ['$event'])
-    onBeforeUnload(event: BeforeUnloadEvent) {
-      const url = `${this._userService.endpointUser}/status`;
-      const data = JSON.stringify({ status: 'not-visible' });
-      navigator.sendBeacon(url, data);
-    }
     async ngOnInit()
     {
         this.isLoading=false;
@@ -74,7 +68,20 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
             icon: 'heroicons_outline:plus',
             link: '/new-order'
         }
-        this.navigation = [newOrder,Orders]
+        const divider:FuseNavigationItem={
+            id: 'divider',
+            title: '',
+            type: 'divider',
+
+        }
+        const chat:FuseNavigationItem={
+            id: 'chat',
+            title: 'Chat',
+            type: 'basic',
+            icon: 'heroicons_outline:chat-bubble-bottom-center-text',
+            link: '/chat'
+        }
+        this.navigation = [newOrder,Orders,divider,chat]
 
         this._userService.get().subscribe({
             next: (res) => {

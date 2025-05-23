@@ -20,6 +20,7 @@ export class UserService {
   endpointClient = `${environment.api}/clients`;
   endpointAgent = `${environment.api}/agents`;
   _user = signal<User | Client | Agent | null>(null);
+  user$$ = new BehaviorSubject<User | Client | Agent | null>(null);
   private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
   features=signal<FeatureAuth[] | null>(null);
@@ -81,7 +82,7 @@ export class UserService {
   get(): Observable<User | Agent | Client> {
     return this.http.get<User>(`${this.endpointUser}/me`).pipe(
       tap((user)=>{
-        if(user.type === "client"){
+        if(user.type === "client"){          
           this._user.set(user as Client);
         }else if(user.type === "agent"){
           this._user.set(user as Agent);

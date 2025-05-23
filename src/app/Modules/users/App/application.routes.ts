@@ -3,7 +3,7 @@ import { ApplicationComponent } from './application.component';
 import { NewOrderComponent } from './new-order/new-order.component';
 import ordersRoutes from './orders/orders.routes';
 import { SettingsComponent } from '../../../Shared/Components/settings/settings.component';
-
+import chatRoutes from '../../../Shared/Components/chat/chat.routes';
 
 
 export default [
@@ -32,6 +32,10 @@ export default [
       {
         path: 'settings',
         component:SettingsComponent,
+      },
+      {
+        path: 'chat',
+        loadChildren:()=>chatRoutes,
       },   
     ],
   }

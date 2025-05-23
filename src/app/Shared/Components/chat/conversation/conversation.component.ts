@@ -8,7 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, filter, take, tap } from 'rxjs';
 import { ContactInfoComponent } from '../contact-info/contact-info.component';
 import { Chat, Message } from '../../../Models/chat.types';
 import { ChatService } from '../chat.service';
@@ -20,16 +20,17 @@ import { UserService } from '../../../Services/user.service';
     encapsulation  : ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     standalone     : true,
-    imports        : [NgIf, MatSidenavModule, ContactInfoComponent, MatButtonModule, RouterLink, MatIconModule, MatMenuModule, NgFor, NgClass, NgTemplateOutlet, MatFormFieldModule, MatInputModule, TextFieldModule, DatePipe],
+    imports        : [NgIf, MatSidenavModule, ContactInfoComponent, MatButtonModule, RouterLink, MatIconModule, MatMenuModule, NgClass, NgTemplateOutlet, MatFormFieldModule, MatInputModule, TextFieldModule, DatePipe],
 })
 export class ConversationComponent implements OnInit, OnDestroy
 {
     @ViewChild('messageInput') messageInput: ElementRef;
-    chat: Chat;
+    chat: Chat | null = null;
     drawerMode: 'over' | 'side' = 'side';
     drawerOpened: boolean = false;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
-    myId: string;
+    myId: string | null = null;
+    loading: boolean = true;
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -67,39 +68,38 @@ export class ConversationComponent implements OnInit, OnDestroy
 
     ngOnInit(): void
     {        
-        this.myId = this._userService.user()?._id!;
-        // Chat
+        // Wait for user initialization before proceeding
+        this._chatService.userInitialized$.pipe(
+            filter(initialized => initialized),
+            take(1),
+            tap(() => {
+                this.myId = this._userService.user()?._id || null;
+                this.loading = false;
+                this._changeDetectorRef.markForCheck();
+            })
+        ).subscribe();
+
+        // Subscribe to chat updates
         this._chatService.chat$
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((chat: Chat | null) =>
-            {
-                this.chat = chat!;
-                this.chat.messages = this.chat.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                console.log(this.chat);
-                
-                // Mark for check
-                this._changeDetectorRef.markForCheck();
+            .subscribe((chat: Chat | null) => {
+                if (chat) {
+                    this.chat = chat;
+                    this.chat.messages = this.chat.messages.sort((a, b) => 
+                        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                    );
+                    this._chatService.joinChat(this.chat._id!);
+                    this._changeDetectorRef.markForCheck();
+                }
             });
 
         // Subscribe to media changes
         this._fuseMediaWatcherService.onMediaChange$
             .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(({matchingAliases}) =>
-            {
-                // Set the drawerMode if the given breakpoint is active
-                if ( matchingAliases.includes('lg') )
-                {
-                    this.drawerMode = 'side';
-                }
-                else
-                {
-                    this.drawerMode = 'over';
-                }
-
-                // Mark for check
+            .subscribe(({matchingAliases}) => {
+                this.drawerMode = matchingAliases.includes('lg') ? 'side' : 'over';
                 this._changeDetectorRef.markForCheck();
             });
-            
     }
 
     ngOnDestroy(): void
@@ -131,8 +131,10 @@ export class ConversationComponent implements OnInit, OnDestroy
 
     toggleMuteNotifications(): void
     {
-        // Ensure this.chat.muted is a Map<string, boolean>
-        const userId = this._userService.user()!._id; // Assuming you have access to the current user's id
+        if (!this.chat?._id || !this._userService.user()?._id) return;
+
+        const userId = this._userService.user()!._id;
+        const chatId = this.chat._id as string;
 
         if (!this.chat.muted) {
             this.chat.muted = new Map<string, boolean>();
@@ -143,14 +145,17 @@ export class ConversationComponent implements OnInit, OnDestroy
         this.chat.muted.set(userId!, !isMuted);
 
         // Update the chat on the server
-        this._chatService.updateChat(this.chat._id!, this.chat).subscribe();
+        this._chatService.updateChat(chatId, { muted: this.chat.muted }).subscribe();
     }
 
     sendMessage(): void
     {
-        console.log(this.messageInput.nativeElement.value);
+        const chatId = this.chat?._id;
+        const messageContent = this.messageInput?.nativeElement?.value?.trim();
         
-        this._chatService.sendMessage(this.chat._id!, this.messageInput.nativeElement.value);
+        if (!chatId || !messageContent) return;
+        
+        this._chatService.sendMessage(chatId as string, messageContent as string);
         this.messageInput.nativeElement.value = '';
     }
 }
