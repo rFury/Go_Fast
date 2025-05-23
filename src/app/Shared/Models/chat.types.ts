@@ -1,6 +1,6 @@
 import { User } from "./User.model";
 
-interface Attachment {
+export interface Attachment {
     _id?: string;
     type: 'media' | 'doc' | 'link';
     url: string;
@@ -11,10 +11,10 @@ interface Attachment {
     uploadedAt: Date;
   }
   
-  interface Message {
+  export interface Message {
     _id?: string;
     chatId?: string;
-    senderId: User;
+    senderId: string;
     content: string;
     attachments: Attachment[];
     read: boolean;

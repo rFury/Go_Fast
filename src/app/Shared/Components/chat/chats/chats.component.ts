@@ -52,6 +52,9 @@ export class ChatsComponent implements OnInit, OnDestroy
      */
     ngOnInit(): void
     {
+        this.profile = this._userService.user();
+        this._chatService.connect(this.profile!._id!);
+
         // Chats
         this._chatService.chats$
             .pipe(takeUntil(this._unsubscribeAll))
@@ -76,7 +79,6 @@ export class ChatsComponent implements OnInit, OnDestroy
                 this._changeDetectorRef.markForCheck();
             });
 
-        this.profile = this._userService.user();
     }
 
     /**

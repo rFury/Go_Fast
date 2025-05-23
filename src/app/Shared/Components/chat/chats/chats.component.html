@@ -23,7 +23,7 @@
                     <div class="flex items-center">
                         <div class="flex items-center mr-1 cursor-pointer">
                             <div class="w-10 h-10">
-                                @if(profile.avatar){
+                                @if(profile?.avatar){
                                 <img class="object-cover w-full h-full rounded-full object-cover" [src]="profile.avatar"
                                     alt="Profile avatar" />
                                 } @else{
@@ -42,7 +42,7 @@
                             <mat-icon [svgIcon]="'heroicons_outline:ellipsis-vertical'"></mat-icon>
                             <mat-menu #chatsHeaderMenu>
                                 <button mat-menu-item>
-                                    <mat-icon [svgIcon]="'heroicons_outline-group'"></mat-icon>
+                                    <mat-icon [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
                                     New group
                                 </button>
                                 <button mat-menu-item>
@@ -50,7 +50,7 @@
                                     Create a room
                                 </button>
                                 <button mat-menu-item>
-                                    <mat-icon [svgIcon]="'heroicons_outline-circle'"></mat-icon>
+                                    <mat-icon [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
                                     Profile
                                 </button>
                                 <button mat-menu-item>
@@ -83,10 +83,10 @@
                 <!-- Chats -->
                 <div class="flex-auto overflow-y-auto">
                     @if(filteredChats.length > 0){
-                    @for(chat of filteredChats; track chat._id){
+                    @for(chat of filteredChats; track chat){
                     <a class="z-20 flex items-center py-5 px-8 cursor-pointer border-b"
                         [ngClass]="{'hover:bg-gray-100 dark:hover:bg-hover': !selectedChat || selectedChat._id !== chat._id,
-                                                'bg-primary-50 dark:bg-hover': selectedChat && selectedChat._id === chat._id}" [routerLink]="[chat._id]">
+                                                    'bg-primary-50 dark:bg-hover': selectedChat && selectedChat._id === chat._id}" [routerLink]="[chat._id]">
                         <div class="relative flex flex-0 items-center justify-center w-10 h-10">
                             <ng-container *ngIf="chat.unreadCount > 0">
                                 <div class="absolute bottom-0 right-0 flex-0 w-2 h-2 -ml-0.5 rounded-full ring-2 ring-bg-card dark:ring-gray-900 bg-primary dark:bg-primary-500 text-on-primary"
@@ -143,7 +143,8 @@
             <!-- Conversation -->
             @if(chats && chats.length > 0){
             @if(selectedChat){
-            <div class="z-999 absolute left-0 sm:left-80 md:left-100 w-full sm:w-[calc(100vw-320px)] md:w-[calc(100vw-480px)] border-l">
+            <div
+                class="z-999 absolute left-0 sm:left-80 md:left-100 w-full sm:w-[calc(100vw-320px)] md:w-[calc(100vw-480px)] border-l">
                 <router-outlet></router-outlet>
             </div>
             }

@@ -11,12 +11,10 @@ const conversationResolver = (route: ActivatedRouteSnapshot, state: RouterStateS
 {
     const chatService = inject(ChatService);
     const router = inject(Router);
-    console.log(route.paramMap.get('id'));
     return chatService.getChatById(route.paramMap.get('id')!).pipe(
         catchError((error) =>
         {
             console.error(error);
-
             const parentUrl = state.url.split('/').slice(0, -1).join('/');
 
             router.navigateByUrl(parentUrl);

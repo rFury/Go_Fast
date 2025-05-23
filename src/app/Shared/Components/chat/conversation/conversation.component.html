@@ -35,7 +35,8 @@
                         </div>
                         }
                     </div>
-                    <div class="ml-4 text-lg font-medium leading-5 truncate">{{chat.contact.first_name}} {{chat.contact.last_name}}</div>
+                    <div class="ml-4 text-lg font-medium leading-5 truncate">{{chat.contact.first_name}}
+                        {{chat.contact.last_name}}</div>
                 </div>
 
                 <button class="ml-auto" mat-icon-button [matMenuTriggerFor]="conversationHeaderMenu">
@@ -78,52 +79,53 @@
             <!-- Conversation -->
             <div class="flex flex-auto overflow-y-auto flex-col-reverse">
                 @if(chat.messages && chat.messages.length > 0){
-                    <div class="flex flex-col flex-auto shrink p-6 bg-card dark:bg-transparent">
-                        @for(message of chat.messages; track message._id; let i = $index; let first = $first; let last =
-                        $last;){
-                        <!-- Start of the day -->
-                        <ng-container
-                            *ngIf="first || (chat.messages[i - 1].createdAt | date:'d') !== (message.createdAt | date:'d')">
-                            <div class="flex items-center justify-center my-3 -mx-6">
-                                <div class="flex-auto border-b"></div>
-                                <div class="flex-0 mx-4 text-sm font-medium leading-5 text-secondary">
-                                    {{message.createdAt | date: 'longDate'}}
-                                </div>
-                                <div class="flex-auto border-b"></div>
-                            </div>
-                        </ng-container>
-                        <div class="flex flex-col" [ngClass]="{'items-end': message.senderId._id==myId,
-                                                'items-start': !(message.senderId._id==myId),
-                                                'mt-0.5': i > 0 && (chat.messages[i - 1].senderId._id==myId) === (message.senderId._id==myId),
-                                                'mt-3': i > 0 && (chat.messages[i - 1].senderId._id==myId) !== (message.senderId._id==myId)}">
-                            <!-- Bubble -->
-                            <div class="relative max-w-3/4 px-3 py-2 rounded-lg" [ngClass]="{'bg-blue-500 text-blue-50': message.senderId._id==myId,
-                                                    'bg-gray-500 text-gray-50': !(message.senderId._id==myId)}">
-                                <!-- Speech bubble tail -->
-                                <ng-container *ngIf="last || (chat.messages[i + 1].senderId._id==myId) !== (message.senderId._id==myId)">
-                                    <div class="absolute bottom-0 w-3"
-                                        [ngClass]="{'text-blue-500 -right-1 -mr-px mb-px': message.senderId._id==myId,
-                                                            'text-gray-500 -left-1 -ml-px mb-px -scale-x-1': !(message.senderId._id==myId)}">
-                                        <ng-container *ngTemplateOutlet="speechBubbleExtension"></ng-container>
-                                    </div>
-                                </ng-container>
-                                <!-- Message -->
-                                <div class="min-w-4 leading-5" [innerHTML]="message.content">
-                                </div>
-                            </div>
-                            <!-- Time -->
-                            <ng-container *ngIf="first
-                                           || last
-                                           || (chat.messages[i + 1].senderId._id==myId) !== (message.senderId._id==myId)
-                                           || (chat.messages[i + 1].createdAt !== message.createdAt)">
-                                <div class="my-0.5 text-sm font-medium text-secondary" [ngClass]="{'mr-3': message.senderId._id==myId,
-                                                        'ml-3': !(message.senderId._id==myId)}">
-                                    {{message.createdAt | date:'HH:mm'}}
-                                </div>
-                            </ng-container>
+                <div class="flex flex-col flex-auto shrink p-6 bg-card dark:bg-transparent">
+                    @for(message of chat.messages; track message._id; let i = $index; let first = $first; let last =
+                    $last;){
+                    <!-- Start of the day -->
+                    @if(first || (chat.messages[i - 1].createdAt | date:'d') !== (message.createdAt | date:'d')){
+                    <div class="flex items-center justify-center my-3 -mx-6">
+                        <div class="flex-auto border-b"></div>
+                        <div class="flex-0 mx-4 text-sm font-medium leading-5 text-secondary">
+                            {{message.createdAt | date: 'longDate'}}
                         </div>
+                        <div class="flex-auto border-b"></div>
+                    </div>
+                    }
+                    <div class="flex flex-col"
+                        [ngClass]="{'items-end': message.senderId==myId,
+                                                'items-start': !(message.senderId==myId),
+                                                'mt-0.5': i > 0 && (chat.messages[i - 1].senderId==myId) === (message.senderId==myId),
+                                                'mt-3': i > 0 && (chat.messages[i - 1].senderId==myId) !== (message.senderId==myId)}">
+                        <!-- Bubble -->
+                        <div class="relative max-w-3/4 px-3 py-2 rounded-lg" [ngClass]="{'bg-blue-500 text-blue-50': message.senderId==myId,
+                                                    'bg-gray-500 text-gray-50': !(message.senderId==myId)}">
+                            <!-- Speech bubble tail -->
+                            @if(last || (chat.messages[i + 1].senderId==myId) !== (message.senderId==myId)){
+                            <div class="absolute bottom-0 w-3"
+                                [ngClass]="{'text-blue-500 -right-1 -mr-px mb-px': message.senderId==myId,
+                                                        'text-gray-500 -left-1 -ml-px mb-px -scale-x-1': !(message.senderId==myId)}">
+                                <ng-container *ngTemplateOutlet="speechBubbleExtension"></ng-container>
+                            </div>
+                            }
+                            <!-- Message -->
+                            <div class="min-w-4 leading-5" [innerHTML]="message.content">
+                            </div>
+                        </div>
+                        <!-- Time -->
+                        @if(first
+                        || last
+                        || (chat.messages[i + 1].senderId==myId) !== (message.senderId==myId)
+                        || (chat.messages[i + 1].createdAt !== message.createdAt)){
+                        <div class="my-0.5 text-sm font-medium text-secondary" [ngClass]="{'mr-3': message.senderId==myId,
+                                            'ml-3': !(message.senderId==myId)}">
+                            {{message.createdAt | date:'HH:mm'}}
+                        </div>
+
                         }
                     </div>
+                    }
+                </div>
                 }@else {
                 <div class="flex flex-auto flex-col items-center justify-center h-full">
                     <mat-icon class="icon-size-24"
@@ -148,8 +150,8 @@
                     <textarea matInput cdkTextareaAutosize #messageInput></textarea>
                 </mat-form-field>
                 <div class="flex items-center h-11 my-px ml-4">
-                    <button mat-icon-button>
-                        <mat-icon class="rotate-90" [svgIcon]="'heroicons_outline:paper-airplane'"></mat-icon>
+                    <button mat-icon-button (click)="sendMessage()">
+                        <mat-icon class="" [svgIcon]="'heroicons_outline:paper-airplane'"></mat-icon>
                     </button>
                 </div>
             </div>

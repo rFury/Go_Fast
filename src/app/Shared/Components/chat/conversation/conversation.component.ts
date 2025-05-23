@@ -1,6 +1,6 @@
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { DatePipe, NgClass, NgFor, NgIf, NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, HostListener, inject, NgZone, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,7 +10,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ContactInfoComponent } from '../contact-info/contact-info.component';
-import { Chat } from '../../../Models/chat.types';
+import { Chat, Message } from '../../../Models/chat.types';
 import { ChatService } from '../chat.service';
 import { FuseMediaWatcherService } from '../../../Services/media-watcher/media-watcher.service';
 import { UserService } from '../../../Services/user.service';
@@ -30,7 +30,6 @@ export class ConversationComponent implements OnInit, OnDestroy
     drawerOpened: boolean = false;
     private _unsubscribeAll: Subject<any> = new Subject<any>();
     myId: string;
-
 
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
@@ -67,15 +66,17 @@ export class ConversationComponent implements OnInit, OnDestroy
     }
 
     ngOnInit(): void
-    {
-        this.myId = this._userService.user()!._id!;
+    {        
+        this.myId = this._userService.user()?._id!;
         // Chat
         this._chatService.chat$
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((chat: Chat | null) =>
             {
                 this.chat = chat!;
-
+                this.chat.messages = this.chat.messages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                console.log(this.chat);
+                
                 // Mark for check
                 this._changeDetectorRef.markForCheck();
             });
@@ -98,6 +99,7 @@ export class ConversationComponent implements OnInit, OnDestroy
                 // Mark for check
                 this._changeDetectorRef.markForCheck();
             });
+            
     }
 
     ngOnDestroy(): void
@@ -142,5 +144,13 @@ export class ConversationComponent implements OnInit, OnDestroy
 
         // Update the chat on the server
         this._chatService.updateChat(this.chat._id!, this.chat).subscribe();
+    }
+
+    sendMessage(): void
+    {
+        console.log(this.messageInput.nativeElement.value);
+        
+        this._chatService.sendMessage(this.chat._id!, this.messageInput.nativeElement.value);
+        this.messageInput.nativeElement.value = '';
     }
 }
