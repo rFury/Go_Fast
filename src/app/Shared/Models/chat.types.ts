@@ -24,6 +24,7 @@ export interface Attachment {
   
 export interface Chat {
     _id?: string;
+    user: User;
     contact: User;
     lastMessage?: Message;
     unreadCount: number;

@@ -20,7 +20,6 @@ export class UserService {
   endpointClient = `${environment.api}/clients`;
   endpointAgent = `${environment.api}/agents`;
   _user = signal<User | Client | Agent | null>(null);
-  user$$ = new BehaviorSubject<User | Client | Agent | null>(null);
   private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
   features=signal<FeatureAuth[] | null>(null);
@@ -47,6 +46,7 @@ export class UserService {
           this.updateState('away').subscribe();
         }, 300000); // 5 minutes inactivity
     }
+    
 
   get user$(){
     return this._user()

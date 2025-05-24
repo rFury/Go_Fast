@@ -25,6 +25,7 @@ export default [
       }, 
       {
         path: 'chat',
+        
         loadChildren:()=>chatRoutes,
       },
     ],

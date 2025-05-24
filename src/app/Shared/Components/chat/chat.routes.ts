@@ -4,25 +4,24 @@ import { ChatService } from './chat.service';
 import { catchError, throwError } from 'rxjs';
 import { ChatComponent } from './chat.component';
 import { ChatsComponent } from './chats/chats.component';
-import { EmptyConversationComponent } from './empty-conversation/empty-conversation.component';
 import { ConversationComponent } from './conversation/conversation.component';
-
 const conversationResolver = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) =>
-{
-    const chatService = inject(ChatService);
-    const router = inject(Router);
-    return chatService.getChatById(route.paramMap.get('id')!).pipe(
-        catchError((error) =>
-        {
-            console.error(error);
-            const parentUrl = state.url.split('/').slice(0, -1).join('/');
+    {
+        const chatService = inject(ChatService);
+        const router = inject(Router);
+        return chatService.getChatById(route.paramMap.get('id')!).pipe(
+            catchError((error) =>
+            {
+                console.error(error);
+                const parentUrl = state.url.split('/').slice(0, -1).join('/');
+    
+                router.navigateByUrl(parentUrl);
+    
+                return throwError(error);
+            }),
+        );
+    };
 
-            router.navigateByUrl(parentUrl);
-
-            return throwError(error);
-        }),
-    );
-};
 
 export default [
     {
@@ -42,7 +41,7 @@ export default [
                         component: ConversationComponent,
                         resolve  : {
                             conversation: conversationResolver,
-                        },
+                        },  
                     },
                 ],
             },
