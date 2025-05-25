@@ -79,7 +79,11 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy
             title: 'Chat',
             type: 'basic',
             icon: 'heroicons_outline:chat-bubble-bottom-center-text',
-            link: '/chat'
+            link: '/chat',
+            badge: {
+                title: '1',
+                classes: 'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center'
+            }
         }
         this.navigation = [newOrder,Orders,divider,chat]
 

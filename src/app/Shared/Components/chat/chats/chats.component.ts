@@ -31,6 +31,7 @@ import { UserService } from '../../../Services/user.service';
 import { EmptyConversationComponent } from '../empty-conversation/empty-conversation.component';
 import { Agent } from '../../../Models/Agent.model';
 import { SuperAuthService } from '../../../Services/super-auth-service.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 @Component({
   selector: 'chat-chats',
   templateUrl: './chats.component.html',
@@ -50,6 +51,7 @@ import { SuperAuthService } from '../../../Services/super-auth-service.service';
     NgClass,
     RouterLink,
     RouterOutlet,
+    MatProgressSpinnerModule
   ],
 })
 export class ChatsComponent implements OnInit, OnDestroy {
@@ -75,46 +77,25 @@ export class ChatsComponent implements OnInit, OnDestroy {
     this.loading = true;
 
     // Wait for user initialization before proceeding
-    this._chatService.userInitialized$
-      .pipe(
-        tap((initialized) =>
-          console.log('ChatsComponent: User initialized status:', initialized)
-        ),
-        filter((initialized: boolean) => initialized),
-        tap(() =>
-          console.log('ChatsComponent: User is initialized, proceeding...')
-        ),
-        take(1),
-        switchMap(() => {
-          console.log('ChatsComponent: Inside switchMap');
-          this.profile = this._userService.user();
-          const _id: string = this._superAuthService.decodeToken()._id;
-          this.profile!._id = _id;
-          this._changeDetectorRef.markForCheck();
-          this.type = this.profile?.type || '';
-          console.log(
-            'ChatsComponent: Connecting to chat with user ID:',
-            this.profile?._id
-          );
-          return this._chatService.connect(this.profile?._id || '');
-        })
-      )
-      .subscribe({
-        next: () => {
-          console.log('ChatsComponent: Successfully connected to chat');
-          this.loading = false;
-          this._changeDetectorRef.markForCheck();
-        },
-        error: (error) => {
-          console.error('ChatsComponent: Failed to initialize chat:', error);
-          this.loading = false;
-          this._changeDetectorRef.markForCheck();
-        },
-        complete: () => {
-          console.log('ChatsComponent: Initialization complete');
-        },
+    this.profile = this._userService.user();
+    if(this.profile){
+      const _id: string = this._superAuthService.decodeToken()._id;
+      this.profile!._id = _id;
+      this._changeDetectorRef.markForCheck();
+      this.type = this.profile?.type || '';
+      this._chatService.connect(this.profile?._id);
+      this.loading = false;
+    }else{
+      this._userService.get().subscribe((user) => {
+        this.profile = user;
+        const _id: string = this._superAuthService.decodeToken()._id;
+        this.profile!._id = _id;
+        this._changeDetectorRef.markForCheck();
+        this.type = this.profile?.type || '';
+        this._chatService.connect(this.profile?._id);
+        this.loading = false;
       });
-
+    }
     // Subscribe to chats
     this._chatService.chats$
       .pipe(

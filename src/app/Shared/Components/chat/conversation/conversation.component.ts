@@ -26,13 +26,13 @@ import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterLink } from '@angular/router';
-import { Subject, takeUntil, filter, take, tap } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { ContactInfoComponent } from '../contact-info/contact-info.component';
-import { Chat, Message } from '../../../Models/chat.types';
+import { Chat } from '../../../Models/chat.types';
 import { ChatService } from '../chat.service';
 import { FuseMediaWatcherService } from '../../../Services/media-watcher/media-watcher.service';
-import { UserService } from '../../../Services/user.service';
 import { SuperAuthService } from '../../../Services/super-auth-service.service';
+import { PickerModule } from '@ctrl/ngx-emoji-mart';
 @Component({
   selector: 'chat-conversation',
   templateUrl: './conversation.component.html',
@@ -53,6 +53,68 @@ import { SuperAuthService } from '../../../Services/super-auth-service.service';
     MatInputModule,
     TextFieldModule,
     DatePipe,
+    PickerModule,
+  ],
+  styles: [
+    `
+      /* Add this CSS to your component's styles or global styles */
+
+      /* Fix emoji picker display issues */
+      emoji-mart {
+        .emoji-mart-bar {
+          border: none !important;
+        }
+
+        .emoji-mart-emoji {
+          cursor: pointer !important;
+        }
+
+        /* Ensure emoji images load properly */
+        .emoji-mart-emoji img {
+          width: 100% !important;
+          height: 100% !important;
+          display: block !important;
+        }
+
+        /* Fix for missing or broken emoji images */
+        .emoji-mart-emoji span {
+          font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+            'Noto Color Emoji', sans-serif !important;
+          font-size: 24px !important;
+          line-height: 1 !important;
+        }
+
+        /* Dark mode compatibility */
+        &.emoji-mart-dark {
+          background: #2d3748 !important;
+          border: 1px solid #4a5568 !important;
+        }
+      }
+
+      /* Alternative: Force native emoji display if sheet images fail */
+      .emoji-mart-emoji img {
+        display: none !important;
+      }
+
+      .emoji-mart-emoji span {
+        display: inline-block !important;
+        font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+          'Noto Color Emoji', sans-serif !important;
+        font-size: 24px !important;
+        line-height: 1 !important;
+      }
+
+      /* Fix positioning issues */
+      .emoji-mart-bar:first-child {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+      }
+
+      .emoji-mart-scroll {
+        max-height: 200px;
+        overflow-y: auto;
+      }
+    `,
   ],
 })
 export class ConversationComponent implements OnInit, OnDestroy {
@@ -60,10 +122,20 @@ export class ConversationComponent implements OnInit, OnDestroy {
   chat: Chat | null = null;
   drawerMode: 'over' | 'side' = 'side';
   drawerOpened: boolean = false;
+  joinedChat: boolean = false;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
   myId: string | null = null;
   loading: boolean = true;
   private _inactivityTimeout: any;
+  showEmojiPicker: boolean = false; // Add this property
+  emojiTitle = 'Choose an emoji';
+  emojiBackgroundImageFn = (set: string, sheetSize: number) => {
+    // Option A: Use CDN (recommended)
+    return `https://cdn.jsdelivr.net/npm/emoji-datasource-${set}@15.0.1/img/${set}/sheets-256/${sheetSize}.png`;
+
+    // Option B: If you have local assets, ensure the path is correct
+    // return `/assets/emoji-sheets/${set}-${sheetSize}.png`;
+  };
 
   constructor(
     private _changeDetectorRef: ChangeDetectorRef,
@@ -94,6 +166,13 @@ export class ConversationComponent implements OnInit, OnDestroy {
     });
   }
 
+  scrollToBottom(): void {
+    const textarea = this.messageInput?.nativeElement;
+    if (textarea) {
+      textarea.scrollTop = textarea.scrollHeight;
+    }
+  }
+
   ngOnInit(): void {
     const _id: string = this._superAuthService.decodeToken()._id;
     this.myId = _id;
@@ -108,7 +187,10 @@ export class ConversationComponent implements OnInit, OnDestroy {
             (a, b) =>
               new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
-          this._chatService.joinChat(this.chat._id!);
+          if (!this.joinedChat) {
+            this._chatService.joinChat(this.chat._id!);
+            this.joinedChat = true;
+          }
           this._changeDetectorRef.markForCheck();
         }
       });
@@ -124,6 +206,7 @@ export class ConversationComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     // Unsubscribe from all subscriptions
+    this._chatService.leaveChat(this.chat?._id!);
     this._unsubscribeAll.next(null);
     this._unsubscribeAll.complete();
   }
@@ -172,7 +255,11 @@ export class ConversationComponent implements OnInit, OnDestroy {
 
     if (!chatId || !messageContent) return;
 
-    this._chatService.sendMessage(chatId as string, messageContent as string);
+    this._chatService.sendMessage(
+      chatId as string,
+      this.myId as string,
+      messageContent as string
+    );
     this.messageInput.nativeElement.value = '';
   }
   private _trackActivity() {
@@ -182,9 +269,34 @@ export class ConversationComponent implements OnInit, OnDestroy {
   private _resetInactivityTimer() {
     clearTimeout(this._inactivityTimeout);
     if (this.chat?.unreadCount[this.myId!] > 0) {
-        this._chatService.markMessagesAsRead(this.chat!._id!);
+      this._chatService.markMessagesAsRead(this.chat!._id!);
     }
-    this._inactivityTimeout = setTimeout(() => {
-    }, 300000); // 5 minutes inactivity
+    this._inactivityTimeout = setTimeout(() => {}, 300000); // 5 minutes inactivity
+  }
+  toggleEmojiPicker(): void {
+    this.showEmojiPicker = !this.showEmojiPicker;
+    this._changeDetectorRef.markForCheck();
+  }
+  addEmoji(event: any): void {
+    const emoji = event.emoji.native; // Get the emoji character
+    const textarea = this.messageInput.nativeElement;
+    const start = textarea.selectionStart; // Cursor start position
+    const end = textarea.selectionEnd; // Cursor end position
+    const textBefore = textarea.value.substring(0, start);
+    const textAfter = textarea.value.substring(end);
+    textarea.value = textBefore + emoji + textAfter; // Insert emoji
+    textarea.selectionStart = textarea.selectionEnd = start + emoji.length; // Move cursor after emoji
+    this._resizeMessageInput(); // Adjust textarea height
+    this.showEmojiPicker = false; // Hide picker after selection
+    this._changeDetectorRef.markForCheck();
+    textarea.focus();
+  }
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('emoji-mart') && !target.closest('[mat-icon-button]')) {
+      this.showEmojiPicker = false;
+      this._changeDetectorRef.markForCheck();
+    }
   }
 }

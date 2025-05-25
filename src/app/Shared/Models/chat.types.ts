@@ -27,7 +27,7 @@ export interface Chat {
     user: User;
     contact: User;
     lastMessage?: Message;
-    unreadCount: number;
+    unreadCount: Map<string, number>;
     muted: Map<string, boolean>;
     sharedAttachments: {
       attachment: Attachment;

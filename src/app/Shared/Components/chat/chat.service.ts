@@ -21,6 +21,7 @@ import type { Notification } from '../../../Modules/admins/layout/layouts/vertic
 import type { Attachment, Message } from '../../Models/chat.types';
 import { UserService } from '../../Services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { SuperAuthService } from '../../Services/super-auth-service.service';
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
@@ -35,10 +36,9 @@ export class ChatService {
     User[] | null
   >(null);
   private socket: Socket | null = null;
-  private currentUser: User | null = null;
-  private _userInitialized: BehaviorSubject<boolean> =
-    new BehaviorSubject<boolean>(false);
+  myId: string | null = null;
   private _notificationService = inject(NotificationsService);
+  initialized: boolean = false;
 
   /**
    * Constructor
@@ -46,28 +46,20 @@ export class ChatService {
   constructor(
     private _httpClient: HttpClient,
     private _snackBar: MatSnackBar,
-    private _userService: UserService
+    private _userService: UserService,
+    private _superAuthService: SuperAuthService
   ) {
     console.log('ChatService: Initializing...');
-    this.currentUser = this._userService.user();
-    console.log(this.currentUser);
-    if(this.currentUser){
-        console.log(this.currentUser);
-      this._userInitialized.next(true);
+    this.myId = this._superAuthService.decodeToken()._id;
+    if(!this.initialized){
+      this.initialized = true;
       this.initializeSocket();
-    }else{
-        this._userService.get().subscribe((user) => {
-            this.currentUser = user;
-            this._userInitialized.next(true);
-            this.initializeSocket();
-        });
     }
-
   }
 
   private initializeSocket(): void {
     console.log('ChatService: Initializing socket...');
-    if (!this.currentUser) {
+    if (!this.myId) {
       console.error('ChatService: Cannot initialize socket - no current user');
       return;
     }
@@ -123,11 +115,6 @@ export class ChatService {
   }
 
 
-  // Add back the getter with proper typing
-  get userInitialized$(): Observable<boolean> {
-    return this._userInitialized.asObservable();
-  }
-
   // -----------------------------------------------------------------------------------------------------
   // @ Socket.io Methods
   // -----------------------------------------------------------------------------------------------------
@@ -138,11 +125,10 @@ export class ChatService {
     this.socket?.on('connect', () => {
       console.log('Connected to chat namespace');
       // Register user after connection
-        this.socket?.emit('register-user');
-      
+      this.socket?.emit('register-user');
     });
 
-    this.socket?.on('disconnect',    () => {
+    this.socket?.on('disconnect', () => {
       console.log('Disconnected from chat namespace');
     });
 
@@ -203,7 +189,9 @@ export class ChatService {
           updatedChats[chatIndex] = {
             ...updatedChats[chatIndex],
             lastMessage: message,
-            unreadCount: (updatedChats[chatIndex].unreadCount || 0) + 1,
+            unreadCount:
+              (updatedChats[chatIndex].unreadCount[this.myId!] ||
+                0) + 1,
           };
           this._chats.next(updatedChats);
         }
@@ -211,7 +199,7 @@ export class ChatService {
     });
 
     // Create notification if message is from another user
-    if (message.senderId !== this.currentUser?._id) {
+    if (message.senderId !== this.myId) {
       const notification: Notification = {
         _id: message._id!,
         title: 'New Message',
@@ -231,15 +219,25 @@ export class ChatService {
     // Update chats list
     this.chats$.pipe(take(1)).subscribe((chats) => {
       if (!chats) return;
+      console.log(update.unreadCount);
 
       const chatIndex = chats.findIndex((c) => c._id === update.chatId);
       if (chatIndex >= 0) {
         const updatedChats = [...chats];
         updatedChats[chatIndex] = {
+          ...updatedChats[chatIndex], 
+          lastMessage: update.lastMessage,
+          unreadCount: {
+            ...updatedChats[chatIndex].unreadCount,
+            [this.myId!]: update.unreadCount,
+          },
+        };
+        console.log({
           ...updatedChats[chatIndex],
           lastMessage: update.lastMessage,
           unreadCount: update.unreadCount,
-        };
+        });
+
         this._chats.next(updatedChats);
       }
     });
@@ -250,22 +248,20 @@ export class ChatService {
         this._chat.next({
           ...currentChat,
           lastMessage: update.lastMessage,
-          unreadCount: update.unreadCount,
+          unreadCount: {
+            ...currentChat.unreadCount,
+            [this.myId!]: update.unreadCount,
+          },
         });
       }
     });
   }
 
-  private handleMessagesRead(chatId: string,id:string): void {
+  private handleMessagesRead(chatId: string, id: string): void {
     this.chat$.pipe(take(1)).subscribe((currentChat) => {
-      if (
-        currentChat &&
-        currentChat._id === chatId &&
-        currentChat.messages
-      ) {
-        const updatedMessages = currentChat.messages.map((msg) =>
-        {
-          if(msg.senderId !== id){
+      if (currentChat && currentChat._id === chatId && currentChat.messages) {
+        const updatedMessages = currentChat.messages.map((msg) => {
+          if (msg.senderId !== id) {
             return { ...msg, read: true };
           }
           return msg;
@@ -287,9 +283,17 @@ export class ChatService {
       console.log('ChatService: Connecting socket...');
       this.socket?.connect();
     }
+    this.registerUser(userId);
 
     // The register-user event is now handled in the socket connection handler
     console.log('ChatService: Socket connection established');
+  }
+
+  registerUser(userId: string): void {
+    if (this.socket?.connected) {
+      console.log('ChatService: Registering user:', userId);
+      this.socket.emit('register-user', userId);
+    }
   }
 
   disconnect(): void {
@@ -300,12 +304,14 @@ export class ChatService {
 
   joinChat(chatId: string): void {
     if (this.socket?.connected) {
+      console.log('ChatService: Joining chat:', chatId);
       this.socket.emit('join-chat', chatId);
     }
   }
 
   leaveChat(chatId: string): void {
     if (this.socket?.connected) {
+      console.log('ChatService: Leaving chat:', chatId);
       this.socket.emit('leave-chat', chatId);
       this.chat$.pipe(take(1)).subscribe((currentChat) => {
         if (currentChat && currentChat._id === chatId) {
@@ -320,10 +326,11 @@ export class ChatService {
 
   sendMessage(
     chatId: string,
+    senderId: string,
     content: string,
     attachments?: Attachment[]
   ): void {
-    if (!this.socket?.connected || !this.currentUser) {
+    if (!this.socket?.connected || !this.myId) {
       this._snackBar.open(
         'Cannot send message: Not connected to chat server',
         'Close',
@@ -337,62 +344,29 @@ export class ChatService {
     }
 
     const message: Partial<Message> = {
+      senderId,
       content,
-      senderId: this.currentUser._id,
       chatId,
       createdAt: new Date(),
       updatedAt: new Date(),
       read: false,
       attachments,
     };
+    console.log(message);
 
-    this.socket.emit(
-      'send-message',
-      { chatId, content, attachments },
-      (response: { success: boolean; error?: string }) => {
-        if (response.success) {
-          // Update UI only after successful message send
-          this.chat$.pipe(take(1)).subscribe((chat) => {
-            if (chat && chat._id === chatId) {
-              const updatedChat = {
-                ...chat,
-                messages: [...(chat.messages || []), message as Message],
-                lastMessage: message as Message,
-              };
-              this._chat.next(updatedChat);
-              console.log(updatedChat);
-              // Update chat in chats list
-              this.chats$.pipe(take(1)).subscribe((chats) => {
-                if (chats) {
-                  const index = chats.findIndex((c) => c._id === chatId);
-                  if (index >= 0) {
-                    const updatedChats = [...chats];
-                    updatedChats[index] = updatedChat;
-                    this._chats.next(updatedChats);
-                  }
-                }
-              });
-            }
-          });
-        } else {
-          this._snackBar.open(
-            `Failed to send message: ${response.error || 'Unknown error'}`,
-            'Close',
-            {
-              duration: 3000,
-              horizontalPosition: 'end',
-              verticalPosition: 'top',
-            }
-          );
-        }
-      }
-    );
+    this.socket.emit('send-message', message);
   }
 
   markMessagesAsRead(chatId: string): void {
     if (this.socket?.connected) {
       this.socket.emit('mark-read', { chatId });
     }
+    this.handleMessagesRead(chatId, this.myId!);
+    this.handleChatUpdate({
+      chatId,
+      lastMessage: this._chat.value?.lastMessage!,
+      unreadCount: this._chat.value?.unreadCount[this.myId!]!,
+    });
   }
 
   // -----------------------------------------------------------------------------------------------------
@@ -458,6 +432,7 @@ export class ChatService {
       })
       .pipe(
         tap((contacts: User[]) => {
+          console.log('contacts', contacts);
           this._contacts.next(contacts);
         })
       );
@@ -479,19 +454,22 @@ export class ChatService {
     );
   }
 
-  getUnreadMessagesCount(chatId: string): Observable<number> {
+  getUnreadMessagesCount(): Observable<number> {
     return this._httpClient.get<number>(
-      `${environment.api}/messages/chats/${chatId}/unread/count`
+      `${environment.api}/chats/messages/unread/count`
     );
   }
 
-  createChat(contact: User): Observable<Chat> {
+  createChat(contact: User): Observable<Chat | string> {
     return this._httpClient
-      .post<Chat>(`${environment.api}/chats`, { contactId: contact._id })
+      .post<Chat | string>(`${environment.api}/chats`, { contactId: contact._id })
       .pipe(
-        tap((chat: Chat) => {
-          const currentChats = this._chats.value || [];
-          this._chats.next([...currentChats, chat]);
+        tap((chat: Chat | string) => {
+          console.log('created chat', chat);
+          if(typeof chat === 'object'){
+            const currentChats = this._chats.value || [];
+            this._chats.next([...currentChats, chat]);
+          }
         })
       );
   }

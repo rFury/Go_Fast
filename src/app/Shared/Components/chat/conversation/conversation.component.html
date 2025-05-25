@@ -109,8 +109,7 @@
                             </div>
                             }
                             <!-- Message -->
-                            <div class="min-w-4 leading-5" [innerHTML]="message.content">
-                            </div>
+                            <div class="leading-5 whitespace-pre-wrap break-words">{{message.content}}</div>
                         </div>
                         <!-- Time -->
                         @if(first
@@ -138,7 +137,7 @@
             <!-- Message field -->
             <div class="flex items-end p-4 border-t bg-gray-50 dark:bg-transparent w-full">
                 <div class="flex items-center h-11 my-px">
-                    <button mat-icon-button>
+                    <button mat-icon-button (click)="toggleEmojiPicker()">
                         <mat-icon [svgIcon]="'heroicons_outline:face-smile'"></mat-icon>
                     </button>
                     <button class="ml-0.5" mat-icon-button>
@@ -147,15 +146,31 @@
                 </div>
                 <mat-form-field class="fuse-mat-dense fuse-mat-rounded fuse-mat-bold w-full ml-4"
                     subscriptSizing="dynamic">
-                    <textarea matInput cdkTextareaAutosize #messageInput></textarea>
+                    <textarea matInput class="max-h-18 overflow-y-auto resize-none" #messageInput cdkTextareaAutosize
+                        cdkAutosizeDisabled (input)="scrollToBottom()">
+                    </textarea>
                 </mat-form-field>
+
                 <div class="flex items-center h-11 my-px ml-4">
                     <button mat-icon-button (click)="sendMessage()">
                         <mat-icon class="" [svgIcon]="'heroicons_outline:paper-airplane'"></mat-icon>
                     </button>
                 </div>
             </div>
-
+            @if (showEmojiPicker) {
+                <emoji-mart 
+                class="absolute bottom-20 left-4 z-50"
+                [set]="'apple'"
+                [sheetSize]="32"
+                [title]="emojiTitle"
+                [backgroundImageFn]="emojiBackgroundImageFn"
+                [showPreview]="false"
+                [emojiSize]="24"
+                [perLine]="8"
+                [darkMode]="false"
+                (emojiSelect)="addEmoji($event)"
+                style="box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 8px;">
+            </emoji-mart>}
         </mat-drawer-content>
 
     </mat-drawer-container>
