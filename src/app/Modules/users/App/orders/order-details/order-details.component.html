@@ -14,10 +14,10 @@
         </div>
         <div>
           @if (Order.status=="pending") {
-            <h2 class="font-bold text-xl sm:text-7xl">We’re looking for<br>delivery agents...</h2>
+            <h2 class="font-bold text-xl sm:text-5xl">We’re looking for<br>delivery agents...</h2>
             <h4 class="text-4xl">This may take a while!</h4>
           } @else if (Order.status=="assigned" && Agent) {
-            <h2 class="font-bold text-xl sm:text-7xl">Order assigned to<br>
+            <h2 class="font-bold text-xl sm:text-5xl">Order assigned to<br>
               <span class="underline cursor-pointer text-indigo-400" (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front';details=true" matTooltip="Click agent name to see details">{{Agent.first_name+" "+Agent.last_name}}</span>!
             </h2>
             <h4 class="text-md sm:text-3xl">
@@ -38,20 +38,32 @@
               </span>
             </h4>
           } @else if (Order.status===Status.picked_up && Agent) {
-            <h2 class="font-bold text-xl sm:text-7xl">Order picked up by<br>
-              <span class="underline cursor-pointer text-indigo-400" (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front';details=true" matTooltip="Click agent name to see details">{{Agent.first_name+" "+Agent.last_name}}</span>!
-            </h2>
-            <h4 class="text-md sm:text-3xl">
-              <span class="hidden sm:block">
-                Driver
-                @if (isActive) {
-                  is <span class="font-bold text-green-500">{{ time | number: '1.0-0' }} minutes</span> away from destination
-                } @else {
-                  on his way to destination
-                }
-                , please wait!
-              </span>
-            </h4>
+            @if(!Order.completed){
+              <h2 class="font-bold text-xl sm:text-5xl">Order picked up by<br>
+                <span class="underline cursor-pointer text-indigo-400" (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front';details=true" matTooltip="Click agent name to see details">{{Agent.first_name+" "+Agent.last_name}}</span>!
+              </h2>
+              <h4 class="text-md sm:text-3xl">
+                <span class="hidden sm:block">
+                  Driver
+                  @if (isActive) {
+                    is <span class="font-bold text-green-500">{{ time | number: '1.0-0' }} minutes</span> away from destination
+                  } @else {
+                    on his way to destination
+                  }
+                  , please wait!
+                </span>
+              </h4>
+            } @else {
+              <h2 class="font-bold text-xl sm:text-5xl">Order picked up to depot by<br>
+                <span class="underline cursor-pointer text-indigo-400" (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front'" matTooltip="Click agent name to see details">{{Agent.first_name+" "+Agent.last_name}}</span>!
+              </h2>
+              <h4 class="text-md sm:text-3xl">
+                <span class="hidden sm:block">
+                   looking for a delivery driver
+                  , please wait!
+                </span>
+              </h4>
+            }
           }
         </div>
       </div>

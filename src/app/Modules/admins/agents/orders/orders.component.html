@@ -49,8 +49,9 @@
     <!-- Main content area -->
     <div class="flex flex-1 overflow-hidden">
       <!-- Enhanced Sidebar -->
-      <div class="flex flex-col bg-white dark:bg-slate-800 shadow-lg transition-all duration-300 z-20 overflow-auto"
-        [class.w-72]="isSidebarOpen" [class.w-0]="!isSidebarOpen">
+       @if(isSidebarOpen){
+      <div class="fixed inset-y-0 left-0 md:left-20 top-16 w-72 flex flex-col bg-white dark:bg-slate-800 shadow-lg transition-transform duration-300 z-20 overflow-auto"
+      @slideInLeft>
         <div class="p-4 bg-slate-50 dark:bg-slate-900 border-b dark:border-slate-700">
           <h2 class="font-semibold text-lg mb-1">Delivery Route</h2>
           <p class="text-sm text-slate-500 dark:text-slate-400">
@@ -63,8 +64,8 @@
           @for (stop of stops; track $index) {
           <div
             class="p-3 border-b dark:border-slate-700 flex items-start cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-            [class.bg-blue-50]="stop.status === 'active'" [class.dark:bg-slate-600]="stop.status === 'active'"
-            [class.opacity-50]="stop.status === 'completed'" (click)="openOrderDetails(stop.order)">
+            [class.bg-blue-50]="stop.status === 'active'"
+            [class.opacity-50]="stop.status === 'completed'" (click)="openOrderDetails(stop.order)" [class.items-baseline]="stop.order.completed">
             <!-- Stop Indicator -->
             <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs mt-1 mr-3"
               [class.bg-green-500]="stop.status === 'completed'" [class.bg-blue-500]="stop.status === 'active'"
@@ -85,8 +86,8 @@
                     {{ stop.isPickup ? "Pick-up" : "Delivery" }}
                   </span>
                 }@else {
-                  <span class="text-sm font-medium">
-                    {{ stop.isPickup ? "Picked-up" : "Delivered" }}
+                  <span class="text-sm font-medium capitalize">
+                    {{stop.order.status}}
                   </span>
                 }
                 <span class="text-xs text-slate-500 dark:text-slate-400">
@@ -99,7 +100,7 @@
                       <mat-icon mat-icon [svgIcon]="'heroicons_outline:phone'"></mat-icon>
                       {{ getOrderLabel(stop.order) }}
                     </p>
-                }
+                  }
                 @if (stop.status === 'active' && isNavigating) {
                 <div class="flex items-center space-x-2 mt-1 text-xs">
                   <span class="text-emerald-600 dark:text-emerald-400">
@@ -117,7 +118,7 @@
           }
         </div>
       </div>
-
+      }
       <!-- Map container -->
       <div class="flex-1 relative overflow-hidden relative">
         <div id="map" class="w-full h-full"></div>

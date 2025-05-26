@@ -20,7 +20,7 @@ export class Order{
     width?:number;
     length?:number;
     completed?:boolean;
-    active?:boolean;
+    onRoute?:boolean;
     createdAt?:Date;
     updatedAt?:Date;
 }

@@ -30,6 +30,7 @@ import { Routes } from '../../../../Shared/Models/Routes.model';
 import { LocationService } from '../../../../Shared/Services/agent-location.service';
 import { OrderService } from '../../../../Shared/Services/order.service';
 import { MessagesComponent } from "../../../../Shared/Components/messages/messages.component";
+import { Animations } from '../../../../Shared/Animations/public-api';
 
 
 interface RouteStop {
@@ -65,6 +66,7 @@ interface NavigationStep {
     CompactComponent,
     MessagesComponent
 ],
+animations:Animations,
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
 })
@@ -117,7 +119,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private previousHeading: number = 0;
   private routeBounds: mapboxgl.LngLatBounds | null = null;
   private cumulativeDistances: number[] = [];
-  private simulatedSpeedKmh = 4000;
+  private simulatedSpeedKmh = 1000;
   private simulationStartTime: number | null = null;
   private routeUpdateInterval: any = null;
 
