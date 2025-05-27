@@ -9,13 +9,17 @@ import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 import userFeaturesRouting from './apps/user-features/user-features-routing';
 import clientsRouting from './apps/clients/clients.routing';
 import agentsRouting from './apps/clients copy/agents.routing';
-
+import dashboardsRouting from './apps/dashboards/dashboards.routes';
 
 export default [
   {
     path: '',
     component: BackOfficeComponent,
     children: [
+      {
+        path:'',
+        loadChildren: () => dashboardsRouting,
+      },
       {
         path: 'features',
         loadChildren: () => featuresRouting,

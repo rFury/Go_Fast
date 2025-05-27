@@ -29,6 +29,7 @@ export class UserService {
 
   
     user = this._user.asReadonly();
+    userObservable = new BehaviorSubject<User | Client | Agent | null>(null);
 
     private _trackActivity() {
       window.addEventListener('mousemove', this._resetInactivityTimer.bind(this));
@@ -51,7 +52,9 @@ export class UserService {
   get user$(){
     return this._user()
   }
-
+  get userObs(){
+    return this.userObservable.asObservable()
+  }
 
   set defaultLink(value: string) {
     this._defaultLink.next(value);
@@ -84,10 +87,13 @@ export class UserService {
       tap((user)=>{
         if(user.type === "client"){          
           this._user.set(user as Client);
+          this.userObservable.next(user as Client);
         }else if(user.type === "agent"){
           this._user.set(user as Agent);
+          this.userObservable.next(user as Agent);
         }else{
           this._user.set(user);
+          this.userObservable.next(user);
         }
       }),
       catchError((error) => {
