@@ -36,6 +36,7 @@ import { Agent } from '../../../../../../Shared/Models/Agent.model';
     MatButtonToggleModule,
     NgApexchartsModule,
     MatTableModule,
+    NgClass
   ],
 })
 export class ProjectComponent implements OnInit, OnDestroy {

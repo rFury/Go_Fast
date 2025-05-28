@@ -12,7 +12,7 @@ export default [
         path     : 'analytics',
         component: AnalyticsComponent,
         resolve  : {
-            data: () => inject(AnalyticsService).getData(),
+            /*data: () => inject(AnalyticsService).getData(),*/
         },
     },
     {
@@ -27,7 +27,7 @@ export default [
         path     : 'finance',
         component: FinanceComponent,
         resolve  : {
-            data: () => inject(FinanceService).getData(),
+            /*data: () => inject(FinanceService).getData(),*/
         },
     },
     {

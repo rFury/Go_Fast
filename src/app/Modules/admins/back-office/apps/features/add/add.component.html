@@ -241,10 +241,10 @@
                                 } @for (item of filteredListIcons ; track item) {
                                 <mat-option [value]="item.label">
                                     <div class="font-medium items-center flex flex-row">
-                                        <span class="w-9 shadow rounded-sm overflow-hidden mr-1">
-                                            <mat-icon class="icon-size-7 mr-1">{{ item.label }}</mat-icon>
+                                        <span class="w-7 shadow rounded-sm overflow-hidden flex ">
+                                            <mat-icon class="icon-size-7" [svgIcon]="'heroicons_outline:'+item.label"></mat-icon>
                                         </span>
-                                        <span class="block"> {{ item.label }} </span>
+                                        <span class="block ml-1"> {{ item.label }} </span>
                                     </div>
                                 </mat-option>
                                 }
