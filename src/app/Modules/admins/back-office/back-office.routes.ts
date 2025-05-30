@@ -10,7 +10,7 @@ import userFeaturesRouting from './apps/user-features/user-features-routing';
 import clientsRouting from './apps/clients/clients.routing';
 import agentsRouting from './apps/clients copy/agents.routing';
 import dashboardsRouting from './apps/dashboards/dashboards.routes';
-
+import { featureAction } from '../../../Shared/Guards/featureAction.guard';
 export default [
   {
     path: '',
@@ -19,6 +19,9 @@ export default [
       {
         path:'',
         loadChildren: () => dashboardsRouting,
+        data: {
+          breadcrumb: 'Dashboard',
+        },
       },
       {
         path: 'features',
@@ -26,7 +29,10 @@ export default [
         data: {
           breadcrumb: 'Features',
           feature: FeatureCodes.features,
+          action: 'list',
+          code: FeatureCodes.features,
       },
+      canActivate: [featureAction],
       },
       {
         path: 'groups',
@@ -34,7 +40,10 @@ export default [
         data: {
           breadcrumb: 'Groups',
           feature: FeatureCodes.groups,
+          action: 'list',
+          code: FeatureCodes.groups,
       },
+      canActivate: [featureAction],
       },
       
       {
@@ -43,7 +52,10 @@ export default [
         data: {
           breadcrumb: 'Users',
           feature: FeatureCodes.users,
+          action: 'list',
+          code: FeatureCodes.users,
       },
+      canActivate: [featureAction],
       },
       {
         path: 'clients',
@@ -51,7 +63,10 @@ export default [
         data: {
           breadcrumb: 'Clients',
           feature: FeatureCodes.clients,
+          action: 'list',
+          code: FeatureCodes.clients,
       },
+      canActivate: [featureAction],
       },
       {
         path: 'agents',
@@ -59,7 +74,10 @@ export default [
         data: {
           breadcrumb: 'Agents',
           feature: FeatureCodes.agents,
+          action: 'list',
+          code: FeatureCodes.agents,
       },
+      canActivate: [featureAction],
       },
       {
         path: 'userfeatures',
@@ -67,15 +85,21 @@ export default [
         data: {
           breadcrumb: 'UserFeatures',
           feature: FeatureCodes.userFeatures,
+          action: 'list',
+          code: FeatureCodes.userFeatures,
       },
+      canActivate: [featureAction],
       },
       {
         path: 'orders',
         loadChildren: () => featuresCopyRouting,
         data: {
-          breadcrumb: 'UserFeatures',
+          breadcrumb: 'orders',
+          action: 'list',
+          code: FeatureCodes.orders,
           feature: FeatureCodes.orders,
       },
+      canActivate: [featureAction],
       },
     ],
   }

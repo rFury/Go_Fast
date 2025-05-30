@@ -64,21 +64,23 @@ export class UserService {
   }
 
   checkPermission(code: string, action: string): Observable<boolean> {
-    if (this.features()) {
-      const featuresAuth = this.features();
-      return of(!!featuresAuth?.some(
-        (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
-      ));
-    } else {
-      return this._menu.getActions().pipe(
-        map(actions => {
-          return !!actions?.some(
-            (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
-          );
-        })
+    const check = (features: any[]): boolean => {
+      if (action === "list") {
+        return features?.some(fau => fau.code === code);
+      }
+      return features?.some(
+        fau => fau.code === code && fau.actions?.includes(action as FeatureActions)
       );
+    };
+    const featuresAuth = this.features();
+    if (featuresAuth) {
+      return of(check(featuresAuth));
     }
+    return this._menu.getActions().pipe(
+      map(actions => check(actions))
+    );
   }
+  
   
   
 
@@ -267,5 +269,8 @@ export class UserService {
       })
     );
   }
-  
+  updatePassword(data: any): Observable<any> {
+    return this.http.patch<any>(`${this.endpointUser}/update-password`, {currentPassword:data.currentPassword});
+  }
+
 }

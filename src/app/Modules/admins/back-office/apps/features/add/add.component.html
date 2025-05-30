@@ -239,7 +239,7 @@
                                     </div>
                                 </mat-option>
                                 } @for (item of filteredListIcons ; track item) {
-                                <mat-option [value]="item.label">
+                                <mat-option [value]="'heroicons_outline:'+item.label">
                                     <div class="font-medium items-center flex flex-row">
                                         <span class="w-7 shadow rounded-sm overflow-hidden flex ">
                                             <mat-icon class="icon-size-7" [svgIcon]="'heroicons_outline:'+item.label"></mat-icon>

@@ -17,6 +17,7 @@ import { agentGuard } from '../../Shared/Guards/agent.guard';
 import { locationGuard } from '../../Shared/Guards/location.guard';
 import { LocationNotAllowedComponent } from '../../Shared/Components/location-not-allowed/not-allowed.component';
 import { SettingsComponent } from '../../Shared/Components/settings/settings.component';
+import { featureAction } from '../../Shared/Guards/featureAction.guard';
 
 
 export default [

@@ -1,7 +1,7 @@
-<div class="flex w-full max-w-5xl">
+<div class="flex w-full max-w-5xl h-full">
 
     <!-- Form -->
-    <form [formGroup]="accountForm" class="w-full ">
+    <form [formGroup]="accountForm" class="w-full">
 
         <!-- Section -->
         <div class="w-full">
@@ -12,9 +12,9 @@
             <!-- Name -->
             <div class="sm:col-span-4">
                 <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
-                    <mat-label>Name</mat-label>
-                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:user'" matPrefix></mat-icon>
-                    <input [formControlName]="'name'" matInput>
+                    <mat-label>Full Name</mat-label>
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:user'" matPrefix ></mat-icon>
+                    <input [formControlName]="'name'" matInput [readonly]="user.type == 'admin' || user.type == 'super'">
                 </mat-form-field>
             </div>
             <!-- Username -->
@@ -22,9 +22,9 @@
                 <mat-form-field class="fuse-mat-emphasized-affix w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Username</mat-label>
                     <div class="text-secondary" matPrefix>
-                        fusetheme.com/
+                        GoFast.com/
                     </div>
-                    <input [formControlName]="'username'" matInput>
+                    <input [formControlName]="'username'" matInput readonly>
                 </mat-form-field>
             </div>
             @if(user.type === 'agent') {
@@ -72,7 +72,7 @@
                 <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Email</mat-label>
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:envelope'" matPrefix></mat-icon>
-                    <input [formControlName]="'email'" matInput>
+                    <input [formControlName]="'email'" matInput [readonly]="user.type !== 'client'">
                 </mat-form-field>
             </div>
             @if(user.type!=='user' && user.type!=='super') {
@@ -86,18 +86,18 @@
             </div>
             }
             @if(user.type==='agent'){
-                <!-- Phone -->
+            <!-- Phone -->
             <div class="sm:col-span-2">
                 <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Phone 2</mat-label>
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:phone'" matPrefix></mat-icon>
                     <input [formControlName]="'phone2'" matInput>
                 </mat-form-field>
-                </div>
+            </div>
             }
 
             @if(user.type==='client'){
-                            <!-- Country -->
+            <!-- Country -->
             <div class="sm:col-span-2">
                 <mat-form-field class="w-full" [subscriptSizing]="'dynamic'">
                     <mat-label>Country</mat-label>
@@ -115,6 +115,7 @@
             }
         </div>
 
+        @if(user.type==='client' || user.type==='agent'){
         <!-- Divider -->
         <div class="mt-11 mb-10 border-t"></div>
 
@@ -126,6 +127,7 @@
             <button class="ml-4" mat-flat-button type="button" [color]="'primary'">Save
             </button>
         </div>
+        }
     </form>
 
 </div>

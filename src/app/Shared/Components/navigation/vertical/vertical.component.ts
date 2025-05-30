@@ -16,7 +16,7 @@ import { FuseScrollbarDirective } from '../../../directives/scrollbar/scrollbar.
 import { delay, filter, merge, ReplaySubject, Subject, Subscription, takeUntil } from 'rxjs';
 import { UtilsService } from '../../../Services/utils.service';
 import { FuseVerticalNavigationAppearance, FuseVerticalNavigationMode, FuseNavigationItem, FuseVerticalNavigationPosition } from '../../../Models/Navigation.model';
-
+import { MenuService } from '../../../Services/menu.service';
 @Component({
     selector: 'fuse-vertical-navigation',
     templateUrl: './vertical.component.html',
@@ -31,6 +31,7 @@ export class FuseVerticalNavigationComponent implements OnChanges, OnInit, After
 {
     private _scrollStrategyOptions=inject(ScrollStrategyOptions);
     private _fuseUtilsService=inject(UtilsService);
+    private _menuService=inject(MenuService);
 
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_inner: BooleanInput;
@@ -463,7 +464,6 @@ export class FuseVerticalNavigationComponent implements OnChanges, OnInit, After
         {
             return;
         }
-
         // Set the opened
         this._toggleOpened(true);
     }
@@ -793,5 +793,8 @@ export class FuseVerticalNavigationComponent implements OnChanges, OnInit, After
 
         // Execute the observable
         this.openedChanged.next(open);
+    }
+    markAsRead(id:string){
+        this._menuService.markAsRead(id);
     }
 }

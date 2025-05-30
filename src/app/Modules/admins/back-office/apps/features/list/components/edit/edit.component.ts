@@ -102,7 +102,6 @@ export class EditComponent implements OnInit {
           } else {
             this.feature.subtitle = null!;
           }
-
                   this._featureService.updateFeature(this.feature).subscribe(() => {
                     this._router.navigate(['../'], { relativeTo: this._route }).then();
                   });

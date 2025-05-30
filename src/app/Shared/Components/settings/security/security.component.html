@@ -15,6 +15,9 @@
                     <mat-label>Current password</mat-label>
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:key'" matPrefix></mat-icon>
                     <input [formControlName]="'currentPassword'" type="password" matInput>
+                    @if(securityForm.controls['currentPassword'].errors?.['required']){
+                        <mat-error>Current password is required</mat-error>
+                    }
                 </mat-form-field>
             </div>
             <!-- New password -->
@@ -23,6 +26,12 @@
                     <mat-label>New password</mat-label>
                     <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:key'" matPrefix></mat-icon>
                     <input [formControlName]="'newPassword'" type="password" matInput>
+                    @if(securityForm.controls['newPassword'].errors?.['required']){
+                        <mat-error>New password is required</mat-error>
+                    }
+                    @if(securityForm.controls['newPassword'].errors?.['minlength']){
+                        <mat-error>New password must be at least 8 characters</mat-error>
+                    }
                 </mat-form-field>
                 <div class="mt-1 text-md text-hint">Minimum 8 characters. Must include numbers, letters and special
                     characters.</div>
@@ -73,9 +82,12 @@
             <button mat-stroked-button type="button">
                 Cancel
             </button>
-            <button class="ml-4" mat-flat-button type="button" [color]="'primary'">Save
+            <button class="ml-4" mat-flat-button type="button" [color]="'primary'" (click)="save()">Save
             </button>
         </div>
     </form>
 
 </div>
+@if(showDialog){
+    <app-verification-dialog (canceled)="canceled($event)"></app-verification-dialog>
+}
