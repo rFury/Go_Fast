@@ -105,12 +105,8 @@ export class AuthResetPasswordComponent implements OnInit {
         (response) => {
           this._userService.get().subscribe((user: User) => {
           });
-          const redirectURL =
-            this._route.snapshot.queryParamMap.get('redirectURL') ||
-            this._userService._defaultLink.getValue() ||
-            '/admin/signed-in-redirect';
           localStorage.setItem('email', this.email);
-          this.router.navigateByUrl(redirectURL);
+          this.router.navigateByUrl('admin/');
         },
         (response) => {
           this.alert = {

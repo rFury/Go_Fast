@@ -7,6 +7,7 @@ import { io, Socket } from 'socket.io-client';
 import { FuseNavigationItem } from '../Models/Navigation.model';
 import { Feature } from '../Models/Feature.model';
 import { UserService } from './user.service';
+import { Router } from '@angular/router';
 @Injectable({
   providedIn: 'root',
 })
@@ -14,6 +15,7 @@ export class MenuService {
   endpoint = `${environment.api}/menu`;
   private socket: Socket;
   http = inject(HttpClient);
+  router = inject(Router);
   private _menu = new BehaviorSubject<any>(null);
   get menu$() {
     return this._menu.asObservable();
@@ -21,13 +23,11 @@ export class MenuService {
   set menu(menu: any) {
     this._menu.next(menu);
   }
-
-  constructor() {
-    // Get the JWT token from localStorage or your auth service
+  initializeMenuSocket() {
     const token = localStorage.getItem('jwt');
     if (!token) {
       console.error('ChatService: No authentication token available');
-      return;
+      this.router.navigate(['/admin/sign-in']);
     }
 
     this.socket = io(`127.0.0.1:3000/menu`, {
@@ -42,7 +42,7 @@ export class MenuService {
     });
 
     console.log('in socket menu');
-    
+
     this.socket?.on('connect', () => {
       console.log('Connected to chat namespace');
       // Register user after connection
@@ -53,14 +53,14 @@ export class MenuService {
       console.log('Disconnected from chat namespace');
     });
 
-    this.socket?.on('new-menu', (menu : any) => {
+    this.socket?.on('new-menu', (menu: any) => {
       console.log('Received new feature:', menu);
       this._menu.next(menu);
     });
   }
 
-  markAsRead(id:string){
-    this.socket.emit(`mark-read`,{featureId:id});
+  markAsRead(id: string) {
+    this.socket.emit(`mark-read`, { featureId: id });
   }
 
   getMenu(): Observable<any> {

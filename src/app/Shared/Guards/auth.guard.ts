@@ -7,16 +7,20 @@ export const authGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const _authService = inject(SuperAuthService);
   const _router = inject(Router);
   const _route = inject(ActivatedRoute);
-  const who = _route.snapshot.data['who'];
   console.log(_route.snapshot.data);
-  console.log('Blocked URL:', state.url);
-
-  
   if (_authService.isLoggedIn()) {
-    return true;
-  } else {
+    const token = localStorage.getItem('jwt');
+    if (token) {
+      return true;
+    }
+    console.log('Blocked URL:', state.url);
     return _router.createUrlTree(['admin/sign-in'], {
-      queryParams: { returnUrl: state.url }
+      queryParams: { returnUrl: state.url },
+    });
+  } else {
+    console.log('Blocked URL:', state.url);
+    return _router.createUrlTree(['admin/sign-in'], {
+      queryParams: { returnUrl: state.url },
     });
   }
 };

@@ -25,7 +25,7 @@ export class UserService {
   features=signal<FeatureAuth[] | null>(null);
   http = inject(HttpClient);
   router = inject(Router);
-  _menu = inject(MenuService);
+  _menu = inject(MenuService); 
 
   
     user = this._user.asReadonly();
@@ -152,13 +152,6 @@ export class UserService {
   updatePersonalInfo(user: User): Observable<User> {
     return this.http.post<User>(`${this.endpointUser}/personal-info`, user);
   }
-  updateMyAvatar(data: FormData): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/my-avatar`, data).pipe(
-      tap((user) => {
-        this._user.set(user);
-      })
-    );
-  }
 
   addUser(user: User | Client | Agent): Observable<any> {
     let endpoint;
@@ -248,12 +241,10 @@ export class UserService {
     }
     return this.http.delete<null>(`${endpoint}/${id}`);
   }
-  updateAvatar(data: FormData, id: string): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/${id}/avatar`, data).pipe(
-      tap((user) => {
-        this._user.set(user);
-      })
-    );
+  updateAvatar(file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('avatar', file); 
+    return this.http.patch<User>(`${this.endpointUser}/avatar`, formData);
   }
 
   initializeUser(user: User) {
@@ -271,6 +262,9 @@ export class UserService {
   }
   updatePassword(data: any): Observable<any> {
     return this.http.patch<any>(`${this.endpointUser}/update-password`, {currentPassword:data.currentPassword});
+  }
+  completePasswordChange(code: string,newPassword: string): Observable<any> {
+    return this.http.patch<any>(`${this.endpointUser}/complete-password-change`, {key:code,newPassword});
   }
 
 }

@@ -56,9 +56,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   protected _authService = inject(SuperAuthService);
   protected _userService = inject(UserService);
   protected _sideNavService = inject(SideNavService);
+  private menuService = inject(MenuService);
   private _cdr = inject(ChangeDetectorRef);
   protected _locationWebService = inject(LocationWebService);
-  private _ngZone = inject(NgZone);
   private _notifService = inject(FirebaseNotification);
   navigationAppearance: 'default' | 'dense' = 'default';
   private _positionInterval: any;
@@ -70,7 +70,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   isLoading: boolean = true;
   email: string = '';
   constructor(
-    private menuService: MenuService,
     private _fuseMediaWatcherService: FuseMediaWatcherService,
     private _fuseNavigationService: FuseNavigationService
   ) {}
@@ -101,6 +100,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         error: (err) => console.error(err),
       });
 
+    this.menuService.initializeMenuSocket();
     this.menuService.getMenu().subscribe({
       next: (data) => {
         this.navigation = data.menu;
