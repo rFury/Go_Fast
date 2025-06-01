@@ -1,48 +1,29 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Notification } from './notifications.types';
 import { map, Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
+import { environment } from '../../../../../../../../../environments/environment';
 
-@Injectable({providedIn: 'root'})
-export class NotificationsService
-{
-    private _notifications: ReplaySubject<Notification[]> = new ReplaySubject<Notification[]>(1);
+@Injectable({ providedIn: 'root' })
+export class NotificationsService {
+  private _notifications: ReplaySubject<Notification[]> = new ReplaySubject<
+    Notification[]
+  >(1);
+  private _httpClient = inject(HttpClient);
 
-    /**
-     * Constructor
-     */
-    constructor(private _httpClient: HttpClient)
-    {
-    }
+  get notifications$(): Observable<Notification[]> {
+    return this._notifications.asObservable();
+  }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Accessors
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Getter for notifications
-     */
-    get notifications$(): Observable<Notification[]>
-    {
-        return this._notifications.asObservable();
-    }
-
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Get all notifications
-     */
-    getAll(): Observable<Notification[]>
-    {
-        return this._httpClient.get<Notification[]>('api/common/notifications').pipe(
-            tap((notifications) =>
-            {
-                this._notifications.next(notifications);
-            }),
-        );
-    }
+  getAll(): Observable<Notification[]> {
+    return this._httpClient
+      .get<Notification[]>(`${environment.api}/notifications`)
+      .pipe(
+        tap((notifications) => {
+          this._notifications.next(notifications);
+        })
+      );
+  }
 
     /**
      * Create a notification
@@ -53,7 +34,7 @@ export class NotificationsService
     {
         return this.notifications$.pipe(
             take(1),
-            switchMap(notifications => this._httpClient.post<Notification>('api/notifications', {notification}).pipe(
+            switchMap(notifications => this._httpClient.post<Notification>('api/common/notifications', {notification}).pipe(
                 map((newNotification) =>
                 {
                     // Update the notifications with the new notification
@@ -83,20 +64,21 @@ export class NotificationsService
                 map((updatedNotification: Notification) =>
                 {
                     // Find the index of the updated notification
-                    const index = notifications.findIndex(item => item._id === id);
+                    const index = notifications.findIndex(item => item.id === id);
 
-                    // Update the notification
-                    notifications[index] = updatedNotification;
+              // Update the notification
+              notifications[index] = updatedNotification;
 
-                    // Update the notifications
-                    this._notifications.next(notifications);
+              // Update the notifications
+              this._notifications.next(notifications);
 
-                    // Return the updated notification
-                    return updatedNotification;
-                }),
-            )),
-        );
-    }
+              // Return the updated notification
+              return updatedNotification;
+            })
+          )
+      )
+    );
+  }
 
     /**
      * Delete the notification
@@ -111,44 +93,49 @@ export class NotificationsService
                 map((isDeleted: boolean) =>
                 {
                     // Find the index of the deleted notification
-                    const index = notifications.findIndex(item => item._id === id);
+                    const index = notifications.findIndex(item => item.id === id);
 
-                    // Delete the notification
-                    notifications.splice(index, 1);
+              // Delete the notification
+              notifications.splice(index, 1);
 
-                    // Update the notifications
-                    this._notifications.next(notifications);
+              // Update the notifications
+              this._notifications.next(notifications);
 
-                    // Return the deleted status
-                    return isDeleted;
-                }),
-            )),
-        );
-    }
+              // Return the deleted status
+              return isDeleted;
+            })
+          )
+      )
+    );
+  }
 
-    /**
-     * Mark all notifications as read
-     */
-    markAllAsRead(): Observable<boolean>
-    {
-        return this.notifications$.pipe(
-            take(1),
-            switchMap(notifications => this._httpClient.get<boolean>('api/common/notifications/mark-all-as-read').pipe(
-                map((isUpdated: boolean) =>
-                {
-                    // Go through all notifications and set them as read
-                    notifications.forEach((notification, index) =>
-                    {
-                        notifications[index].read = true;
-                    });
+  markAllAsRead(): Observable<boolean> {
+    return this.notifications$.pipe(
+      take(1),
+      switchMap((notifications) =>
+        this._httpClient
+          .get<boolean>(`${environment.api}/notifications/mark-all-as-read`)
+          .pipe(
+            map((isUpdated: boolean) => {
+              // Go through all notifications and set them as read
+              notifications.forEach((notification, index) => {
+                notifications[index].read = true;
+              });
 
-                    // Update the notifications
-                    this._notifications.next(notifications);
+              // Update the notifications
+              this._notifications.next(notifications);
 
-                    // Return the updated status
-                    return isUpdated;
-                }),
-            )),
-        );
-    }
+              // Return the updated status
+              return isUpdated;
+            })
+          )
+      )
+    );
+  }
+  pushNotification(notification: Notification): void {
+    this._notifications.pipe(take(1)).subscribe(currentNotifications => {
+      const updatedNotifications = [notification, ...currentNotifications];
+      this._notifications.next(updatedNotifications);
+    });
+  }
 }

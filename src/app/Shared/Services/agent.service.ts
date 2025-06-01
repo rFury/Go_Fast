@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
 })
 export class AgentService {
     private endpoint = `${environment.api}/agents`;
+    private endpointRoute = `${environment.api}/routes`;
     private http=inject(HttpClient);
     getJourney():Observable<any>{
         return this.http.get<any>(`${this.endpoint}/journey`);
@@ -19,4 +20,10 @@ export class AgentService {
     endJourney():Observable<any>{
         return this.http.get<any>(this.endpoint);
     }
+
+    addOrderToJourney(id:string):Observable<any>{
+        return this.http.patch<any>(`${this.endpointRoute}/add-order`,{orderId:id});
+    }
+
+
 }

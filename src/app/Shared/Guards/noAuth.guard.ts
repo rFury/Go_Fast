@@ -16,8 +16,8 @@ export const noAuthGuard: CanActivateFn = (route, state): boolean | UrlTree => {
       return _router.createUrlTree(['/'], {
         queryParams: { returnUrl: state.url },
       });
-    } else if (who === 'users') {
-      return _router.createUrlTree(['agent/'], {
+    } else if (who === 'agents') {
+      return _router.createUrlTree(['admin/agents/'], {
         queryParams: { returnUrl: state.url },
       });
     }

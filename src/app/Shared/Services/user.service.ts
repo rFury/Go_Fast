@@ -25,10 +25,11 @@ export class UserService {
   features=signal<FeatureAuth[] | null>(null);
   http = inject(HttpClient);
   router = inject(Router);
-  _menu = inject(MenuService);
+  _menu = inject(MenuService); 
 
   
     user = this._user.asReadonly();
+    userObservable = new BehaviorSubject<User | Client | Agent | null>(null);
 
     private _trackActivity() {
       window.addEventListener('mousemove', this._resetInactivityTimer.bind(this));
@@ -46,11 +47,14 @@ export class UserService {
           this.updateState('away').subscribe();
         }, 300000); // 5 minutes inactivity
     }
+    
 
   get user$(){
     return this._user()
   }
-
+  get userObs(){
+    return this.userObservable.asObservable()
+  }
 
   set defaultLink(value: string) {
     this._defaultLink.next(value);
@@ -60,33 +64,38 @@ export class UserService {
   }
 
   checkPermission(code: string, action: string): Observable<boolean> {
-    if (this.features()) {
-      const featuresAuth = this.features();
-      return of(!!featuresAuth?.some(
-        (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
-      ));
-    } else {
-      return this._menu.getActions().pipe(
-        map(actions => {
-          return !!actions?.some(
-            (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
-          );
-        })
+    const check = (features: any[]): boolean => {
+      if (action === "list") {
+        return features?.some(fau => fau.code === code);
+      }
+      return features?.some(
+        fau => fau.code === code && fau.actions?.includes(action as FeatureActions)
       );
+    };
+    const featuresAuth = this.features();
+    if (featuresAuth) {
+      return of(check(featuresAuth));
     }
+    return this._menu.getActions().pipe(
+      map(actions => check(actions))
+    );
   }
+  
   
   
 
   get(): Observable<User | Agent | Client> {
     return this.http.get<User>(`${this.endpointUser}/me`).pipe(
       tap((user)=>{
-        if(user.type === "client"){
+        if(user.type === "client"){          
           this._user.set(user as Client);
+          this.userObservable.next(user as Client);
         }else if(user.type === "agent"){
           this._user.set(user as Agent);
+          this.userObservable.next(user as Agent);
         }else{
           this._user.set(user);
+          this.userObservable.next(user);
         }
       }),
       catchError((error) => {
@@ -142,13 +151,6 @@ export class UserService {
   }
   updatePersonalInfo(user: User): Observable<User> {
     return this.http.post<User>(`${this.endpointUser}/personal-info`, user);
-  }
-  updateMyAvatar(data: FormData): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/my-avatar`, data).pipe(
-      tap((user) => {
-        this._user.set(user);
-      })
-    );
   }
 
   addUser(user: User | Client | Agent): Observable<any> {
@@ -239,12 +241,10 @@ export class UserService {
     }
     return this.http.delete<null>(`${endpoint}/${id}`);
   }
-  updateAvatar(data: FormData, id: string): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/${id}/avatar`, data).pipe(
-      tap((user) => {
-        this._user.set(user);
-      })
-    );
+  updateAvatar(file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('avatar', file); 
+    return this.http.patch<User>(`${this.endpointUser}/avatar`, formData);
   }
 
   initializeUser(user: User) {
@@ -260,5 +260,11 @@ export class UserService {
       })
     );
   }
-  
+  updatePassword(data: any): Observable<any> {
+    return this.http.patch<any>(`${this.endpointUser}/update-password`, {currentPassword:data.currentPassword});
+  }
+  completePasswordChange(code: string,newPassword: string): Observable<any> {
+    return this.http.patch<any>(`${this.endpointUser}/complete-password-change`, {key:code,newPassword});
+  }
+
 }

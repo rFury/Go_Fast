@@ -16,6 +16,11 @@ export class Order{
     client?:Client | string;
     agent?:Agent | string;
     status?:Status;
+    height?:number;
+    width?:number;
+    length?:number;
+    completed?:boolean;
+    onRoute?:boolean;
     createdAt?:Date;
     updatedAt?:Date;
 }

@@ -9,7 +9,7 @@ import { FuseNavigationItem } from '../../../../../Models/Navigation.model';
 import { FuseNavigationService } from '../../../navigation.service';
 import { FuseVerticalNavigationComponent } from '../../vertical.component';
 import { UtilsService } from '../../../../../Services/utils.service';
-
+import { MenuService } from '../../../../../Services/menu.service';
 @Component({
     selector: 'fuse-vertical-navigation-basic-item',
     templateUrl: './basic.component.html',
@@ -33,6 +33,7 @@ export class FuseVerticalNavigationBasicItemComponent implements OnInit, OnDestr
         private _changeDetectorRef: ChangeDetectorRef,
         private _fuseNavigationService: FuseNavigationService,
         private _fuseUtilsService: UtilsService,
+        private _menuService: MenuService
     )
     {
         // Set the equivalent of {exact: false} as default for active match options.
@@ -83,5 +84,8 @@ export class FuseVerticalNavigationBasicItemComponent implements OnInit, OnDestr
         // Unsubscribe from all subscriptions
         this._unsubscribeAll.next(null);
         this._unsubscribeAll.complete();
+    }
+    markAsRead(id:string){
+        this._menuService.markAsRead(id);
     }
 }

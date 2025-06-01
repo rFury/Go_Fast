@@ -16,10 +16,6 @@ import { User } from '../../../../../../Shared/Models/User.model';
 import { MenuService } from '../../../../../../Shared/Services/menu.service';
 import { UserService } from '../../../../../../Shared/Services/user.service';
 import { FuseMediaWatcherService } from '../../../../../../Shared/Services/media-watcher/media-watcher.service';
-import {
-  Navigation,
-  NavigationService,
-} from '../../../../../../Shared/Services/navigation.service';
 import { FuseNavigationService } from '../../../../../../Shared/Components/navigation/navigation.service';
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
@@ -36,6 +32,7 @@ import { Agent } from '../../../../../../Shared/Models/Agent.model';
 import { NgZone } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
+import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 
 @Component({
   selector: 'classy-layout',
@@ -59,10 +56,10 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   protected _authService = inject(SuperAuthService);
   protected _userService = inject(UserService);
   protected _sideNavService = inject(SideNavService);
+  private menuService = inject(MenuService);
   private _cdr = inject(ChangeDetectorRef);
-  protected _locationService = inject(LocationService);
   protected _locationWebService = inject(LocationWebService);
-  private _ngZone = inject(NgZone);
+  private _notifService = inject(FirebaseNotification);
   navigationAppearance: 'default' | 'dense' = 'default';
   private _positionInterval: any;
   showUser: boolean = false;
@@ -73,20 +70,12 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   isLoading: boolean = true;
   email: string = '';
   constructor(
-    private menuService: MenuService,
     private _fuseMediaWatcherService: FuseMediaWatcherService,
     private _fuseNavigationService: FuseNavigationService
   ) {}
   Admin: boolean = false;
   Agent: boolean = false;
 
-  @HostListener('window:beforeunload', ['$event'])
-  onBeforeUnload(event: BeforeUnloadEvent) {
-    // Synchronous “offline” ping so the browser doesn’t cancel it
-    const url = `${this._userService.endpointUser}/status`;
-    const data = JSON.stringify({ status: 'not-visible' });
-    navigator.sendBeacon(url, data);
-  }
   async ngOnInit() {
     this.isLoading = true;
 
@@ -96,69 +85,22 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     const agent = this._authService.decodeToken().type === 'agent';
     this.Admin = admin;
     this.Agent = agent;
+    this._userService
+      .get()
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe({
+        next: async (res) => {
+          this.user = res;
+          this._userService.initializeUser(res);
+          this.isLoading = false;
+          this._userService.updateState('online').subscribe((res) => {
+            this._cdr.markForCheck();
+          });
+        },
+        error: (err) => console.error(err),
+      });
 
-    if (admin) {
-      this._userService
-        .get()
-        .pipe(takeUntil(this._unsubscribeAll))
-        .subscribe({
-          next: (res) => {
-            this._userService.initializeUser(res);
-            this.user = res;
-            this._userService.updateState('online').subscribe((res) => {
-              this._cdr.markForCheck();
-            });
-          },
-          error: (err) => console.error(err),
-        });
-    } else if (agent) {
-      this._userService
-        .get()
-        .pipe(takeUntil(this._unsubscribeAll))
-        .subscribe({
-          next: async (res) => {
-            this.user = res;
-            this._userService.initializeUser(res);
-            this.isLoading = false;
-            this._userService.updateState('online').subscribe((res) => {
-              this._cdr.markForCheck();
-            });
-            // Register agent with error handling
-            /*try {
-              await this._locationService.registerAgent(this.user._id!);
-              Geolocation.watchPosition(
-                {
-                  enableHighAccuracy: true,
-                  timeout: 30000,
-                  maximumAge: 5000,
-                },
-                (position, error) => {
-                  if (position) {
-                    this._ngZone.run(() => {
-                      const newLocation: [number, number] = [
-                        position.coords.longitude,
-                        position.coords.latitude,
-                      ];
-                      console.log('success', newLocation);
-        
-                      this._locationService.sendAgentLocation(this.user._id!, newLocation);
-
-                    });
-                  } else {
-                    console.error('Error watching position:', error);
-                  }
-                }
-              );
-            } catch (error) {
-              console.error('Agent registration failed:', error);
-            }*/
-          },
-          error: (err) => console.error(err),
-        });
-    } else {
-      console.log('error');
-    }
-
+    this.menuService.initializeMenuSocket();
     this.menuService.getMenu().subscribe({
       next: (data) => {
         this.navigation = data.menu;
@@ -166,6 +108,13 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         console.log(this._userService.features());
         console.log('navigation', this.navigation);
         console.log('feature', data.features);
+        this.menuService.menu = data;
+        this.menuService.menu$
+          .pipe(takeUntil(this._unsubscribeAll))
+          .subscribe((menu) => {
+            this.navigation = menu.menu;
+            this._userService.features.set(menu.features);
+          });
       },
       error: () => {},
       complete: () => {
@@ -178,10 +127,12 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       .subscribe(({ matchingAliases }) => {
         this.isScreenSmall = !matchingAliases.includes('md');
         this._sideNavService.setOpen(!this.isScreenSmall);
-        if(agent){
+        if (agent) {
           this.navigationAppearance = this.isScreenSmall ? 'default' : 'dense';
         }
       });
+
+    this._notifService.requestPermission();
   }
 
   ngOnDestroy(): void {
@@ -189,9 +140,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     if (this._positionInterval) {
       clearInterval(this._positionInterval);
     }
-    // Unregister agent
-    this._locationService.unsubscribeFromAgent(this.user?._id!);
-    this._locationService.diconnect();
 
     // Existing cleanup
     this._unsubscribeAll.next(null);
@@ -212,8 +160,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       }
     }
   }
-  toggleNavigationAppearance(): void
-  {
-      this.navigationAppearance = (this.navigationAppearance === 'default' ? 'dense' : 'default');
+  toggleNavigationAppearance(): void {
+    this.navigationAppearance =
+      this.navigationAppearance === 'default' ? 'dense' : 'default';
   }
 }

@@ -50,4 +50,19 @@ export class OrderService {
   updateOrder(order: Order): Observable<null> {
     return this.http.put<null>(`${this.endpoint}/${order._id}`, { order });
   }
+  getOrdersAgent(orderId: string): Observable<string> {
+    return this.http.get<string>(`${this.endpoint}/agent/${orderId}`);
+  }
+  pickUpOrder(order: Order): Observable<Order | null> {
+    return this.http.put<Order | null>(`${this.endpoint}/${order._id}/pick-up`,{});
+  }
+  deliverOrder(order: Order): Observable<null> {
+    return this.http.put<null>(`${this.endpoint}/${order._id}/deliver`,{});
+  }
+  activateOrder(orderId: string): Observable<boolean> {
+    return this.http.put<boolean>(`${this.endpoint}/${orderId}/activate`,{});
+  }
+  deactivateOrder(orderId: string): Observable<boolean> {
+    return this.http.put<boolean>(`${this.endpoint}/${orderId}/deactivate`,{});
+  }
 }

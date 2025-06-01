@@ -47,16 +47,14 @@ export class UserComponent implements OnInit, OnDestroy {
   user: User | Agent | Client | null = this._userService._user();
   link='/settings';
   constructor(){
-    effect(() => {
       this.user = this._userService.user();
       console.log(this.user);
       if(this.user?.type === 'super' || this.user?.type === 'user'){
         this.link='/admin/settings';
       }else if(this.user?.type === 'agent'){
         this.link='/admin/agents/settings';
-      }      
+      }  
       this._cdr.markForCheck();
-    });
   }
 
   ngOnInit(): void {

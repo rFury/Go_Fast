@@ -163,13 +163,14 @@ export class SignInComponent implements OnInit {
                 console.log(user);
                 console.log(                this._userService._defaultLink.getValue()
               );
-                
+                const url = this.user.type==='agent'?'/admin/agents':'/admin/settings';
                 const redirectURL =
                   this._activatedRoute.snapshot.queryParamMap.get(
                     'redirectURL'
                   ) ||
                   this._userService._defaultLink.getValue() ||
-                  '/admin/signed-in-redirect';
+                (this.user.type==='agent'?'/admin/agents/new-order':'/admin/dashboard/features');
+
                 localStorage.setItem(
                   'email',
                   this.signInForm?.get('email')?.value

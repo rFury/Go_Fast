@@ -27,9 +27,9 @@
     <div class="bg-white dark:bg-slate-800 shadow-sm z-10 px-2 py-3">
       <div class="flex justify-between items-center">
         <div class="flex items-center space-x-3">
-          <button mat-icon-button (click)="toggleSidebar()" class="ml-10 sm:ml-auto">
+          <button mat-icon-button (click)="toggleSidebar()" class="ml-10 md:ml-auto">
             <mat-icon [svgIcon]="
-                !isSidebarOpen ? 'mat_solid:menu_open' : 'heroicons_solid:plus'
+                isSidebarOpen ? 'mat_solid:menu_open' : 'heroicons_solid:plus'
               "></mat-icon>
           </button>
           <div class="flex items-center space-x-2">
@@ -42,14 +42,16 @@
           </div>
         </div>
         <mat-progress-bar mode="determinate" [value]="journeyProgress" color="primary" class="w-32"></mat-progress-bar>
+        <messages></messages>
       </div>
     </div>
 
     <!-- Main content area -->
     <div class="flex flex-1 overflow-hidden">
       <!-- Enhanced Sidebar -->
-      <div class="flex flex-col bg-white dark:bg-slate-800 shadow-lg transition-all duration-300 z-20 overflow-auto"
-        [class.w-72]="isSidebarOpen" [class.w-0]="!isSidebarOpen">
+       @if(isSidebarOpen){
+      <div class="fixed inset-y-0 left-0 md:left-20 top-16 w-72 flex flex-col bg-white dark:bg-slate-800 shadow-lg transition-transform duration-300 z-20 overflow-auto"
+      @slideInLeft>
         <div class="p-4 bg-slate-50 dark:bg-slate-900 border-b dark:border-slate-700">
           <h2 class="font-semibold text-lg mb-1">Delivery Route</h2>
           <p class="text-sm text-slate-500 dark:text-slate-400">
@@ -62,8 +64,8 @@
           @for (stop of stops; track $index) {
           <div
             class="p-3 border-b dark:border-slate-700 flex items-start cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-            [class.bg-blue-50]="stop.status === 'active'" [class.dark:bg-slate-600]="stop.status === 'active'"
-            [class.opacity-50]="stop.status === 'completed'" (click)="openOrderDetails(stop.order)">
+            [class.bg-blue-50]="stop.status === 'active'"
+            [class.opacity-50]="stop.status === 'completed'" (click)="openOrderDetails(stop.order)" [class.items-baseline]="stop.order.completed">
             <!-- Stop Indicator -->
             <div class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs mt-1 mr-3"
               [class.bg-green-500]="stop.status === 'completed'" [class.bg-blue-500]="stop.status === 'active'"
@@ -79,19 +81,26 @@
             <!-- Stop Details -->
             <div class="flex-1 min-w-0">
               <div class="flex items-center space-x-2 mb-1">
-                <span class="text-sm font-medium">
-                  {{ stop.isPickup ? "Pickup" : "Delivery" }}
-                </span>
+                @if(stop.order.completed===false){
+                  <span class="text-sm font-medium">
+                    {{ stop.isPickup ? "Pick-up" : "Delivery" }}
+                  </span>
+                }@else {
+                  <span class="text-sm font-medium capitalize">
+                    {{stop.order.status}}
+                  </span>
+                }
                 <span class="text-xs text-slate-500 dark:text-slate-400">
                   #{{ stop.order.code }}
                 </span>
               </div>
               <div class="text-md text-slate-600 dark:text-slate-300">
-                <p class="truncate flex">
-                  <mat-icon mat-icon [svgIcon]="'heroicons_outline:phone'"></mat-icon>
-
-                  {{ getOrderLabel(stop.order) }}
-                </p>
+                @if(stop.status !== 'completed'){
+                    <p class="truncate flex">
+                      <mat-icon mat-icon [svgIcon]="'heroicons_outline:phone'"></mat-icon>
+                      {{ getOrderLabel(stop.order) }}
+                    </p>
+                  }
                 @if (stop.status === 'active' && isNavigating) {
                 <div class="flex items-center space-x-2 mt-1 text-xs">
                   <span class="text-emerald-600 dark:text-emerald-400">
@@ -109,7 +118,7 @@
           }
         </div>
       </div>
-
+      }
       <!-- Map container -->
       <div class="flex-1 relative overflow-hidden relative">
         <div id="map" class="w-full h-full"></div>
@@ -130,7 +139,7 @@
         <div class="bg-white dark:bg-slate-800 rounded-xl p-8 max-w-md mx-4 text-center animate-scale-in">
           <h2 class="text-2xl font-bold mb-4">Start Your Route</h2>
           <p class="mb-6 text-slate-600 dark:text-slate-300">
-            You have {{ stops.length }} stops in your journey. Ready to begin
+            You have {{ stopsLength() }} stops in your journey. Ready to begin
             navigation?
           </p>
           <button mat-flat-button color="primary" class="w-full py-3" (click)="startNavigation(false)">
@@ -240,7 +249,7 @@
         MatTooltip="Show route overview">
         <mat-icon>map</mat-icon>
       </button>
-      @if(distanceToNextStop < 0.05){ <button mat-icon-button color="primary" (click)="completeCurrentStop()"
+      @if(distanceToNextStop < 0.07){ <button mat-icon-button color="primary" (click)="completeCurrentStop()"
         aria-label="Mark as complete" MatTooltip="Mark as complete">
         <mat-icon>check_circle</mat-icon>
         </button>
@@ -253,15 +262,21 @@
 }
 
 <!-- Order details modal -->
-@if (isDetailModalOpen && selectedOrder) {
-<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-
-    <button mat-icon-button (click)="closeOrderDetails()" class="absolute top-4 right-4 z-99 ">
-      <mat-icon class="text-white">close</mat-icon>
-    </button>
-    <ordercarddetails [Order]="selectedOrder" [withMap]="false"></ordercarddetails>
+@if ((isDetailModalOpen || generatePDF) && selectedOrder) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      @if(generatePDF){
+      <button mat-flat-button (click)="closeOrderDetails()" class="absolute top-4 right-4 z-99">
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+      <compact [Order]="selectedOrder" (pdfGenerated)="openPDF()"></compact>
+      }@else{
+      <button mat-icon-button (click)="closeOrderDetails()" class="absolute top-4 right-4 z-99">
+        <mat-icon class="text-white">close</mat-icon>
+      </button>
+      <ordercarddetails [Order]="selectedOrder" [withMap]="false"></ordercarddetails>
+      }
   </div>
-}
+  }
 </div>
 
 @if (isFetchingLocation) {

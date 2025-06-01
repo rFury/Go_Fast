@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, signal, OnDestroy, AfterViewInit } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import { MapService } from '../../../../Shared/Services/map.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,7 +13,6 @@ import {
   MatButtonToggleModule,
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
-import MapboxDirections from '@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions';
 import { Order } from '../../../../Shared/Models/Order.model';
 import { FormsModule } from '@angular/forms';
 import { DeliveryType } from '../../../../Shared/enums/delivery.enums';
@@ -27,6 +26,8 @@ import { FuseMediaWatcherService } from '../../../../Shared/Services/media-watch
 import { takeUntil, Subject } from 'rxjs';
 import { state, style, trigger } from '@angular/animations';
 import { Animations } from '../../../../Shared/Animations/public-api';
+import { OrderService } from '../../../../Shared/Services/order.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-new-order',
@@ -34,7 +35,6 @@ import { Animations } from '../../../../Shared/Animations/public-api';
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
-    MatSelectTrigger,
     MatSelect,
     MatOptionModule,
     MatButtonModule,
@@ -49,8 +49,8 @@ import { Animations } from '../../../../Shared/Animations/public-api';
   templateUrl: './new-order.component.html',
   styleUrl: './new-order.component.scss',
 })
-export class NewOrderComponent implements OnInit, OnDestroy {
-  toggle:boolean = false;
+export class NewOrderComponent implements OnInit,AfterViewInit, OnDestroy {
+  toggle: boolean = false;
   private destroy$ = new Subject<void>();
   isScreenSmall: boolean = false;
   dragging = signal(false);
@@ -64,6 +64,8 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   map: mapboxgl.Map | null = null;
   private _mapService = inject(MapService);
   private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
+  private _orderService = inject(OrderService);
+  private _router = inject(Router);
   searchQueryA: string = '';
   coordinatesA?: [number, number];
   coordinatesB?: [number, number];
@@ -80,13 +82,14 @@ export class NewOrderComponent implements OnInit, OnDestroy {
         this.handleMapResize();
       });
   }
-
+  ngAfterViewInit(): void {
+    this.initializeMap();
+  }
   ngOnDestroy(): void {
     this.destroyMap();
     this.destroy$.next();
     this.destroy$.complete();
   }
-
   private handleMapResize(): void {
     if (this.map) {
       setTimeout(() => this.map?.resize(), 100);
@@ -106,6 +109,11 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     console.log(this.Order);
     console.log(this.PointA);
     console.log(this.PointB);
+    this.Order.pick_up = this.PointA;
+    this.Order.destination = this.PointB;
+    this._orderService.addOrder(this.Order).subscribe((res) => {
+      this._router.navigate(['/orders/' + res.id]).then();
+    });
   }
 
   private initializeMap(lng?: number, lat?: number): void {
@@ -113,7 +121,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
 
     this.map = new mapboxgl.Map({
       accessToken: this._mapService.mapboxToken,
-      container: 'map',
+      container: 'OrderMap',
       style: 'mapbox://styles/mapbox/standard',
       center: new mapboxgl.LngLat(lng ?? 10.1956, lat ?? 36.8625),
       zoom: 12,
@@ -121,6 +129,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
       bearing: 0,
     });
 
+    this.map.resize();
     this.setupMapEvents();
   }
 
@@ -193,7 +202,7 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     point.place = place;
     let coordinates = type === 'a' ? this.coordinatesA : this.coordinatesB;
     coordinates = place.coordinates;
-    console.log(coordinates, 'coordinates'+type);
+    console.log(coordinates, 'coordinates' + type);
 
     if (type === 'a') {
       this.searchQueryA = `${place.name}, ${place.gouvernorat}`;
@@ -203,9 +212,9 @@ export class NewOrderComponent implements OnInit, OnDestroy {
   }
 
   addMarker(lngLat: mapboxgl.LngLat, type?: 'a' | 'b'): void {
-    if (this.markers.length >= 2){
+    if (this.markers.length >= 2) {
       return;
-    };
+    }
 
     const markerType = type ?? (this.markers.length === 0 ? 'a' : 'b');
     const icon = `location-${markerType}-icon.svg`;
@@ -233,17 +242,14 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this._mapService
       .reverseGeocode(marker.getLngLat().lng, marker.getLngLat().lat)
       .subscribe((place) => {
-        
         const point = type === 'a' ? this.PointA : this.PointB;
         point.place = place!;
-        console.log(marker, 'place'+type);
+        console.log(marker, 'place' + type);
 
         if (type === 'a') {
           this.searchQueryA = `${place!.name}, ${place!.gouvernorat}`;
           this.coordinatesA = place!.coordinates;
-
         } else {
-          
           this.searchQueryB = `${place!.name}, ${place!.gouvernorat}`;
           this.coordinatesB = place!.coordinates;
         }
@@ -251,7 +257,6 @@ export class NewOrderComponent implements OnInit, OnDestroy {
           this.getRoute(this.coordinatesA!, this.coordinatesB!);
         }
       });
-
   }
 
   flyToLocation(lng: number, lat: number, zoom = 15) {
@@ -259,84 +264,58 @@ export class NewOrderComponent implements OnInit, OnDestroy {
     this.map.flyTo({
       center: [lng, lat],
       zoom,
-      speed: 1.0, 
+      speed: 1.0,
       curve: 1.4,
       essential: true,
     });
   }
-
-  drawRouteLine() {
-    console.log('zebi');
-    console.log(this.coordinatesA);
-    console.log(this.coordinatesB);
-    
-    if (!this.map) return;
-    const directions = new MapboxDirections({
-      accessToken: this._mapService.mapboxToken,
-      unit: 'metric',
-      profile: 'mapbox/driving',
-      interactive: false, // disables UI
-      controls: {
-        inputs: false,
-        instructions: false,
-        profileSwitcher: false
-      }
-    });
-    this.map.addControl(directions);
-  
-    // set origin/destination programmatically:
-    directions.setOrigin([this.coordinatesA![0], this.coordinatesA![1]]);
-    directions.setDestination([this.coordinatesB![0], this.coordinatesB![1]]);
-  }
   getRoute(start: [number, number], end: [number, number]) {
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?geometries=geojson&access_token=${this._mapService.mapboxToken}`;
-  
+
     fetch(url)
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         const route = data.routes[0].geometry;
-  
+
         if (!this.map) return;
         // Remove old route layer if it exists
         if (this.map.getSource('route')) {
           this.map.removeLayer('route');
           this.map.removeSource('route');
         }
-  
+
         this.map.addSource('route', {
           type: 'geojson',
           data: {
             type: 'Feature',
             properties: {},
-            geometry: route
-          }
+            geometry: route,
+          },
         });
-  
+
         this.map.addLayer({
           id: 'route',
           type: 'line',
           source: 'route',
           layout: {
             'line-join': 'round',
-            'line-cap': 'round'
+            'line-cap': 'round',
           },
           paint: {
             'line-color': '#3887be',
             'line-width': 5,
-            'line-opacity': 0.75
-          }
+            'line-opacity': 0.75,
+          },
         });
         const coordinates = route.coordinates;
         const bounds = coordinates.reduce((b, coord) => {
           return b.extend(coord);
         }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-  
+
         this.map.fitBounds(bounds, {
           padding: 50,
-          animate: true
+          animate: true,
         });
       });
-      
   }
-  
 }

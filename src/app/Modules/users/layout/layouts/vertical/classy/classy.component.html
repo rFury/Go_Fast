@@ -13,8 +13,8 @@
         <ng-container fuseVerticalNavigationFooter>
             <!-- User -->
             <div class="flex items-center w-full px-4 py-8 border-t">
+                @if(!isLoading){
                 <user></user>
-                @if(user){
                 <div class="flex flex-col w-full ml-4 overflow-hidden">
                     <div
                         class="w-full whitespace-nowrap text-ellipsis overflow-hidden leading-normal text-current opacity-80">
@@ -23,6 +23,16 @@
                     <div
                         class="w-full mt-0.5 whitespace-nowrap text-sm text-ellipsis overflow-hidden leading-normal text-current opacity-50">
                         {{user.email}}
+                    </div>
+                </div>
+                }@else {
+                <mat-progress-spinner [diameter]="45" mode="indeterminate"></mat-progress-spinner>
+                <div class="flex flex-col w-full ml-4 overflow-hidden">
+                    <div
+                        class="w-28 h-3 bg-gray-200 rounded-full animate-pulse opacity-80">
+                    </div>
+                    <div
+                        class="w-28 h-2 mt-1 bg-gray-100 rounded-full animate-pulse opacity-50">
                     </div>
                 </div>
                 }
