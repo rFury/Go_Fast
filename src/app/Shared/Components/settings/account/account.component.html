@@ -8,6 +8,13 @@
             <div class="text-xl">Profile</div>
             <div class="text-secondary">Following information is publicly displayed, be careful!</div>
         </div>
+        @if(showAlert){
+            <!-- Alert -->
+            <alert class="mt-2 z-20" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
+              [@shake]="alert.type === 'error'">
+              {{alert.message}}
+            </alert>
+            }
         <div class="w-full flex justify-center items-center">
             <!-- Profile photo -->
             <div class="group relative flex flex-0 mt-8 mx-auto w-40 h-40 relative">
@@ -184,11 +191,13 @@
             <button mat-stroked-button type="button" [disabled]="accountForm.pristine">
                 Cancel
             </button>
-            <button class="ml-4" mat-flat-button type="button" [color]="'primary'" [disabled]="accountForm.pristine || accountForm.invalid">Save
+            <button class="ml-4" mat-flat-button type="button" [color]="'primary'" [disabled]="accountForm.pristine || accountForm.invalid" (click)="updateAccount()">Save
             </button>
         </div>
         }
         <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none">
     </form>
-
+    @if(showDialog){
+        <app-verification-dialog (canceled)="canceled($event)" (codeVerified)="verified($event)" [isVerifying]="isVerifying"></app-verification-dialog>
+    }
 </div>

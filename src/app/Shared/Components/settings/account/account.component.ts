@@ -32,11 +32,19 @@ import { FormControl } from '@angular/forms';
 import { User } from '../../../Models/User.model';
 import { CommonModule } from '@angular/common';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
+import { VerificationDialogComponent } from '../../verificationDialog/verification-dialog.component';
+import { AlertType } from '../../alert/alert.types';
+import { FuseAlertComponent } from '../../alert/alert.component';
+import { FuseConfirmationService } from '../../confirmation/confirmation.service';
+import { SuperAuthService } from '../../../Services/super-auth-service.service';
+import { Animations } from '../../../Animations/public-api';
+import { Router } from '@angular/router';
 @Component({
   selector: 'settings-account',
   templateUrl: './account.component.html',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: Animations,
   standalone: true,
   imports: [
     FormsModule,
@@ -50,6 +58,8 @@ import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
     MatButtonModule,
     CommonModule,
     NgxMatSelectSearchModule,
+    FuseAlertComponent,
+    VerificationDialogComponent,  
   ],
 })
 export class SettingsAccountComponent implements OnInit {
@@ -58,11 +68,21 @@ export class SettingsAccountComponent implements OnInit {
   private _formBuilder = inject(UntypedFormBuilder);
   private userService = inject(UserService);
   private cdr = inject(ChangeDetectorRef);
+  private _fuseConfirmationService = inject(FuseConfirmationService);
+  private router = inject(Router);
   selectedFile: File | null = null;
   user: User | Agent | Client | null = null;
   placeSearchControl = new FormControl('');
   list : Governorate[] = GOVERNORATES;
   suggestions: Governorate[] =  GOVERNORATES; 
+  showDialog: boolean = false;
+  showAlert: boolean = false;
+  isVerifying: boolean = false;
+  alert: { type: AlertType; message: string } = {
+    type: 'error',
+    message: '',
+  };
+  newMail:Boolean=false;
   ngOnInit(): void {
     this.user = this.userService.user();
     if (this.user === null) return;
@@ -94,9 +114,6 @@ export class SettingsAccountComponent implements OnInit {
         username: [agent.username],
         title: [title],
         company: ['GoFast'],
-        about: [
-          "Hey! This is Brian; husband, father and gamer. I'm mostly passionate about bleeding edge tech and chocolate! 🍫",
-        ],
         email: [agent.email, Validators.email],
         phone1: [agent.phone1],
         phone2: [agent.phone2],
@@ -107,9 +124,6 @@ export class SettingsAccountComponent implements OnInit {
         username: [this.user.username],
         title: [title],
         company: ['GoFast'],
-        about: [
-          "Hey! This is Brian; husband, father and gamer. I'm mostly passionate about bleeding edge tech and chocolate! 🍫",
-        ],
         email: [this.user.email, Validators.email],
       });
     }
@@ -123,7 +137,7 @@ export class SettingsAccountComponent implements OnInit {
       const file = input.files[0];
       
       // Validate file type and size
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif','image/jpg'];
       const maxSizeMB = 5;
       
       if (!validTypes.includes(file.type)) {
@@ -176,11 +190,109 @@ export class SettingsAccountComponent implements OnInit {
     });
   }
   }
+  updateAccount(){
+    if(this.user?.email?.toString().trim() !== this.accountForm.value.email.toString().trim()){
+      const confirmation = this._fuseConfirmationService.open({
+        title: 'New Email',
+        message: 'Would you like to update your email ?\n to this one : "'+this.accountForm.value.email+'"',
+        actions: {
+          confirm: {
+            label: 'yes',
+          },
+          cancel: {
+            label: 'no',
+          },
+        },
+      });
+      confirmation.afterClosed().subscribe((result) => {
+        // If the confirm button pressed...
+        if (result === 'confirmed') {
+          this.newMail=true;
+          this.userService.updatePersonalInfo().subscribe({
+            next: (response) => {
+              this.showDialog = true;
+              this.cdr.detectChanges();
+            },
+            error: (err) => {
+              this.showError('Failed to update account. Please try again.');
+            }
+          });
+        }else{
+          this.newMail=false;
+          const client = this.user as Client;
+          this.accountForm = this._formBuilder.group({
+            name: [client.first_name + ' ' + client.last_name],
+            username: [client.username],
+            email: [client.email, [Validators.email,Validators.required]],
+            phone1: [client.phone, [Validators.required,Validators.minLength(8),Validators.maxLength(8),Validators.pattern(/^[0-9]+$/)]],
+            gouvernorat: [client.city?.gouvernorat ,[Validators.required]],
+          });
+          this.cdr.detectChanges();
+        }
+      });
+    }
+    else{
+      this.userService.updatePersonalInfo().subscribe({
+        next: (response) => {
+          this.showDialog = true;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.showError('Failed to update account. Please try again.');
+      }
+      });
+    }
+  }
   private showSuccess(message: string): void {
     // Implement your notification logic (Snackbar, Toast, etc.)
   }
 
   private showError(message: string): void {
     // Implement error notification
+  }
+  canceled(event: boolean): void {
+    this.showDialog = false;
+    const client = this.user as Client;
+    this.accountForm = this._formBuilder.group({
+      name: [client.first_name + ' ' + client.last_name],
+      username: [client.username],
+      email: [client.email, [Validators.email,Validators.required]],
+      phone1: [client.phone, [Validators.required,Validators.minLength(8),Validators.maxLength(8),Validators.pattern(/^[0-9]+$/)]],
+      gouvernorat: [client.city?.gouvernorat ,[Validators.required]],
+    });
+    this.cdr.detectChanges();
+  }
+  verified(event: string): void {
+    this.isVerifying = true;
+    this.cdr.detectChanges();
+    const city = this.list.find(item => item.gouvernorat === this.accountForm.value.gouvernorat)!
+    this.userService.completeUpdatePersonalInfo({
+      email: this.accountForm.value.email,
+      phone: this.accountForm.value.phone1,
+      city: city,
+      key: event,
+    }).subscribe(      {
+      next: (res) => {
+          console.log(res);
+          this.showDialog = false;
+          this.alert.type = 'success';
+          this.alert.message = this.newMail ? 'Account updated successfully ,Sign in you out to verify your new email' : 'Account updated successfully';
+          this.showAlert = true;
+          this.isVerifying = false;
+          this.cdr.detectChanges();
+          this.router.navigate(['/sign-out']);
+      },
+      error: (error) => {
+        console.log(error);
+        if(error.status == 406){
+          this.showDialog=false;
+        }
+        this.alert.type = 'error';
+        this.alert.message = error.error.message;
+        this.showAlert = true;
+        this.isVerifying = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 }
