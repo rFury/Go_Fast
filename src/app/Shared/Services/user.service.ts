@@ -11,6 +11,7 @@ import { FeatureActions } from '../enums/feature-actions';
 import { Client } from '../Models/Client.model';
 import { MenuService } from './menu.service';
 import { Agent } from '../Models/Agent.model';
+import { Governorate } from '../Models/Gouvernorat.model';
 
 @Injectable({
   providedIn: 'root',
@@ -87,7 +88,7 @@ export class UserService {
   get(): Observable<User | Agent | Client> {
     return this.http.get<User>(`${this.endpointUser}/me`).pipe(
       tap((user)=>{
-        if(user.type === "client"){          
+        if(user.type === "client"){         
           this._user.set(user as Client);
           this.userObservable.next(user as Client);
         }else if(user.type === "agent"){
@@ -149,8 +150,11 @@ export class UserService {
   getUserProfile(): Observable<User> {
     return this.http.get<User>(`${this.endpointUser}/me`);
   }
-  updatePersonalInfo(user: User): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/personal-info`, user);
+  completeUpdatePersonalInfo({email,phone,city,key}:{email:string,phone:string,city:Governorate,key:string}): Observable<User> {
+    return this.http.patch<User>(`${this.endpointUser}/completed-personal-info`, {email,phone,city,key});
+  }
+  updatePersonalInfo(): Observable<User> {
+    return this.http.patch<User>(`${this.endpointUser}/personal-info`,{});
   }
 
   addUser(user: User | Client | Agent): Observable<any> {

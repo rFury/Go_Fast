@@ -19,7 +19,6 @@ import { SettingsSecurityComponent } from './security/security.component';
 import { UserService } from '../../Services/user.service';
 import { User } from '../../Models/User.model';
 import { MatDialog } from '@angular/material/dialog';
-import { VerificationDialogComponent } from '../verificationDialog/verification-dialog.component';
 
 @Component({
   selector: 'settings',
