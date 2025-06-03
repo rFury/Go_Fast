@@ -33,7 +33,7 @@ import { NgZone } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
 import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
-
+import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
 @Component({
   selector: 'classy-layout',
   templateUrl: './classy.component.html',
@@ -60,6 +60,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   private _cdr = inject(ChangeDetectorRef);
   protected _locationWebService = inject(LocationWebService);
   private _notifService = inject(FirebaseNotification);
+  private _chatService = inject(ChatService);
   navigationAppearance: 'default' | 'dense' = 'default';
   private _positionInterval: any;
   showUser: boolean = false;

@@ -20,6 +20,8 @@ export class NotificationsService {
       .get<Notification[]>(`${environment.api}/notifications`)
       .pipe(
         tap((notifications) => {
+          console.log('notifications', notifications);
+          
           this._notifications.next(notifications);
         })
       );
@@ -35,7 +37,7 @@ export class NotificationsService {
           })
           .pipe(
             map((updatedNotification: Notification) => {
-              console.log('hi',updatedNotification);
+              console.log('hi', updatedNotification);
               // Find the index of the updated notification
               const index = notifications.findIndex((item) => item._id === id);
 
@@ -104,9 +106,22 @@ export class NotificationsService {
     );
   }
   pushNotification(notification: Notification): void {
-    this._notifications.pipe(take(1)).subscribe(currentNotifications => {
+    this._notifications.pipe(take(1)).subscribe((currentNotifications) => {
       const updatedNotifications = [notification, ...currentNotifications];
       this._notifications.next(updatedNotifications);
     });
   }
+  handleReadUpdate(chatId: string): void {
+    this.notifications$.pipe(take(1)).subscribe((currentNotifications) => {
+      const updatedNotifications = currentNotifications.map((notification) => {
+        if (notification.link?.includes('/chat/' + chatId)) {
+
+          notification.read = true;
+        }
+        return notification;
+      });
+      this._notifications.next(updatedNotifications);
+    });
+  }
+
 }

@@ -112,7 +112,7 @@ export class AuthResetPasswordComponent implements OnInit {
           localStorage.setItem('email', this.email);
           this.router.navigateByUrl(redirectURL);
         },
-        (response) => {
+        (error) => {
           this.alert = {
             type: 'error',
             message: 'Something went wrong, please try again.',

@@ -16,7 +16,7 @@ import { SnackBarService } from '../../../../../Shared/Services/snack-bar.servic
 import { Subscription } from 'rxjs';
 import { Status } from '../../../../../Shared/enums/status.enums';
 import { CommonModule } from '@angular/common';
-import { NotificationService } from '../../../../../Shared/Components/notification-prompt/notification.service';
+import { NotificationPromptService } from '../../../../../Shared/Components/notification-prompt/notification.service';
 import { LocationService } from '../../../../../Shared/Services/agent-location.service';
 import { OrderDetailsCardComponent } from '../../../../../Shared/Components/order details/order.details.component';
 import { RouteService } from '../../../../../Shared/Services/Journey.service';
@@ -51,7 +51,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private clipboard = inject(Clipboard);
   private snackBar = inject(SnackBarService);
-  private _notificationService = inject(NotificationService);
+  private _notificationService = inject(NotificationPromptService);
   private _JourneyService = inject(RouteService);
   private _fuseConfirmationService = inject(FuseConfirmationService);
 

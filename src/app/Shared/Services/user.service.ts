@@ -150,7 +150,7 @@ export class UserService {
   getUserProfile(): Observable<User> {
     return this.http.get<User>(`${this.endpointUser}/me`);
   }
-  completeUpdatePersonalInfo({email,phone,city,key}:{email:string,phone:string,city:Governorate,key:string}): Observable<User> {
+  completeUpdatePersonalInfo({email,phone,city,key,newEmail}:{email:string,phone:string,city:Governorate,key:string,newEmail:boolean}): Observable<User> {
     return this.http.patch<User>(`${this.endpointUser}/completed-personal-info`, {email,phone,city,key});
   }
   updatePersonalInfo(): Observable<User> {

@@ -5,7 +5,7 @@ import { NotificationPromptComponent } from './notification.component';
 @Injectable({
   providedIn: 'root',
 })
-export class NotificationService {
+export class NotificationPromptService {
   constructor(private snackBar: MatSnackBar) {}
 
   openNotification(

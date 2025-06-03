@@ -73,29 +73,15 @@ export class ChatsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('ChatsComponent: Initializing...');
     this.loading = true;
-
-    // Wait for user initialization before proceeding
-    this.profile = this._userService.user();
-    if(this.profile){
+    this._userService.userObs.pipe(take(1)).subscribe((user) => {
+      this.profile = user;
       const _id: string = this._superAuthService.decodeToken()._id;
       this.profile!._id = _id;
       this._changeDetectorRef.markForCheck();
       this.type = this.profile?.type || '';
-      this._chatService.connect(this.profile?._id);
       this.loading = false;
-    }else{
-      this._userService.get().subscribe((user) => {
-        this.profile = user;
-        const _id: string = this._superAuthService.decodeToken()._id;
-        this.profile!._id = _id;
-        this._changeDetectorRef.markForCheck();
-        this.type = this.profile?.type || '';
-        this._chatService.connect(this.profile?._id);
-        this.loading = false;
-      });
-    }
+    });
     // Subscribe to chats
     this._chatService.chats$
       .pipe(
@@ -110,9 +96,6 @@ export class ChatsComponent implements OnInit, OnDestroy {
       .subscribe((chats: Chat[] | null) => {
         this.chats = this.filteredChats = chats || [];
         this._changeDetectorRef.markForCheck();
-        console.log(this.profile);
-
-        console.log(this.chats);
       });
 
     // Subscribe to selected chat

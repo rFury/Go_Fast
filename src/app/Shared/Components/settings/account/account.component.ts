@@ -82,7 +82,7 @@ export class SettingsAccountComponent implements OnInit {
     type: 'error',
     message: '',
   };
-  newMail:Boolean=false;
+  newMail:boolean=false;
   ngOnInit(): void {
     this.user = this.userService.user();
     if (this.user === null) return;
@@ -207,9 +207,9 @@ export class SettingsAccountComponent implements OnInit {
       confirmation.afterClosed().subscribe((result) => {
         // If the confirm button pressed...
         if (result === 'confirmed') {
-          this.newMail=true;
           this.userService.updatePersonalInfo().subscribe({
             next: (response) => {
+              this.newMail=true;
               this.showDialog = true;
               this.cdr.detectChanges();
             },
@@ -271,6 +271,7 @@ export class SettingsAccountComponent implements OnInit {
       phone: this.accountForm.value.phone1,
       city: city,
       key: event,
+      newEmail: this.newMail,
     }).subscribe(      {
       next: (res) => {
           console.log(res);
@@ -279,8 +280,10 @@ export class SettingsAccountComponent implements OnInit {
           this.alert.message = this.newMail ? 'Account updated successfully ,Sign in you out to verify your new email' : 'Account updated successfully';
           this.showAlert = true;
           this.isVerifying = false;
+          if(this.newMail){
+            this.router.navigate(['/sign-out']);
+          }
           this.cdr.detectChanges();
-          this.router.navigate(['/sign-out']);
       },
       error: (error) => {
         console.log(error);

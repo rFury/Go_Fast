@@ -13,7 +13,7 @@ import {
 } from '../../../environments/environment';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
-import { NotificationService } from '../Components/notification-prompt/notification.service';
+import { NotificationPromptService } from '../Components/notification-prompt/notification.service';
 import { AgentService } from './agent.service';
 import { NotificationsService } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.service';
 import type { Notification } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
@@ -26,7 +26,8 @@ export class FirebaseNotification {
   private messaging: Messaging;
   private _agent=inject(AgentService)
   private _notificationService=inject(NotificationsService)
-  constructor(private http: HttpClient,private notif:NotificationService) {
+  private notif=inject(NotificationPromptService)
+  constructor(private http: HttpClient) {
     if (!Capacitor.isNativePlatform()) {
       this.firebaseApp = initializeApp(environmentFirebase.firebase);
       this.messaging = getMessaging(this.firebaseApp);
@@ -135,6 +136,8 @@ export class FirebaseNotification {
         read: false,
         time: payload.data!['date'],
       };
+      console.log('pushing');
+      
       this._notificationService.pushNotification(newNotification);
     });
   }

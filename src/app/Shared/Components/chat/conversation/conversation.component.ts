@@ -145,27 +145,6 @@ export class ConversationComponent implements OnInit, OnDestroy {
     private _superAuthService: SuperAuthService
   ) {}
 
-  @HostListener('input')
-  @HostListener('ngModelChange')
-  private _resizeMessageInput(): void {
-    // This doesn't need to trigger Angular's change detection by itself
-    this._ngZone.runOutsideAngular(() => {
-      setTimeout(() => {
-        // Set the height to 'auto' so we can correctly read the scrollHeight
-        this.messageInput.nativeElement.style.height = 'auto';
-
-        // Detect the changes so the height is applied
-        this._changeDetectorRef.detectChanges();
-
-        // Get the scrollHeight and subtract the vertical padding
-        this.messageInput.nativeElement.style.height = `${this.messageInput.nativeElement.scrollHeight}px`;
-
-        // Detect the changes one more time to apply the final height
-        this._changeDetectorRef.detectChanges();
-      });
-    });
-  }
-
   scrollToBottom(): void {
     const textarea = this.messageInput?.nativeElement;
     if (textarea) {
@@ -238,15 +217,19 @@ export class ConversationComponent implements OnInit, OnDestroy {
     if (!this.chat.muted) {
       this.chat.muted = new Map<string, boolean>();
     }
-
-    // Toggle the muted state for the current user
-    const isMuted = this.chat.muted.get(userId!) ?? false;
-    this.chat.muted.set(userId!, !isMuted);
-
     // Update the chat on the server
     this._chatService
-      .updateChat(chatId, { muted: this.chat.muted })
-      .subscribe();
+      .muteUnmuteChat(chatId, userId!)
+      .subscribe({
+        next: (muted: boolean) => {
+          console.log(muted);
+
+          console.log('mute successful');
+        },
+        error: (err) => {
+          console.error('Failed to update chat:', err);
+        },
+      });
   }
 
   sendMessage(): void {
@@ -286,7 +269,6 @@ export class ConversationComponent implements OnInit, OnDestroy {
     const textAfter = textarea.value.substring(end);
     textarea.value = textBefore + emoji + textAfter; // Insert emoji
     textarea.selectionStart = textarea.selectionEnd = start + emoji.length; // Move cursor after emoji
-    this._resizeMessageInput(); // Adjust textarea height
     this.showEmojiPicker = false; // Hide picker after selection
     this._changeDetectorRef.markForCheck();
     textarea.focus();

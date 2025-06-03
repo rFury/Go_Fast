@@ -22,6 +22,7 @@ import type { Attachment, Message } from '../../Models/chat.types';
 import { UserService } from '../../Services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SuperAuthService } from '../../Services/super-auth-service.service';
+import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
@@ -38,7 +39,9 @@ export class ChatService {
   private socket: Socket | null = null;
   myId: string | null = null;
   private _notificationService = inject(NotificationsService);
+  private _router = inject(Router);
   initialized: boolean = false;
+  connectedToChat: boolean = false;
 
   /**
    * Constructor
@@ -46,19 +49,17 @@ export class ChatService {
   constructor(
     private _httpClient: HttpClient,
     private _snackBar: MatSnackBar,
-    private _userService: UserService,
     private _superAuthService: SuperAuthService
   ) {
     console.log('ChatService: Initializing...');
     this.myId = this._superAuthService.decodeToken()._id;
-    if(!this.initialized){
+    if (!this.initialized) {
       this.initialized = true;
       this.initializeSocket();
     }
   }
 
   private initializeSocket(): void {
-    console.log('ChatService: Initializing socket...');
     if (!this.myId) {
       console.error('ChatService: Cannot initialize socket - no current user');
       return;
@@ -77,7 +78,6 @@ export class ChatService {
       auth: { token },
       withCredentials: true,
     });
-
     console.log('ChatService: Socket created, setting up listeners');
     this.setupSocketListeners();
   }
@@ -114,22 +114,26 @@ export class ChatService {
     return this._contacts.asObservable();
   }
 
-
   // -----------------------------------------------------------------------------------------------------
   // @ Socket.io Methods
   // -----------------------------------------------------------------------------------------------------
 
   private setupSocketListeners(): void {
-    console.log('ChatService: Setting up socket listeners');
-
     this.socket?.on('connect', () => {
       console.log('Connected to chat namespace');
       // Register user after connection
       this.socket?.emit('register-user');
+      if (this._router.url.includes('/chat/') && !this.connectedToChat) {
+        const chatId = this._router.url.split('/chat/')[1];
+        this.joinChat(chatId);
+        console.log('connect without refresh');
+        this.connectedToChat = true;
+      }
     });
 
     this.socket?.on('disconnect', () => {
       console.log('Disconnected from chat namespace');
+      this.connectedToChat = false;
     });
 
     this.socket?.on('error', (error: { message: string }) => {
@@ -190,25 +194,12 @@ export class ChatService {
             ...updatedChats[chatIndex],
             lastMessage: message,
             unreadCount:
-              (updatedChats[chatIndex].unreadCount[this.myId!] ||
-                0) + 1,
+              (updatedChats[chatIndex].unreadCount[this.myId!] || 0) + 1,
           };
           this._chats.next(updatedChats);
         }
       }
     });
-
-    // Create notification if message is from another user
-    if (message.senderId !== this.myId) {
-      const notification: Notification = {
-        _id: message._id!,
-        title: 'New Message',
-        description: message.content,
-        read: false,
-        time: message.createdAt.toString(),
-      };
-      this._notificationService.pushNotification(notification);
-    }
   }
 
   private handleChatUpdate(update: {
@@ -225,7 +216,7 @@ export class ChatService {
       if (chatIndex >= 0) {
         const updatedChats = [...chats];
         updatedChats[chatIndex] = {
-          ...updatedChats[chatIndex], 
+          ...updatedChats[chatIndex],
           lastMessage: update.lastMessage,
           unreadCount: {
             ...updatedChats[chatIndex].unreadCount,
@@ -239,6 +230,21 @@ export class ChatService {
         });
 
         this._chats.next(updatedChats);
+        console.log('before notif');
+        
+        if(!updatedChats[chatIndex].muted[this.myId!] && !this._router.url.includes(`/chat/${update.chatId}`)){
+          console.log('after notif');
+          this._notificationService.pushNotification({
+            _id: update.lastMessage._id!,
+            title: 'New Message',
+            description: update.lastMessage.content,
+            link: '/chat/' + update.chatId,
+            useRouter: true,
+            icon: 'heroicons_outline:chat-bubble-oval-left-ellipsis',
+            read: false,
+            time: update.lastMessage.createdAt.toString(),
+          });
+        } 
       }
     });
 
@@ -273,20 +279,6 @@ export class ChatService {
         });
       }
     });
-  }
-
-  // Modify connect method to wait for user initialization
-  async connect(userId: string): Promise<void> {
-    console.log('ChatService: Connecting with userId:', userId);
-
-    if (!this.socket?.connected) {
-      console.log('ChatService: Connecting socket...');
-      this.socket?.connect();
-    }
-    this.registerUser(userId);
-
-    // The register-user event is now handled in the socket connection handler
-    console.log('ChatService: Socket connection established');
   }
 
   registerUser(userId: string): void {
@@ -367,6 +359,7 @@ export class ChatService {
       lastMessage: this._chat.value?.lastMessage!,
       unreadCount: this._chat.value?.unreadCount[this.myId!]!,
     });
+    this._notificationService.handleReadUpdate(chatId);
   }
 
   // -----------------------------------------------------------------------------------------------------
@@ -462,11 +455,13 @@ export class ChatService {
 
   createChat(contact: User): Observable<Chat | string> {
     return this._httpClient
-      .post<Chat | string>(`${environment.api}/chats`, { contactId: contact._id })
+      .post<Chat | string>(`${environment.api}/chats`, {
+        contactId: contact._id,
+      })
       .pipe(
         tap((chat: Chat | string) => {
           console.log('created chat', chat);
-          if(typeof chat === 'object'){
+          if (typeof chat === 'object') {
             const currentChats = this._chats.value || [];
             this._chats.next([...currentChats, chat]);
           }
@@ -494,6 +489,41 @@ export class ChatService {
                 this.chat$.pipe(take(1)).subscribe((currentChat) => {
                   if (currentChat && currentChat._id === id) {
                     this._chat.next(updatedChat);
+                  }
+                });
+              }
+            })
+          );
+      })
+    );
+  }
+
+  muteUnmuteChat(id: string, userId: string): Observable<boolean> {
+    return this.chats$.pipe(
+      take(1),
+      switchMap((chats) => {
+        if (!chats) return throwError(() => new Error('No chats available'));
+
+        return this._httpClient
+          .patch<boolean>(`${environment.api}/chats/${id}/mute`, { userId })
+          .pipe(
+            tap((muted: boolean) => {
+              const index = chats.findIndex((c) => c._id === id);
+              if (index >= 0) {
+                const updatedChats = [...chats];
+                updatedChats[index].muted[userId]=muted;
+                this._chats.next(updatedChats);
+
+                // Update current chat if it's the one being updated
+                this.chat$.pipe(take(1)).subscribe((currentChat) => {
+                  if (currentChat && currentChat._id === id) {
+                    this._chat.next({
+                      ...currentChat,
+                      muted: {
+                        ...currentChat.muted,
+                        [userId]: muted,
+                      },
+                    });
                   }
                 });
               }

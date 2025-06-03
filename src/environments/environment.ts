@@ -1,7 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 
 const isAndroid = Capacitor.getPlatform() === 'android';
-
 export const environment = {
   production: false,
   api: isAndroid

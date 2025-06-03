@@ -76,6 +76,11 @@ export class SuperAuthService {
         switchMap((response: any) => {
           this.saveToken(response.token);
           const connectedUser = this.decodeToken();
+          if(connectedUser?.type === 'clieny'){
+            this._userService._defaultLink.next(
+              '/' + connectedUser?.defaultLink
+            );
+          }
           this._userService._defaultLink.next(
             '/admin/' + connectedUser?.defaultLink
           );

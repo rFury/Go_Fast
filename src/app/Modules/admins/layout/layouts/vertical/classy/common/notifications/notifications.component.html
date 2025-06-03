@@ -46,7 +46,7 @@
     <!-- Content -->
     <div class="relative flex flex-col flex-auto sm:max-h-120 divide-y overflow-y-auto bg-card">
       <!-- Notifications -->
-      @for (notification of notifications; track trackByFn($index, notification)) {
+      @for (notification of notifications; track notification._id) {
         <div
           class="flex group hover:bg-gray-50 dark:hover:bg-black dark:hover:bg-opacity-5"
           [ngClass]="{'unread': !notification.read}">
