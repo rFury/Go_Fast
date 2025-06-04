@@ -12,20 +12,34 @@ const firebaseConfig = {
     vapidKey: 'BA5aV7Y7upRpz_ugUHJk5eoHZTnc1FxpBGYJ5VHHqSQu9vbCZgTC6xNwjD1nQYikaoJz8NJP4mrIZ7OaQjLDY_g'
   };
 
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
-
-messaging.onBackgroundMessage((payload) => {
-  console.log('Received background message:', payload);
-  
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: payload.notification.icon
-  };
-
-  return self.registration.showNotification(
-    notificationTitle,
-    notificationOptions
-  );
-});
+  firebase.initializeApp(firebaseConfig);
+  const messaging = firebase.messaging();
+    messaging.onBackgroundMessage((payload) => {
+    console.log('Background message received:', payload);
+        const notificationTitle = payload.notification?.title;
+    const notificationOptions = {
+      body: payload.notification?.body+"zebi 1" ,
+      icon:  'van+name.logo.png',
+      image: payload.data?.image || '',
+      data: payload.data 
+    };
+    return self.registration.showNotification(
+      notificationTitle,
+      notificationOptions
+    );
+  });
+    self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    
+    const targetUrl = event.notification.data?.link || '/';
+    event.waitUntil(
+      clients.matchAll({ type: 'window' }).then((windowClients) => {
+        const client = windowClients.find(
+          c => c.url === targetUrl && 'focus' in c
+        );
+        return client 
+          ? client.focus() 
+          : clients.openWindow(targetUrl);
+      })
+    );
+  });

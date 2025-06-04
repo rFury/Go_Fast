@@ -132,8 +132,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
           this.navigationAppearance = this.isScreenSmall ? 'default' : 'dense';
         }
       });
-
-    this._notifService.requestPermission();
   }
 
   ngOnDestroy(): void {

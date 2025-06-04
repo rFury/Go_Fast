@@ -17,6 +17,7 @@ import { NotificationPromptService } from '../Components/notification-prompt/not
 import { AgentService } from './agent.service';
 import { NotificationsService } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.service';
 import type { Notification } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -27,26 +28,35 @@ export class FirebaseNotification {
   private _agent=inject(AgentService)
   private _notificationService=inject(NotificationsService)
   private notif=inject(NotificationPromptService)
-  constructor(private http: HttpClient) {
+  private permission=false;
+constructor(private http: HttpClient) {
     if (!Capacitor.isNativePlatform()) {
-      this.firebaseApp = initializeApp(environmentFirebase.firebase);
-      this.messaging = getMessaging(this.firebaseApp);
-      this.requestPermission();
-      this.listenForMessages();
+      this.initializeWebPush();
     } else {
       this.requestNativePermission();
     }
   }
-
-  requestPermission() {
-    Notification.requestPermission().then((result) => {
-      console.log('Permission result:', result);
-      if (result === 'granted') {
-        this.getToken();
-      } else {
-        this.requestPermission();
+  private async initializeWebPush() {
+    this.firebaseApp = initializeApp(environmentFirebase.firebase);
+    this.messaging = getMessaging(this.firebaseApp);
+    this.getToken();
+    this.listenForMessages();
+        if ('serviceWorker' in navigator) {
+      try {
+        Notification.requestPermission().then((result) => {
+          console.log('Permission result:', result);
+          if (result === 'granted') {
+              this.permission=true;
+          } else {
+            this.permission=false;
+          }
+        });
+      } catch (err) {
+        console.error('Service Worker registration failed:', err);
       }
-    });
+    } else {
+      console.warn('Service workers not supported');
+    }
   }
   private requestNativePermission() {
     PushNotifications.requestPermissions().then((result) => {
@@ -108,27 +118,39 @@ export class FirebaseNotification {
 
   listenForMessages() {
     onMessage(this.messaging, (payload) => {
-      console.log('Message received:', payload);
-      this.showNotification(payload);
+      console.log('Foreground message received:', payload);
+      this.handleNotificationPayload(payload);
+    });
+  }
+
+  private handleNotificationPayload(payload: any) {
+    const notificationType = payload.data?.['type'];
+    
+    if (notificationType === 'message') {
+      const newNotification: Notification = {
+        _id: payload.data!['_id'],
+        title: payload.data!['title'],
+        description: payload.data!['description'],
+        read: false,
+        time: payload.data!['date'],
+        useRouter: payload.data!['useRouter'] === 'true',
+        link: payload.data!['link'],
+        icon: payload.data!['icon'],
+        image: payload.data!['image'],
+      };
+      this._notificationService.pushNotification(newNotification);
+    } 
+    else {
       this.notif.openNotification(
         payload.notification?.title!,
         payload.notification?.body!,
         'order',
         true,
-        () => {          
-          const orderId=payload.data!['orderId'];
-          this._agent.addOrderToJourney(orderId).subscribe({
-            next: () => {
-              console.log('Order added to journey');
-            },
-            error: (err) => {
-              console.error('Failed to add order to journey:', err);
-            },
-          }); 
-        },
+        () => this.handleOrderAcceptance(payload.data!['orderId']),
         () => console.log('Declined'),
         50000
       );
+      
       const newNotification: Notification = {
         _id: payload.data!['_id'],
         title: payload.notification?.title,
@@ -136,22 +158,15 @@ export class FirebaseNotification {
         read: false,
         time: payload.data!['date'],
       };
-      console.log('pushing');
-      
       this._notificationService.pushNotification(newNotification);
-    });
+    }
   }
-
-  private showNotification(payload: any) {
-    const notificationOptions = {
-      body: payload.notification.body,
-      icon: 'logo-white-canvas-removebg-preview.png',
-    };
-    navigator.serviceWorker.ready.then((registration) => {
-      registration.showNotification(
-        payload.notification.title,
-        notificationOptions
-      );
-    });
+  private async handleOrderAcceptance(orderId: string) {
+    try {
+      await firstValueFrom(this._agent.addOrderToJourney(orderId));
+      console.log('Order added to journey');
+    } catch (err) {
+      console.error('Failed to add order to journey:', err);
+    }
   }
 }

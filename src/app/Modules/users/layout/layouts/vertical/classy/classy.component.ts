@@ -116,7 +116,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         this.isScreenSmall = !matchingAliases.includes('md');
         this._sideNavService.setOpen(!this.isScreenSmall);
       });
-    this._notifService.requestPermission();
   }
 
   ngOnDestroy(): void {

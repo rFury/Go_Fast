@@ -230,22 +230,7 @@ export class ChatService {
         });
 
         this._chats.next(updatedChats);
-        console.log('before notif');
-        
-        if(!updatedChats[chatIndex].muted[this.myId!] && !this._router.url.includes(`/chat/${update.chatId}`)){
-          console.log('after notif');
-          this._notificationService.pushNotification({
-            _id: update.lastMessage._id!,
-            title: 'New Message',
-            description: update.lastMessage.content,
-            link: '/chat/' + update.chatId,
-            useRouter: true,
-            icon: 'heroicons_outline:chat-bubble-oval-left-ellipsis',
-            read: false,
-            time: update.lastMessage.createdAt.toString(),
-          });
         } 
-      }
     });
 
     // Update current chat if it's the one being updated
