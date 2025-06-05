@@ -28,6 +28,11 @@ export default [
         
         loadChildren:()=>chatRoutes,
       },
+      {
+        path:'',
+        redirectTo:'orders',
+        pathMatch:'full'
+      }
     ],
   }
 ] satisfies Route[];

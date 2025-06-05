@@ -247,7 +247,6 @@ export class ConversationComponent implements OnInit, OnDestroy {
   }
   private _trackActivity() {
     window.addEventListener('mousemove', this._resetInactivityTimer.bind(this));
-    window.addEventListener('keydown', this._resetInactivityTimer.bind(this));
   }
   private _resetInactivityTimer() {
     clearTimeout(this._inactivityTimeout);

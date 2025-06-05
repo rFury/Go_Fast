@@ -18,13 +18,13 @@ import { FuseNavigationService } from '../../../../../../Shared/Components/navig
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
-import { NotificationsComponent } from './common/notifications/notifications.component';
 import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
+import { NotificationsComponent } from '../../../../../../Shared/Components/notifications/notifications.component';
 
 @Component({
   selector: 'user-classy-layout',
@@ -38,6 +38,7 @@ import { ChatService } from '../../../../../../Shared/Components/chat/chat.servi
     MatButtonModule,
     RouterOutlet,
     UserComponent,
+    NotificationsComponent,
   ],
   standalone: true,
 })
@@ -94,6 +95,15 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       },
     };
     this.navigation = [newOrder, Orders, divider, chat];
+    this._chatService.unreadCount$.pipe(takeUntil(this._unsubscribeAll)).subscribe((count) => {
+      console.log('Unread count:', count);
+      chat.badge = {
+        title: count.toString(),
+        classes: 'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
+      };
+      this.navigation = [newOrder, Orders, divider, chat];
+        this._cdr.markForCheck();
+      });
     this._userService
       .get()
       .pipe(takeUntil(this._unsubscribeAll))

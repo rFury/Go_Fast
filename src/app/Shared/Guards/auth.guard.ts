@@ -14,13 +14,9 @@ export const authGuard: CanActivateFn = (route, state): boolean | UrlTree => {
       return true;
     }
     console.log('Blocked URL:', state.url);
-    return _router.createUrlTree(['admin/sign-in'], {
-      queryParams: { returnUrl: state.url },
-    });
+    return _router.createUrlTree(['admin/sign-in']);
   } else {
     console.log('Blocked URL:', state.url);
-    return _router.createUrlTree(['admin/sign-in'], {
-      queryParams: { returnUrl: state.url },
-    });
+    return _router.createUrlTree(['admin/sign-in']);
   }
 };

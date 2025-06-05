@@ -1,8 +1,6 @@
 import {
-  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  HostListener,
   inject,
   OnDestroy,
   OnInit,
@@ -20,17 +18,14 @@ import { FuseNavigationService } from '../../../../../../Shared/Components/navig
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
-import { NotificationsComponent } from './common/notifications/notifications.component';
+import { NotificationsComponent } from '../../../../../../Shared/Components/notifications/notifications.component';
 import { ShortcutsComponent } from './common/shortcuts/shortcuts.component';
 import { SearchComponent } from './common/search/search.component';
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { LocationService } from '../../../../../../Shared/Services/agent-location.service';
 import { LocationWebService } from '../../../../../../Shared/Services/location.service';
 import { Agent } from '../../../../../../Shared/Models/Agent.model';
-import { NgZone } from '@angular/core';
-import { Geolocation } from '@capacitor/geolocation';
 import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
 import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
@@ -78,8 +73,6 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   Agent: boolean = false;
 
   async ngOnInit() {
-    this.isLoading = true;
-
     const admin =
       this._authService.decodeToken().type === 'user' ||
       this._authService.decodeToken().type === 'super';
@@ -93,8 +86,8 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         next: async (res) => {
           this.user = res;
           this._userService.initializeUser(res);
-          this.isLoading = false;
           this._userService.updateState('online').subscribe((res) => {
+            this.isLoading = false;
             this._cdr.markForCheck();
           });
         },

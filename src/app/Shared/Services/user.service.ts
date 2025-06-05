@@ -40,6 +40,7 @@ export class UserService {
         clearTimeout(this._inactivityTimeout);
         if(this._user()?.status==="away"){
           this._user.update(u => ({ ...u!, status:"online" }));
+          this.userObservable.next(this._user());
           console.log(this._user());
           
           this.updateState("online").subscribe()
@@ -261,6 +262,7 @@ export class UserService {
     return this.http.patch<User>(`${this.endpointUser}/status`, { status }).pipe(
       tap(updatedUser => {
         this._user.update(u => ({ ...u!, status }));
+        this.userObservable.next(this._user());
       })
     );
   }

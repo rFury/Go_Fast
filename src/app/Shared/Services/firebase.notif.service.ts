@@ -15,8 +15,8 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { NotificationPromptService } from '../Components/notification-prompt/notification.service';
 import { AgentService } from './agent.service';
-import { NotificationsService } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.service';
-import type { Notification } from '../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
+import { NotificationsService } from '../Components/notifications/notifications.service';
+import type { Notification } from '../Components/notifications/notifications.types';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable({

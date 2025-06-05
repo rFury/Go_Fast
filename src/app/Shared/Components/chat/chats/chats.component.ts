@@ -32,6 +32,7 @@ import { EmptyConversationComponent } from '../empty-conversation/empty-conversa
 import { Agent } from '../../../Models/Agent.model';
 import { SuperAuthService } from '../../../Services/super-auth-service.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Client } from '../../../Models/Client.model';
 @Component({
   selector: 'chat-chats',
   templateUrl: './chats.component.html',
@@ -61,9 +62,10 @@ export class ChatsComponent implements OnInit, OnDestroy {
   filteredChats: Chat[] = [];
   selectedChat: Chat | null = null;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
-  profile: User | Agent | null = null;
+  profile: User | null = null;
   loading: boolean = true;
   type: string = '';
+  _id: string = '';
 
   constructor(
     private _chatService: ChatService,
@@ -76,8 +78,8 @@ export class ChatsComponent implements OnInit, OnDestroy {
     this.loading = true;
     this._userService.userObs.pipe(take(1)).subscribe((user) => {
       this.profile = user;
-      const _id: string = this._superAuthService.decodeToken()._id;
-      this.profile!._id = _id;
+      this._id = this._superAuthService.decodeToken()._id;
+      //this.profile!._id = _id;
       this._changeDetectorRef.markForCheck();
       this.type = this.profile?.type || '';
       this.loading = false;

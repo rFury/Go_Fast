@@ -16,8 +16,8 @@ import { Chat } from '../../Models/chat.types';
 import { environment } from '../../../../environments/environment';
 import { User } from '../../Models/User.model';
 import { io, Socket } from 'socket.io-client';
-import { NotificationsService } from '../../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.service';
-import type { Notification } from '../../../Modules/admins/layout/layouts/vertical/classy/common/notifications/notifications.types';
+import { NotificationsService } from '../notifications/notifications.service';
+import type { Notification } from '../notifications/notifications.types';
 import type { Attachment, Message } from '../../Models/chat.types';
 import { UserService } from '../../Services/user.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -36,16 +36,13 @@ export class ChatService {
   private _contacts: BehaviorSubject<User[] | null> = new BehaviorSubject<
     User[] | null
   >(null);
+  private _unreadCount: BehaviorSubject<number> = new BehaviorSubject<number>(0);
   private socket: Socket | null = null;
   myId: string | null = null;
-  private _notificationService = inject(NotificationsService);
   private _router = inject(Router);
   initialized: boolean = false;
   connectedToChat: boolean = false;
 
-  /**
-   * Constructor
-   */
   constructor(
     private _httpClient: HttpClient,
     private _snackBar: MatSnackBar,
@@ -56,6 +53,14 @@ export class ChatService {
     if (!this.initialized) {
       this.initialized = true;
       this.initializeSocket();
+      this.getUnreadMessagesCount().subscribe({
+        next: (count) => {
+          this._unreadCount.next(count);
+        },
+        error: (error) => {
+          console.error('Error fetching unread messages count:', error);
+        },
+      });
     }
   }
 
@@ -65,7 +70,6 @@ export class ChatService {
       return;
     }
 
-    // Get the JWT token from localStorage or your auth service
     const token = localStorage.getItem('jwt');
     if (!token) {
       console.error('ChatService: No authentication token available');
@@ -81,42 +85,26 @@ export class ChatService {
     console.log('ChatService: Socket created, setting up listeners');
     this.setupSocketListeners();
   }
-
-  // -----------------------------------------------------------------------------------------------------
-  // @ Accessors
-  // -----------------------------------------------------------------------------------------------------
-
-  /**
-   * Getter for chat
-   */
   get chat$(): Observable<Chat | null> {
     return this._chat.asObservable();
   }
 
-  /**
-   * Getter for chats
-   */
   get chats$(): Observable<Chat[] | null> {
     return this._chats.asObservable();
   }
 
-  /**
-   * Getter for contact
-   */
+
   get contact$(): Observable<User | null> {
     return this._contact.asObservable();
   }
 
-  /**
-   * Getter for contacts
-   */
   get contacts$(): Observable<User[] | null> {
     return this._contacts.asObservable();
   }
 
-  // -----------------------------------------------------------------------------------------------------
-  // @ Socket.io Methods
-  // -----------------------------------------------------------------------------------------------------
+  get unreadCount$(): Observable<number> {
+    return this._unreadCount.asObservable();
+  }
 
   private setupSocketListeners(): void {
     this.socket?.on('connect', () => {
@@ -149,6 +137,10 @@ export class ChatService {
       console.log('Received new message:', message);
       this.handleNewMessage(message);
     });
+    this.socket?.on('unread-count', (count: number) => {
+      console.log('Received unread count:', count);
+      this._unreadCount.next(count);
+    });
 
     this.socket?.on(
       'chat-update',
@@ -162,13 +154,6 @@ export class ChatService {
       }
     );
 
-    /*this.socket?.on(
-      'messages-read',
-      (data: { chatId: string; readBy: string }) => {
-        console.log('Messages marked as read:', data);
-        this.handleMessagesRead(data);
-      }
-    );*/
   }
 
   private handleNewMessage(message: Message): void {
@@ -236,7 +221,7 @@ export class ChatService {
     // Update current chat if it's the one being updated
     this.chat$.pipe(take(1)).subscribe((currentChat) => {
       if (currentChat && currentChat._id === update.chatId) {
-        this._chat.next({
+        this._chat.next({ 
           ...currentChat,
           lastMessage: update.lastMessage,
           unreadCount: {
@@ -344,7 +329,6 @@ export class ChatService {
       lastMessage: this._chat.value?.lastMessage!,
       unreadCount: this._chat.value?.unreadCount[this.myId!]!,
     });
-    this._notificationService.handleReadUpdate(chatId);
   }
 
   // -----------------------------------------------------------------------------------------------------
@@ -433,8 +417,9 @@ export class ChatService {
   }
 
   getUnreadMessagesCount(): Observable<number> {
+    const id = this._superAuthService.decodeToken()._id;
     return this._httpClient.get<number>(
-      `${environment.api}/chats/messages/unread/count`
+      `${environment.api}/chats/unread-count`
     );
   }
 

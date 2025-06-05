@@ -98,11 +98,11 @@
                             [ngClass]="{'hover:bg-gray-100 dark:hover:bg-hover': !selectedChat || selectedChat._id !== chat._id,
                                                                 'bg-primary-50 dark:bg-hover': selectedChat && selectedChat._id === chat._id}" [routerLink]="[chat._id]">
                             <div class="relative flex flex-0 items-center justify-center w-10 h-10">
-                                @if(chat.unreadCount[profile._id.toString()] > 0){
+                                @if(chat.unreadCount[_id.toString()] > 0){
                                     <div class="absolute bottom-0 right-0 flex-0 w-2 h-2 -ml-0.5 rounded-full ring-2 ring-bg-card dark:ring-gray-900 bg-primary dark:bg-primary-500 text-on-primary"
                                         [class.ring-primary-50]="selectedChat && selectedChat._id === chat._id"></div>
                                 }
-                                @if(chat.user._id === profile._id){
+                                @if(chat.user._id === _id){
                                     @if(chat.contact.avatar){
                                         <img class="w-full h-full rounded-full object-cover" [src]="chat.contact.avatar"
                                         alt="Contact avatar" />
@@ -129,15 +129,15 @@
     
                             </div>
                             <div class="min-w-0 ml-4">
-                                @if(chat.user._id === profile._id){
+                                @if(chat.user._id === _id){
                                     <div class="font-medium leading-5 truncate">{{chat.contact.first_name}} {{chat.contact.last_name}}</div>
                                 }
                                 @else{
                                     <div class="font-medium leading-5 truncate">{{chat.user.first_name}} {{chat.user.last_name}}</div>
                                     }
                                 @if(chat.lastMessage){
-                                <div class="leading-5 truncate text-secondary" [class.text-primary]="chat.unreadCount[profile._id.toString()] > 0"
-                                    [class.dark:text-primary-500]="chat.unreadCount[profile._id.toString()] > 0">
+                                <div class="leading-5 truncate text-secondary" [class.text-primary]="chat.unreadCount[_id.toString()] > 0"
+                                    [class.dark:text-primary-500]="chat.unreadCount[_id.toString()] > 0">
                                     {{chat.lastMessage.content}}
                                 </div>
                                 } @else{
@@ -151,7 +151,7 @@
                                 <div class="text-sm leading-5 text-secondary">{{chat.lastMessage.createdAt | date:'HH:mm'}}
                                 </div>
                                 }
-                                @if(chat.muted[profile._id.toString()]){
+                                @if(chat.muted[_id.toString()]){
                                 <mat-icon class="icon-size-5 text-hint"
                                     [svgIcon]="'heroicons_solid:speaker-x-mark'"></mat-icon>
                                 }

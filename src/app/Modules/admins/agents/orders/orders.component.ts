@@ -29,9 +29,8 @@ import { RouteService } from '../../../../Shared/Services/Journey.service';
 import { Routes } from '../../../../Shared/Models/Routes.model';
 import { LocationService } from '../../../../Shared/Services/agent-location.service';
 import { OrderService } from '../../../../Shared/Services/order.service';
-import { MessagesComponent } from "../../../../Shared/Components/messages/messages.component";
+import { MessagesComponent } from '../../../../Shared/Components/messages/messages.component';
 import { Animations } from '../../../../Shared/Animations/public-api';
-
 
 interface RouteStop {
   order: Order;
@@ -64,9 +63,9 @@ interface NavigationStep {
     MatProgressSpinnerModule,
     OrderDetailsCardComponent,
     CompactComponent,
-    MessagesComponent
-],
-animations:Animations,
+    MessagesComponent,
+  ],
+  animations: Animations,
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
 })
@@ -128,23 +127,47 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private journeySubscription: Subscription | null = null;
 
   ngOnInit(): void {
-    this.agent = this._userService.user() as Agent;
-    console.log(this.agent);
-    
-    if (this.agent && this.agent.agentStatus !== 'offline') {
-      this.journeyActive = true;
-      this.setupSocketConnection();
-      try {
-        this._locationService.registerAgent(this.agent._id!);
-        this._locationService.subscribeToAgent(this.agent._id!);
-        this.userLocation=this.agent.coordinates!;
-      } catch (error) {
-        console.error('Agent registration failed:', error);
-      }
-    }
+    this._userService.userObs.subscribe({
+      next: (data: Agent | null) => {
+        console.log("data", data);
+        
+        this.agent = data;
+        if (this.agent && this.agent.agentStatus !== 'offline') {
+          this.journeyActive = true;
+          this.setupSocketConnection();
+          try {
+            this._locationService.registerAgent(this.agent._id!);
+            this._locationService.subscribeToAgent(this.agent._id!);
+            this.userLocation = this.agent.coordinates!;
+          } catch (error) {
+            console.error('Agent registration failed:', error);
+          }
+        }
+      },
+    });
   }
   private setupSocketConnection(): void {
+    console.log('before');
+    
     if (!this.agent?._id) return;
+    console.log('after');
+    if(!this._socketService.isConnected()){
+      this._socketService.connect();
+    }
+    console.log(this.agent);
+    
+    /*this._socketService.getJourneyHttp(this.agent?._id!).subscribe({
+      next: (data: Routes) => {
+        console.log(data);
+        if(data.orders){
+          this.processJourneyOrders(data.orders);
+          this._cdr.markForCheck();
+        }
+      },
+      error: (err: any) => {
+        console.log(err);
+      },
+    });*/
     // Register and subscribe to journey updates
     this._socketService.registerJourney(this.agent?._id);
     this._socketService.subscribeToJourney(this.agent?._id);
@@ -154,7 +177,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       .getJourney(this.agent?._id)
       .subscribe({
         next: async (data: { journey: Routes; id: string | null }) => {
-          if (data.journey.orders?.length) {
+          if (data.journey.orders?.length) {            
             if (data.id != null && this.isNavigating) {
               if (this.stops[this.currentStopIndex].order._id === data.id) {
                 this._snackBar.open(
@@ -167,14 +190,16 @@ export class OrdersComponent implements OnInit, OnDestroy {
                 this.stops.splice(this.currentStopIndex, 1);
                 if (this.currentStopIndex < this.stops.length) {
                   this.stops[this.currentStopIndex].status = 'active';
-                  this._orderService.activateOrder(this.stops[this.currentStopIndex].order._id!).subscribe({
-                    next:(data:boolean)=>{
-                      console.log('order onroute '+data);
-                    },
-                    error:(err:any)=>{
-                      console.log(err);
-                    }
-                  })
+                  this._orderService
+                    .activateOrder(this.stops[this.currentStopIndex].order._id!)
+                    .subscribe({
+                      next: (data: boolean) => {
+                        console.log('order onroute ' + data);
+                      },
+                      error: (err: any) => {
+                        console.log(err);
+                      },
+                    });
                   this.updateMarkersStatus();
                   await this.startNavigation(this.forcedSimulationMode);
                   this.centerMapOnCurrentStop();
@@ -199,7 +224,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (this.simulationSubscription) this.simulationSubscription.unsubscribe();
     if (this.map) this.map.remove();
     if (this.routeUpdateInterval) clearInterval(this.routeUpdateInterval);
-    this.journeySubscription?.unsubscribe();
+    if (this.journeySubscription) this.journeySubscription?.unsubscribe();
     this._socketService.unsubscribeFromJourney(this.agent?._id!);
     this._socketService.disconnect();
   }
@@ -281,15 +306,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
       this.currentStopIndex = i;
       this.stops[i].status = 'active';
       this._orderService.activateOrder(this.stops[i].order._id!).subscribe({
-        next:(data:boolean)=>{
-          console.log('order onroute '+data);
+        next: (data: boolean) => {
+          console.log('order onroute ' + data);
         },
-        error:(err:any)=>{
+        error: (err: any) => {
           console.log(err);
-        }
-      })
+        },
+      });
 
-      if(!this.isNavigating){
+      if (!this.isNavigating) {
         this.initializeMapWithRoute();
       }
     }
@@ -497,14 +522,16 @@ export class OrdersComponent implements OnInit, OnDestroy {
           } else {
             console.log('order not added to route');
             this.currentStopIndex++;
-            this._orderService.activateOrder(this.stops[this.currentStopIndex].order._id!).subscribe({
-              next:(data:boolean)=>{
-                console.log('order onroute '+data);
-              },
-              error:(err:any)=>{
-                console.log(err);
-              }
-            })
+            this._orderService
+              .activateOrder(this.stops[this.currentStopIndex].order._id!)
+              .subscribe({
+                next: (data: boolean) => {
+                  console.log('order onroute ' + data);
+                },
+                error: (err: any) => {
+                  console.log(err);
+                },
+              });
           }
         },
         error: (err) => console.error('Error picking up order:', err),
@@ -598,7 +625,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       this.routeStarted = true;
       this.isNavigating = true;
       if (simulationMode) {
-        this.userLocation===null?[10.276214, 36.759965]:this.userLocation;
+        this.userLocation === null ? [10.276214, 36.759965] : this.userLocation;
         await this.initializeNavigationMap(this.userLocation!);
         await this.createNavigationRoute();
         this.setupSimulatedLocationUpdates();

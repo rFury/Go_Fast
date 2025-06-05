@@ -3,6 +3,8 @@ import { Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { Order } from '../Models/Order.model';
 import { Routes } from '../Models/Routes.model';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -10,7 +12,7 @@ import { Routes } from '../Models/Routes.model';
 export class RouteService {
   private socket: Socket;
 
-  constructor() {
+  constructor(private http:HttpClient) {
     this.socket = io('http://127.0.0.1:3000/Journey', {
       transports: ['websocket'],
       path: '/socket.io',
@@ -20,6 +22,12 @@ export class RouteService {
     this.socket.on('connect_error', (err) => {
       console.error('Socket connection error:', err);
     });
+  }
+  isConnected(): boolean {
+    return this.socket.connected;
+  }
+  connect(): void {
+    this.socket.connect();
   }
 
   registerJourney(agentId: string): void {
@@ -59,5 +67,8 @@ export class RouteService {
 
   disconnect(): void {
     this.socket.disconnect();
+  }
+  getJourneyHttp(agentId:string):Observable<Routes>{
+    return this.http.get<Routes>(`${environment.api}/journey/${agentId}`);
   }
 }

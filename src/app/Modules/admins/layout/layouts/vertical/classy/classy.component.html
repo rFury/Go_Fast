@@ -15,7 +15,7 @@
                 </div>
                 <div>
                     <user [showAvatar]="false"></user>
-                    <admin-notifications></admin-notifications>
+                    <notifications-component></notifications-component>
                 </div>
             </div>
             }@else {
@@ -57,25 +57,36 @@
             </div>
         </ng-container>
         }@else {
-            <ng-container fuseVerticalNavigationFooter>
-                <!-- User -->
-                <div class="flex items-center w-full gap-1 py-8 border-t">
-                    <admin-notifications></admin-notifications>
-                    <user></user>
-                    @if(user){
-                    <div class="flex flex-col w-full ml-4 overflow-hidden">
-                        <div
-                            class="w-full whitespace-nowrap text-ellipsis overflow-hidden leading-normal text-current opacity-80">
-                            {{user.first_name}} {{user.last_name}}
-                        </div>
-                        <div
-                            class="w-full mt-0.5 whitespace-nowrap text-sm text-ellipsis overflow-hidden leading-normal text-current opacity-50">
-                            {{user.email}}
-                        </div>
+        <ng-container fuseVerticalNavigationFooter>
+            <!-- User -->
+            <div class="flex items-center w-full gap-0.5 py-8 border-t">
+                <notifications-component></notifications-component>
+                @if(!isLoading){
+                <user [showAvatar]="true"></user>
+                @if(user){
+                <div class="flex flex-col w-full ml-4 overflow-hidden">
+                    <div
+                        class="w-full whitespace-nowrap text-ellipsis overflow-hidden leading-normal text-current opacity-80">
+                        {{user.first_name}} {{user.last_name}}
                     </div>
-                    }
+                    <div
+                        class="w-full mt-0.5 whitespace-nowrap text-sm text-ellipsis overflow-hidden leading-normal text-current opacity-50">
+                        {{user.email}}
+                    </div>
                 </div>
-            </ng-container>
+                }
+                }@else {
+                <mat-progress-spinner [diameter]="50" mode="indeterminate" class="pr-5"></mat-progress-spinner>
+                <div class="flex flex-col w-full ml-4 overflow-hidden">
+                    <div class="w-28 h-3 bg-gray-200 rounded-full animate-pulse opacity-80">
+                    </div>
+                    <div class="w-28 h-2 mt-1 bg-gray-100 rounded-full animate-pulse opacity-50">
+                    </div>
+                </div>
+                }
+            </div>
+
+        </ng-container>
         }
     </fuse-vertical-navigation>
 

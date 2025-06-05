@@ -12,9 +12,12 @@
         <!-- Navigation footer hook -->
         <ng-container fuseVerticalNavigationFooter>
             <!-- User -->
-            <div class="flex items-center w-full px-4 py-8 border-t">
+            <div class="flex items-center w-full px-2 py-4 border-t">
                 @if(!isLoading){
-                <user></user>
+                <div class="flex flex-col">
+                    <user></user>
+                    <notifications-component></notifications-component>
+                </div>
                 <div class="flex flex-col w-full ml-4 overflow-hidden">
                     <div
                         class="w-full whitespace-nowrap text-ellipsis overflow-hidden leading-normal text-current opacity-80">
