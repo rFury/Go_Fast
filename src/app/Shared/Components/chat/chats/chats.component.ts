@@ -17,22 +17,16 @@ import { RouterLink, RouterOutlet } from '@angular/router';
 import {
   Subject,
   takeUntil,
-  filter,
   take,
-  switchMap,
   tap,
-  throwError,
 } from 'rxjs';
 import { Chat } from '../../../Models/chat.types';
 import { ChatService } from '../chat.service';
 import { NewChatComponent } from '../new-chat/new-chat.component';
 import { User } from '../../../Models/User.model';
 import { UserService } from '../../../Services/user.service';
-import { EmptyConversationComponent } from '../empty-conversation/empty-conversation.component';
-import { Agent } from '../../../Models/Agent.model';
 import { SuperAuthService } from '../../../Services/super-auth-service.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Client } from '../../../Models/Client.model';
 @Component({
   selector: 'chat-chats',
   templateUrl: './chats.component.html',
@@ -41,7 +35,6 @@ import { Client } from '../../../Models/Client.model';
   standalone: true,
   imports: [
     MatSidenavModule,
-    EmptyConversationComponent,
     CommonModule,
     NewChatComponent,
     MatButtonModule,

@@ -515,7 +515,17 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       el.className = 'agent-marker';
       if (this.Agent?.avatar) {
         el.style.backgroundImage = `url(${this.Agent.avatar})`;
-        el.innerHTML = `<img src="${this.Agent.avatar}" alt="agent" class="w-30 h-30 z-10 animate-pulse rounded-full">`
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.style.backgroundRepeat = 'no-repeat';
+        el.style.borderRadius = '50%';
+        el.style.border = '2px solid #fff';
+        el.style.boxShadow = '0 0 10px 0 rgba(0, 0, 0, 0.1)';
+        el.style.transition = 'all 0.1s ease';
+        el.style.cursor = 'pointer';
+        el.style.padding = '0';
+        el.style.margin = '0';
+        el.innerHTML = `<img src="${this.Agent.avatar}" alt="agent" class="w-14 h-14 z-10 animate-pulse rounded-full bg-transparent">`
       } else{
         el.innerHTML = `<div (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front'" class="w-14 h-14 z-10 animate-pulse rounded-full flex items-center justify-center bg-gray-200 text-black font-bold text-3xl pointer-cursor">${this.Agent?.first_name?.charAt(0).toUpperCase()}</div>`
       }

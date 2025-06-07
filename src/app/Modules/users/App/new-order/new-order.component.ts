@@ -1,4 +1,13 @@
-import { Component, inject, OnInit, signal, OnDestroy, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnInit,
+  signal,
+  OnDestroy,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+} from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import { MapService } from '../../../../Shared/Services/map.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -49,11 +58,11 @@ import { Router } from '@angular/router';
   templateUrl: './new-order.component.html',
   styleUrl: './new-order.component.scss',
 })
-export class NewOrderComponent implements OnInit,AfterViewInit, OnDestroy {
+export class NewOrderComponent implements OnInit, AfterViewInit, OnDestroy {
   toggle: boolean = false;
   private destroy$ = new Subject<void>();
-  isScreenSmall: boolean = false;
-  dragging = signal(false);
+  isScreenSmall = false;
+  dragging = false;
   userLocation: { lng: number; lat: number } = { lng: 10.1956, lat: 36.8625 };
   searchQueryB: string = '';
   hideSingleSelectionIndicator = signal(false);
@@ -66,6 +75,7 @@ export class NewOrderComponent implements OnInit,AfterViewInit, OnDestroy {
   private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
   private _orderService = inject(OrderService);
   private _router = inject(Router);
+  private _cdr = inject(ChangeDetectorRef);
   searchQueryA: string = '';
   coordinatesA?: [number, number];
   coordinatesB?: [number, number];
@@ -73,8 +83,6 @@ export class NewOrderComponent implements OnInit,AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.Order.type = DeliveryType.building;
-    this.initializeMap();
-
     this._fuseMediaWatcherService.onMediaChange$
       .pipe(takeUntil(this.destroy$))
       .subscribe(({ matchingAliases }) => {
@@ -145,11 +153,37 @@ export class NewOrderComponent implements OnInit,AfterViewInit, OnDestroy {
       });
     });
 
-    this.map.on('dragstart', () => this.dragging.set(true));
-    this.map.on('dragend', () => this.dragging.set(false));
+    this.map.on('dragstart', () => {
+      if (this.isScreenSmall) {
+        this.dragging = true;
+        console.log('dragstart');
+        this._cdr.detectChanges();
+      }
+    });
+    this.map.on('dragend', () => {
+      if (this.isScreenSmall) {
+        this.dragging = false;
+        console.log('dragend');
+        this._cdr.detectChanges();
+      }
+    });
+    // Add to setupMapEvents()
+    this.map.on('touchstart', () => {
+      if (this.isScreenSmall) {
+        this.dragging = true;
+        this._cdr.detectChanges();
+      }
+    });
+
+    this.map.on('touchend', () => {
+      if (this.isScreenSmall) {
+        this.dragging = false;
+        this._cdr.detectChanges();
+      }
+    });
     this.map.on('click', (e) => this.addMarker(e.lngLat));
-    this.map.on('mouseenter', () => this.updateCursor());
-    this.map.on('mouseleave', () => this.updateCursor());
+    /*this.map.on('mouseenter', () => this.updateCursor());
+    this.map.on('mouseleave', () => this.updateCursor());*/
     this.map.getCanvas().style.cursor = `url(location-a-icon.svg) 16 16, auto`;
   }
 

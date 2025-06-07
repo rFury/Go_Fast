@@ -9,6 +9,7 @@ import { environment } from '../../../environments/environment';
 import { UserService } from './user.service';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 import { Governorate } from '../Models/Gouvernorat.model';
+import { FirebaseNotification } from './firebase.notif.service';
 
 @Injectable({
   providedIn: 'root',
@@ -21,6 +22,7 @@ export class SuperAuthService {
   private isloggedin = signal<boolean>(false);
   private _httpClient = inject(HttpClient);
   private _userService = inject(UserService);
+  private _firebase = inject(FirebaseNotification)
   private _router = inject(Router);
 
   constructor() {
@@ -166,8 +168,12 @@ export class SuperAuthService {
   }
 
   signOut(): Observable<any> {
-    this.removeToken();
-    return of(true);
+    this._firebase.logoutCleanup().then(() => {
+      console.log('🔐 Logout cleanup complete');
+      this.removeToken();
+      return of(true);
+    });
+    return of (false);    
   }
   unauthorized() {
     this._router.navigate['/admin/unauthorized'];

@@ -25,6 +25,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
 import { NotificationsComponent } from '../../../../../../Shared/Components/notifications/notifications.component';
+import { NotificationsService } from '../../../../../../Shared/Components/notifications/notifications.service';
 
 @Component({
   selector: 'user-classy-layout',
@@ -47,8 +48,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   protected _userService = inject(UserService);
   protected _sideNavService = inject(SideNavService);
   private _cdr = inject(ChangeDetectorRef);
-  private _notifService = inject(FirebaseNotification);
+  private firebase = inject(FirebaseNotification);
   private _chatService = inject(ChatService);
+  private _notificationsService = inject(NotificationsService);
   showUser: boolean = false;
   isScreenSmall!: boolean;
   navigation!: FuseNavigationItem[];
@@ -61,7 +63,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     private _fuseNavigationService: FuseNavigationService
   ) {}
   async ngOnInit() {
-    this.isLoading= true;
+    this.isLoading = true;
     console.log(this._authService.getToken());
     const Orders: FuseNavigationItem = {
       id: 'orders',
@@ -88,22 +90,32 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       type: 'basic',
       icon: 'heroicons_outline:chat-bubble-bottom-center-text',
       link: '/chat',
-      badge: {
-        title: '1',
-        classes:
-          'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
-      },
     };
     this.navigation = [newOrder, Orders, divider, chat];
-    this._chatService.unreadCount$.pipe(takeUntil(this._unsubscribeAll)).subscribe((count) => {
-      console.log('Unread count:', count);
-      chat.badge = {
-        title: count.toString(),
-        classes: 'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
-      };
-      this.navigation = [newOrder, Orders, divider, chat];
-        this._cdr.markForCheck();
+    this._chatService.unreadCount$
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((count) => {
+        console.log('Unread count:', count);
+
+        const updatedChat: FuseNavigationItem = {
+          ...chat,
+          ...(count > 0
+            ? {
+                badge: {
+                  title: count.toString(),
+                  classes:
+                    'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
+                },
+              }
+            : {
+                badge: undefined, // or remove the badge entirely
+              }),
+        };
+
+        this.navigation = [newOrder, Orders, divider, updatedChat];
+        this._cdr.markForCheck(); // Trigger change detection
       });
+
     this._userService
       .get()
       .pipe(takeUntil(this._unsubscribeAll))
@@ -126,6 +138,11 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         this.isScreenSmall = !matchingAliases.includes('md');
         this._sideNavService.setOpen(!this.isScreenSmall);
       });
+      if(!this.firebase.connected){
+        console.log('connecting');
+        
+        this.firebase.connect();
+      }
   }
 
   ngOnDestroy(): void {

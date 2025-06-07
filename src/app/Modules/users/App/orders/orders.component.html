@@ -356,7 +356,9 @@
                         <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
                     </button>
                     }
-                    <ordercarddetails [Order]="Order" (canceled)="canceled($event)"></ordercarddetails>
+                    <div class="mt-10 sm:mt-0 h-screen">
+                        <ordercarddetails [Order]="Order" (canceled)="canceled($event)"></ordercarddetails>
+                    </div>
                 </div>
                 }
             </div>

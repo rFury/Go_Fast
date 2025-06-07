@@ -14,7 +14,11 @@
                     </div>
                 </div>
                 <div>
-                    <user [showAvatar]="false"></user>
+                    @if(isLoading){
+                    <mat-progress-spinner [diameter]="20" mode="indeterminate"></mat-progress-spinner>
+                    }@else {
+                        <user [showAvatar]="false"></user>
+                    }
                     <notifications-component></notifications-component>
                 </div>
             </div>

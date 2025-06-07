@@ -18,7 +18,7 @@ export enum Status {
       color: 'bg-blue-500',
       icon: 'check_circle',
     },
-    picked_up: {
+    'picked-up': {
       label: 'Picked-up',
       color: 'bg-indigo-500',
       icon: 'local_shipping',

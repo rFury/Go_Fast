@@ -45,6 +45,7 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   unreadCount: number = 0;
   private _overlayRef!: OverlayRef;
   private _unsubscribeAll: Subject<any> = new Subject<any>();
+  interval: any;
 
   constructor(
     private _changeDetectorRef: ChangeDetectorRef,
@@ -59,16 +60,22 @@ export class NotificationsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this._unsubscribeAll))
       .subscribe(notifications => {
         this.notifications = notifications;
-        this._calculateUnreadCount();
         this._changeDetectorRef.markForCheck();
       });
-      this._notificationsService.getAll().subscribe();
+      this._notificationsService.unreadCount$.pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((count) => {
+        this.unreadCount = count;
+        this._changeDetectorRef.markForCheck();
+      });
+      this.get()
   }
 
   ngOnDestroy(): void {
     // Unsubscribe from all subscriptions
     this._unsubscribeAll.next(null);
     this._unsubscribeAll.complete();
+    clearInterval(this.interval);
+    this.interval = null;
 
     // Dispose the overlay
     if (this._overlayRef) {
@@ -91,7 +98,6 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this._overlayRef.attach(
       new TemplatePortal(this._notificationsPanel, this._viewContainerRef)
     );
-    //this.get();
   }
 
   get(){

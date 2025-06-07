@@ -29,6 +29,8 @@ import { Agent } from '../../../../../../Shared/Models/Agent.model';
 import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
 import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
+import { NotificationsService } from '../../../../../../Shared/Components/notifications/notifications.service';
+
 @Component({
   selector: 'classy-layout',
   templateUrl: './classy.component.html',
@@ -54,8 +56,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   private menuService = inject(MenuService);
   private _cdr = inject(ChangeDetectorRef);
   protected _locationWebService = inject(LocationWebService);
-  private _notifService = inject(FirebaseNotification);
+  private firebase = inject(FirebaseNotification);
   private _chatService = inject(ChatService);
+  private _notificationsService = inject(NotificationsService);
   navigationAppearance: 'default' | 'dense' = 'default';
   private _positionInterval: any;
   showUser: boolean = false;
@@ -113,6 +116,30 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       error: () => {},
       complete: () => {
         this.isLoading = false;
+        this._chatService.unreadCount$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((count) => {
+              const index =this.navigation[0].children?.findIndex(item => item.id === "682f0adeb8f63a9874a5e805");
+              console.log('Unread count:', count);
+      
+                const updatedChat = {
+                  ...this.navigation[0].children![index!],
+                  ...(count > 0
+                    ? {
+                        badge: {
+                          title: count.toString(),
+                          classes:
+                            'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
+                        },
+                      }
+                    : {
+                        badge: undefined, // or remove the badge entirely
+                      }),
+                };
+              
+              this.navigation[0].children?.splice(index!,1,updatedChat)
+              this._cdr.markForCheck(); // Trigger change detection
+            });
       },
     });
 
@@ -125,6 +152,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
           this.navigationAppearance = this.isScreenSmall ? 'default' : 'dense';
         }
       });
+      if(this.Agent){
+        this.firebase.connect();
+      }
   }
 
   ngOnDestroy(): void {
