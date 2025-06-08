@@ -25,7 +25,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { OrderDetailsCardComponent } from '../../../../Shared/Components/order details/order.details.component';
 import { CompactComponent } from '../../../../Shared/Components/invoice/compact.component';
-import { RouteService } from '../../../../Shared/Services/Journey.service';
+import { JourneyService } from '../../../../Shared/Services/Journey.service';
 import { Routes } from '../../../../Shared/Models/Routes.model';
 import { LocationService } from '../../../../Shared/Services/agent-location.service';
 import { OrderService } from '../../../../Shared/Services/order.service';
@@ -123,14 +123,14 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private routeUpdateInterval: any = null;
 
   //realtime
-  private _socketService = inject(RouteService);
+  private _journeyService = inject(JourneyService);
   private journeySubscription: Subscription | null = null;
 
   ngOnInit(): void {
     this._userService.userObs.subscribe({
       next: (data: Agent | null) => {
-        console.log("data", data);
-        
+        console.log('data', data);
+
         this.agent = data;
         if (this.agent && this.agent.agentStatus !== 'offline') {
           this.journeyActive = true;
@@ -148,15 +148,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
   private setupSocketConnection(): void {
     console.log('before');
-    
+
     if (!this.agent?._id) return;
     console.log('after');
-    if(!this._socketService.isConnected()){
-      this._socketService.connect();
+    if (!this._journeyService.isConnected()) {
+      this._journeyService.connect();
     }
     console.log(this.agent);
-    
-    /*this._socketService.getJourneyHttp(this.agent?._id!).subscribe({
+
+    /*this._journeyService.getJourneyHttp(this.agent?._id!).subscribe({
       next: (data: Routes) => {
         console.log(data);
         if(data.orders){
@@ -169,54 +169,67 @@ export class OrdersComponent implements OnInit, OnDestroy {
       },
     });*/
     // Register and subscribe to journey updates
-    this._socketService.registerJourney(this.agent?._id);
-    this._socketService.subscribeToJourney(this.agent?._id);
+    this._journeyService.registerJourney(this.agent?._id);
+    this._journeyService.subscribeToJourney(this.agent?._id);
 
-    // Listen for real-time updates
-    this.journeySubscription = this._socketService
-      .getJourney(this.agent?._id)
-      .subscribe({
-        next: async (data: { journey: Routes; id: string | null }) => {
-          if (data.journey.orders?.length) {            
-            if (data.id != null && this.isNavigating) {
-              if (this.stops[this.currentStopIndex].order._id === data.id) {
-                this._snackBar.open(
-                  'Order canceled! Rerouting yout to the next order',
-                  'Close',
-                  {
-                    duration: 3000,
+    this._journeyService.getJourneyHttp().subscribe({
+      next: (data: Routes) => {
+        console.log(data);
+        this.processJourneyOrders(data.orders!);
+        this._cdr.markForCheck();
+
+        // Listen for real-time updates
+        this.journeySubscription = this._journeyService
+          .getJourney(this.agent?._id!)
+          .subscribe({
+            next: async (data: { journey: Routes; id: string | null }) => {
+              if (data.journey.orders?.length) {
+                if (data.id != null && this.isNavigating) {
+                  if (this.stops[this.currentStopIndex].order._id === data.id) {
+                    this._snackBar.open(
+                      'Order canceled! Rerouting yout to the next order',
+                      'Close',
+                      {
+                        duration: 3000,
+                      }
+                    );
+                    this.stops.splice(this.currentStopIndex, 1);
+                    if (this.currentStopIndex < this.stops.length) {
+                      this.stops[this.currentStopIndex].status = 'active';
+                      this._orderService
+                        .activateOrder(
+                          this.stops[this.currentStopIndex].order._id!
+                        )
+                        .subscribe({
+                          next: (data: boolean) => {
+                            console.log('order onroute ' + data);
+                          },
+                          error: (err: any) => {
+                            console.log(err);
+                          },
+                        });
+                      this.updateMarkersStatus();
+                      await this.startNavigation(this.forcedSimulationMode);
+                      this.centerMapOnCurrentStop();
+                    } else {
+                      this.completeJourney();
+                    }
+                    this.updateJourneyProgress();
+                    this._cdr.markForCheck();
                   }
-                );
-                this.stops.splice(this.currentStopIndex, 1);
-                if (this.currentStopIndex < this.stops.length) {
-                  this.stops[this.currentStopIndex].status = 'active';
-                  this._orderService
-                    .activateOrder(this.stops[this.currentStopIndex].order._id!)
-                    .subscribe({
-                      next: (data: boolean) => {
-                        console.log('order onroute ' + data);
-                      },
-                      error: (err: any) => {
-                        console.log(err);
-                      },
-                    });
-                  this.updateMarkersStatus();
-                  await this.startNavigation(this.forcedSimulationMode);
-                  this.centerMapOnCurrentStop();
                 } else {
-                  this.completeJourney();
+                  this.processJourneyOrders(data.journey.orders);
+                  this._cdr.markForCheck();
                 }
-                this.updateJourneyProgress();
-                this._cdr.markForCheck();
               }
-            } else {
-              this.processJourneyOrders(data.journey.orders);
-              this._cdr.markForCheck();
-            }
-          }
-        },
-        error: (err) => console.error('Socket error:', err),
-      });
+            },
+            error: (err) => console.error('Socket error:', err),
+          });
+      },
+      error: (err: any) => {
+        console.log(err);
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -225,8 +238,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
     if (this.map) this.map.remove();
     if (this.routeUpdateInterval) clearInterval(this.routeUpdateInterval);
     if (this.journeySubscription) this.journeySubscription?.unsubscribe();
-    this._socketService.unsubscribeFromJourney(this.agent?._id!);
-    this._socketService.disconnect();
+    this._journeyService.unsubscribeFromJourney(this.agent?._id!);
+    this._journeyService.disconnect();
   }
 
   startJourney(): void {

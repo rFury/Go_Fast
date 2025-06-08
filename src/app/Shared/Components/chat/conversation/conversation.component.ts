@@ -127,13 +127,11 @@ export class ConversationComponent implements OnInit, OnDestroy {
   myId: string | null = null;
   loading: boolean = true;
   private _inactivityTimeout: any;
-  showEmojiPicker: boolean = false; // Add this property
+  showEmojiPicker: boolean = false; 
   emojiTitle = 'Choose an emoji';
   emojiBackgroundImageFn = (set: string, sheetSize: number) => {
-    // Option A: Use CDN (recommended)
     return `https://cdn.jsdelivr.net/npm/emoji-datasource-${set}@15.0.1/img/${set}/sheets-256/${sheetSize}.png`;
 
-    // Option B: If you have local assets, ensure the path is correct
     // return `/assets/emoji-sheets/${set}-${sheetSize}.png`;
   };
 
@@ -141,7 +139,6 @@ export class ConversationComponent implements OnInit, OnDestroy {
     private _changeDetectorRef: ChangeDetectorRef,
     private _chatService: ChatService,
     private _fuseMediaWatcherService: FuseMediaWatcherService,
-    private _ngZone: NgZone,
     private _superAuthService: SuperAuthService
   ) {}
 

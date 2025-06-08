@@ -117,29 +117,45 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
       complete: () => {
         this.isLoading = false;
         this._chatService.unreadCount$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe((count) => {
-              const index =this.navigation[0].children?.findIndex(item => item.id === "682f0adeb8f63a9874a5e805");
-              console.log('Unread count:', count);
-      
-                const updatedChat = {
-                  ...this.navigation[0].children![index!],
-                  ...(count > 0
-                    ? {
-                        badge: {
-                          title: count.toString(),
-                          classes:
-                            'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
-                        },
-                      }
-                    : {
-                        badge: undefined, // or remove the badge entirely
-                      }),
-                };
-              
-              this.navigation[0].children?.splice(index!,1,updatedChat)
-              this._cdr.markForCheck(); // Trigger change detection
-            });
+          .pipe(takeUntil(this._unsubscribeAll))
+          .subscribe((count) => {
+            const parent = this.navigation[0];
+
+            if (!parent.children) return;
+
+            const index = parent.children.findIndex(
+              (item) => item.id === '682f0adeb8f63a9874a5e805'
+            );
+
+            if (index === -1) return;
+
+            const updatedChat = {
+              ...parent.children[index],
+              ...(count > 0
+                ? {
+                    badge: {
+                      title: count.toString(),
+                      classes:
+                        'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
+                    },
+                  }
+                : {
+                    badge: undefined,
+                  }),
+            };
+
+            const updatedChildren = [...parent.children];
+            updatedChildren.splice(index, 1, updatedChat);
+
+            const updatedNavigation = [...this.navigation];
+            updatedNavigation[0] = {
+              ...parent,
+              children: updatedChildren,
+            };
+
+            this.navigation = updatedNavigation;
+            this._cdr.markForCheck();
+          });
       },
     });
 
@@ -152,9 +168,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
           this.navigationAppearance = this.isScreenSmall ? 'default' : 'dense';
         }
       });
-      if(this.Agent){
-        this.firebase.connect();
-      }
+    if (this.Agent) {
+      this.firebase.connect();
+    }
   }
 
   ngOnDestroy(): void {

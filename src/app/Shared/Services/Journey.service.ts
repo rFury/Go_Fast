@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
 @Injectable({
   providedIn: 'root',
 })
-export class RouteService {
+export class JourneyService {
   private socket: Socket;
 
   constructor(private http:HttpClient) {
@@ -28,16 +28,19 @@ export class RouteService {
   }
   connect(): void {
     this.socket.connect();
+    console.log('connecting to Journey');
   }
 
   registerJourney(agentId: string): void {
     if (!agentId) throw new Error('Agent ID is required');
     this.socket.emit('register-journey', agentId);
+    console.log('registering to Journey');
   }
 
   subscribeToJourney(agentId: string): void {
     if (!agentId) throw new Error('Agent ID is required');
     this.socket.emit('subscribe-to-journey', agentId);
+    console.log('subscribing to Journey');
   }
 
   unsubscribeFromJourney(agentId: string): void {
@@ -68,7 +71,7 @@ export class RouteService {
   disconnect(): void {
     this.socket.disconnect();
   }
-  getJourneyHttp(agentId:string):Observable<Routes>{
-    return this.http.get<Routes>(`${environment.api}/journey/${agentId}`);
+  getJourneyHttp():Observable<Routes>{
+    return this.http.get<Routes>(`${environment.api}/routes`);
   }
 }

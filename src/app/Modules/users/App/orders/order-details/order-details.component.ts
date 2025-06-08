@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
 import { NotificationPromptService } from '../../../../../Shared/Components/notification-prompt/notification.service';
 import { LocationService } from '../../../../../Shared/Services/agent-location.service';
 import { OrderDetailsCardComponent } from '../../../../../Shared/Components/order details/order.details.component';
-import { RouteService } from '../../../../../Shared/Services/Journey.service';
+import { JourneyService } from '../../../../../Shared/Services/Journey.service';
 import { FuseConfirmationService } from '../../../../../Shared/Components/confirmation/confirmation.service';
 
 @Component({
@@ -52,7 +52,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   private clipboard = inject(Clipboard);
   private snackBar = inject(SnackBarService);
   private _notificationService = inject(NotificationPromptService);
-  private _JourneyService = inject(RouteService);
+  private _JourneyService = inject(JourneyService);
   private _fuseConfirmationService = inject(FuseConfirmationService);
 
   private orderSubscription: Subscription | null = null;
@@ -82,6 +82,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.log(err);
+        this.router.navigate(['/404']);
       },
     });
   }

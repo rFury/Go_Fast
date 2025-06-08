@@ -13,9 +13,8 @@ const conversationResolver = (route: ActivatedRouteSnapshot, state: RouterStateS
             catchError((error) =>
             {
                 console.error(error);
-                const parentUrl = state.url.split('/').slice(0, -1).join('/');
     
-                router.navigateByUrl(parentUrl);
+                router.navigateByUrl('/404');
     
                 return throwError(error);
             }),

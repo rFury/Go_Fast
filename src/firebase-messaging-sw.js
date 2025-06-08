@@ -16,9 +16,9 @@ const firebaseConfig = {
   const messaging = firebase.messaging();
     messaging.onBackgroundMessage((payload) => {
     console.log('Background message received:', payload);
-        const notificationTitle = payload.notification?.title;
+        /*const notificationTitle = payload.x?.title;
     const notificationOptions = {
-      body: payload.notification?.body+"zebi 1" ,
+      body: payload.x?.body+"zebi 1" ,
       icon:  'van+name.logo.png',
       image: payload.data?.image || '',
       data: payload.data 
@@ -26,7 +26,7 @@ const firebaseConfig = {
     return self.registration.showNotification(
       notificationTitle,
       notificationOptions
-    );
+    );*/
   });
     self.addEventListener('notificationclick', (event) => {
     event.notification.close();

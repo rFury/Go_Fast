@@ -9,7 +9,7 @@ import { Clipboard } from '@angular/cdk/clipboard';
 import { SnackBarService } from '../../Services/snack-bar.service';
 import { FuseConfirmationService } from '../confirmation/confirmation.service';
 import { OrderService } from '../../Services/order.service';
-import { RouteService } from '../../Services/Journey.service';
+import { JourneyService } from '../../Services/Journey.service';
 import { Status } from '../../enums/status.enums';
 
 
@@ -32,7 +32,7 @@ export class OrderDetailsCardComponent
     _route= inject(ActivatedRoute);
     _fuseConfirmationService = inject(FuseConfirmationService);
     _orderService = inject(OrderService);
-    _JourneyService = inject(RouteService);
+    _JourneyService = inject(JourneyService);
     Status = Status;
     
     hidden=true;
