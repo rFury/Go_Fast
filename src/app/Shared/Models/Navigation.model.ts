@@ -29,6 +29,7 @@ export interface FuseNavigationItem {
   badge?: {
     title?: string;
     classes?: string;
+    readBy?:string[];
   };
   children?: FuseNavigationItem[];
   meta?: any;

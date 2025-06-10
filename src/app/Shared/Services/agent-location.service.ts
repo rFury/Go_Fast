@@ -58,9 +58,9 @@ export class LocationService {
   ): Observable<{ agentId: string; coordinates: any }> {
     return new Observable((observer) => {
       const listener = (data: { agentId: string; coordinates: any }) => {
-        console.log('Received agent-location event:', data);
+        //console.log('Received agent-location event:', data);
         if (data.agentId === agentId) {
-          console.log('Agent ID match, emitting data:', data);
+          //console.log('Agent ID match, emitting data:', data);
           observer.next(data);
         } else {
           console.log(`Agent ID mismatch: expected ${agentId}, got ${data.agentId}`);
@@ -82,7 +82,7 @@ export class LocationService {
       agentId,
       coordinates,
     });
-    console.log(`Sent location update for agent ${agentId}:`, coordinates);
+    //console.log(`Sent location update for agent ${agentId}:`, coordinates);
   }
 
   disconnect() {

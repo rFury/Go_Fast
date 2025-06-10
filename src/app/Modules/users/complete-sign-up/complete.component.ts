@@ -12,7 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   FuseAlertComponent,
   AlertType,
@@ -66,8 +66,8 @@ export class CompleteComponent implements OnInit {
    */
   constructor(
     private _authService: SuperAuthService,
-    private _formBuilder: UntypedFormBuilder
-  ) {}
+    private router: Router
+    ) {}
 
   // -----------------------------------------------------------------------------------------------------
   // @ Lifecycle hooks
@@ -112,35 +112,21 @@ export class CompleteComponent implements OnInit {
     // Forgot password
     this._authService
       .Complete(this.phone,this.city!)
-      .pipe(
-        finalize(() => {
-          // Re-enable the form
-          NgForm.form.enable();
-
-          // Reset the form
-          NgForm.resetForm();
-
-          // Show the alert
-          this.showAlert = true;
-        })
-      )
       .subscribe(
         (response) => {
-          // Set the alert
-          this.alert = {
-            type: 'success',
-            message:
-              "Password reset sent! You'll receive an email if you are registered on our system.",
-          };
+          this.router.navigate(['/']);
         },
         (err) => {
-          // Set the alert
-          this.alert = {
-            type: 'error',
-            message:
-              'Email does not found! Are you sure you are already a member?',
-          };
-        }
+            // Re-enable the form
+            NgForm.form.enable();
+
+            // Set the alert
+            this.alert = {
+              type: 'error',
+              message: 'Something went wrong, please try again.',
+            };
+            this.showAlert = true;
+          }
       );
   }
 }

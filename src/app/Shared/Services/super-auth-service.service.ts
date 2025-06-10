@@ -127,6 +127,7 @@ export class SuperAuthService {
   Complete(phone:string,city:Governorate):Observable<any>{
     return this._httpClient.patch(`${this.apiUrl}/add-info`,{phone,city}).pipe(
       switchMap((response: any) => {
+        console.log(response);
         this.removeToken();
         this.saveToken(response.token);
         return of(response);
@@ -170,10 +171,10 @@ export class SuperAuthService {
   signOut(): Observable<any> {
     this._firebase.logoutCleanup().then(() => {
       console.log('🔐 Logout cleanup complete');
-      this.removeToken();
-      return of(true);
+
     });
-    return of (false);    
+    this.removeToken();
+    return of(true);
   }
   unauthorized() {
     this._router.navigate['/admin/unauthorized'];

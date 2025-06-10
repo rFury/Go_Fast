@@ -38,40 +38,34 @@ import { Client } from '../../Models/Client.model';
     RouterLink
   ],
 })
-export class UserComponent implements OnInit, OnDestroy {
+export class UserComponent implements  OnDestroy {
   static ngAcceptInputType_showAvatar: BooleanInput;
   @Input() showAvatar: boolean = true;
   private _cdr = inject(ChangeDetectorRef);
   private _userService = inject(UserService);
   private _router = inject(Router);
-  user: User | Agent | Client | null = this._userService._user();
+  user: User | Agent | Client | null = null;
   link='/settings';
   constructor(){
-      this.user = this._userService.user();
-      console.log(this.user);
-      if(this.user?.type === 'super' || this.user?.type === 'user'){
-        this.link='/admin/settings';
-      }else if(this.user?.type === 'agent'){
-        this.link='/admin/agents/settings';
-      }  
-      this._cdr.markForCheck();
-  }
-
-  ngOnInit(): void {
+      this._userService.userObs.subscribe((user) => {
+        this.user = user;
+        this._cdr.markForCheck();
+        console.log(this.user);
+        if(this.user?.type === 'super' || this.user?.type === 'user'){
+          this.link='/admin/settings';
+        }else if(this.user?.type === 'agent'){
+          this.link='/admin/agents/settings';
+        }  
+        this._cdr.markForCheck();
+      });
   }
 
   ngOnDestroy(): void {
   }
   updateUserStatus(status: string): void {
     console.log("hello");
-    
     if (!this.user) return;
-      this._userService.updateState(status).subscribe({
-        error: () => {
-          this._userService._user.update(u => ({ ...u!, status:status }))
-          this._cdr.detectChanges();
-        },
-      });
+      this._userService.updateState(status).subscribe();
   }
 
   signOut(): void {

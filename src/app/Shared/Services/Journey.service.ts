@@ -5,12 +5,14 @@ import { Order } from '../Models/Order.model';
 import { Routes } from '../Models/Routes.model';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root',
 })
 export class JourneyService {
   private socket: Socket;
+  private router:Router;
 
   constructor(private http:HttpClient) {
     this.socket = io('http://127.0.0.1:3000/Journey', {
@@ -18,7 +20,6 @@ export class JourneyService {
       path: '/socket.io',
       withCredentials: true,
     });
-
     this.socket.on('connect_error', (err) => {
       console.error('Socket connection error:', err);
     });
@@ -32,15 +33,29 @@ export class JourneyService {
   }
 
   registerJourney(agentId: string): void {
-    if (!agentId) throw new Error('Agent ID is required');
-    this.socket.emit('register-journey', agentId);
-    console.log('registering to Journey');
+    if(this.socket.connected){
+      this.socket.emit('register-journey', agentId);
+      console.log('registered to Journey');
+    }
+    else{
+      this.socket.on('connect', () => {
+        this.socket.emit('register-journey', agentId);
+        console.log('registered to Journey after connect');
+      });
+    }
   }
 
   subscribeToJourney(agentId: string): void {
-    if (!agentId) throw new Error('Agent ID is required');
-    this.socket.emit('subscribe-to-journey', agentId);
-    console.log('subscribing to Journey');
+    if(this.socket.connected){
+      this.socket.emit('subscribe-to-journey', agentId);
+      console.log('subscribed to Journey');
+    }
+    else{
+      this.socket.on('connect', () => {
+        this.socket.emit('subscribe-to-journey', agentId);
+        console.log('subscribed to Journey after connect');
+      });
+    }
   }
 
   unsubscribeFromJourney(agentId: string): void {

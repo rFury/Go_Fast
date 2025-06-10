@@ -1,4 +1,4 @@
-import { Component, EventEmitter, inject, Input, OnChanges, Output, ViewEncapsulation } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { Animations } from '../../Animations/public-api';
 import { CardComponent } from '../card/card.component';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +11,7 @@ import { FuseConfirmationService } from '../confirmation/confirmation.service';
 import { OrderService } from '../../Services/order.service';
 import { JourneyService } from '../../Services/Journey.service';
 import { Status } from '../../enums/status.enums';
+import { SuperAuthService } from '../../Services/super-auth-service.service';
 
 
 @Component({
@@ -21,7 +22,7 @@ import { Status } from '../../enums/status.enums';
     standalone   : true,
     imports: [CardComponent,MatIconModule,MatButtonModule]
 })
-export class OrderDetailsCardComponent
+export class OrderDetailsCardComponent implements OnInit
 {
     isFullScreen = false;
     @Input({required: true })Order: Order | null = null;
@@ -33,12 +34,16 @@ export class OrderDetailsCardComponent
     _fuseConfirmationService = inject(FuseConfirmationService);
     _orderService = inject(OrderService);
     _JourneyService = inject(JourneyService);
+    _authService=inject(SuperAuthService)
     Status = Status;
-    
+    type=false;
     hidden=true;
     copied = false;
     private clipboard = inject(Clipboard);
     private snackBar = inject(SnackBarService);
+    ngOnInit(){
+      this.type=this._authService.decodeToken().type==='client';
+    }
     orderDetails(id:string){
         this.router.navigate([`${id}`], { relativeTo: this._route }).then();
     }
@@ -51,32 +56,6 @@ export class OrderDetailsCardComponent
         }, 3000);
       }
       cancelOrder() {
-        // Open the confirmation dialog
-        const confirmation = this._fuseConfirmationService.open({
-          title: 'Cancel',
-          message: 'Would you like to cancel the order ?',
-          actions: {
-            confirm: {
-              label: 'yes',
-            },
-            cancel: {
-              label: 'no',
-            },
-          },
-        });
-
-        // Subscribe to the confirmation dialog closed action
-        confirmation.afterClosed().subscribe((result) => {
-          // If the confirm button pressed...
-          if (result === 'confirmed') {
-            this._orderService.getOrdersAgent(this.Order?._id!).subscribe((agentId) => {
-              this._JourneyService.subscribeToJourney(agentId!);
-              this._JourneyService.cancelOrder(agentId, this.Order!);
-              this.Order!.status=Status.canceled;
-              this.canceled.emit(this.Order!);
-            });
-          }
-        });
-
+        this.canceled.emit(this.Order!);
     }
   }

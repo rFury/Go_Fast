@@ -30,7 +30,6 @@ import { UserComponent } from '../../../../../../Shared/Components/user/user.com
 import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
 import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
 import { NotificationsService } from '../../../../../../Shared/Components/notifications/notifications.service';
-
 @Component({
   selector: 'classy-layout',
   templateUrl: './classy.component.html',
@@ -74,8 +73,10 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
   ) {}
   Admin: boolean = false;
   Agent: boolean = false;
-
+  _id: string = '';
+  
   async ngOnInit() {
+     this._id = this._authService.decodeToken()._id;
     const admin =
       this._authService.decodeToken().type === 'user' ||
       this._authService.decodeToken().type === 'super';
@@ -100,6 +101,9 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     this.menuService.initializeMenuSocket();
     this.menuService.getMenu().subscribe({
       next: (data) => {
+        this.processMenuItems(data.menu);
+        console.log(data.menu);
+        
         this.navigation = data.menu;
         this._userService.features.set(data.features);
         console.log(this._userService.features());
@@ -109,6 +113,7 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
         this.menuService.menu$
           .pipe(takeUntil(this._unsubscribeAll))
           .subscribe((menu) => {
+            this.processMenuItems(menu.menu);
             this.navigation = menu.menu;
             this._userService.features.set(menu.features);
           });
@@ -202,4 +207,35 @@ export class ClassyLayoutComponent implements OnInit, OnDestroy {
     this.navigationAppearance =
       this.navigationAppearance === 'default' ? 'dense' : 'default';
   }
+  processMenuItems(items: FuseNavigationItem[]){
+    console.log('Processing menu items');
+    items.forEach((item: FuseNavigationItem) => {
+      // If the item is a group or collapsable, recursively process its children
+      if (item.type === 'group' || item.type === 'collapsable') {
+        if (item.children) {
+          this.processMenuItems(item.children);
+        }
+      }
+      // If the item is a basic item with a badge and is not the excluded ID
+      else if (item.type === 'basic') {
+        if (
+          item.badge?.title &&
+          item.badge.classes &&
+          item.id !== '682f0adeb8f63a9874a5e805'
+        ) {
+          console.log('Assigned function to:', item.id);
+          console.log('_id',this._id);
+          
+          if(item.badge.readBy?.includes(this._id)){
+            item.badge={};
+          }else{
+          item.function = (clickedItem: FuseNavigationItem) => {
+            this.menuService.markAsRead(clickedItem.id!);
+          };
+        }
+        }
+      }
+    });
+  };
+  
 }

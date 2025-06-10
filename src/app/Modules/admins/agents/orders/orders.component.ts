@@ -169,6 +169,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       },
     });*/
     // Register and subscribe to journey updates
+    console.log('before register');
     this._journeyService.registerJourney(this.agent?._id);
     this._journeyService.subscribeToJourney(this.agent?._id);
 
@@ -186,6 +187,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
               if (data.journey.orders?.length) {
                 if (data.id != null && this.isNavigating) {
                   if (this.stops[this.currentStopIndex].order._id === data.id) {
+                    this.simulationSubscription?.unsubscribe();
+                    this.simulationSubscription = null;
                     this._snackBar.open(
                       'Order canceled! Rerouting yout to the next order',
                       'Close',
@@ -215,6 +218,16 @@ export class OrdersComponent implements OnInit, OnDestroy {
                       this.completeJourney();
                     }
                     this.updateJourneyProgress();
+                    this._cdr.markForCheck();
+                  }else{
+                    this._snackBar.open(
+                      'Order canceled!',
+                      'Close',
+                      {
+                        duration: 3000,
+                      }
+                    );
+                    this.processJourneyOrders(data.journey.orders);
                     this._cdr.markForCheck();
                   }
                 } else {

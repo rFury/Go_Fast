@@ -304,10 +304,15 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     });
 
     confirmation.afterClosed().subscribe((result) => {
+      console.log('result', result);
+      this.locationSubscription?.unsubscribe();
+      this.orderSubscription?.unsubscribe();
+      this.isActive=false;
       if (result === 'confirmed') {
         this._orderService
           .getOrdersAgent(this.Order?._id!)
           .subscribe((agentId) => {
+            console.log('canceled succefully');
             this._JourneyService.subscribeToJourney(agentId!);
             this._JourneyService.cancelOrder(agentId, this.Order!);
             this.router.navigate(['/orders']);
@@ -367,7 +372,6 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       this.locationSubscription = this._agentLocationService
         .getAgentLocations(this.Agent._id!)
         .subscribe((data) => {
-          console.log('zebi');
           if (!this.isActive) {
             this.isActive = true;
             if (this.map.getSource('route')) {
