@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatRippleModule } from '@angular/material/core';
@@ -20,9 +20,14 @@ import * as mapboxgl from 'mapbox-gl';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import {
   listOrderStatus,
+  Status,
 } from '../../../../Shared/enums/status.enums';
 import { OrderDetailsCardComponent } from '../../../../Shared/Components/order details/order.details.component';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { FuseConfirmationService } from '../../../../Shared/Components/confirmation/confirmation.service';
+import { JourneyService } from '../../../../Shared/Services/Journey.service';
+import { takeUntil, Subject } from 'rxjs';
+import { FuseMediaWatcherService } from '../../../../Shared/Services/media-watcher/media-watcher.service';
 
 @Component({
   selector: 'app-orders',
@@ -41,7 +46,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatSelectModule,
     OrderDetailsCardComponent,
     MatProgressSpinnerModule
-  ],
+    ],
   animations: Animations,
   templateUrl: './orders.component.html',
   styles: [
@@ -65,16 +70,19 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   ],
   providers: [DatePipe],
 })
-export class OrdersComponent implements OnInit {
+export class OrdersComponent implements OnInit, OnDestroy{
   Loading=false;
   details: boolean = true;
   map: mapboxgl.Map;
   private _mapService = inject(MapService);
   private _orderService = inject(OrderService);
   protected _datePipe = inject(DatePipe);
-  private _cdr = inject(ChangeDetectorRef);
+  protected _cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
   _route = inject(ActivatedRoute);
+  private _fuseConfirmationService=inject(FuseConfirmationService);
+  private _JourneyService = inject(JourneyService);
+  _fuseMediaWatcherService= inject(FuseMediaWatcherService);
   status = listOrderStatus;
   Order: Order | null = null;
   Orders: Order[] = [];
@@ -89,12 +97,26 @@ export class OrdersComponent implements OnInit {
   private routeSources: string[] = [];
   max = 0;
   clicked = false;
-  _fuseMediaWatcherService: any;
   isScreenSmall: boolean;
+  Status = Status;
+  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
     this.formattedDate = this._datePipe.transform(this.date, 'dd/MM/yyyy')!;
     this.getOrders();
+    this._fuseMediaWatcherService.onMediaChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ matchingAliases }) => {
+        if(matchingAliases.includes('md')){
+          this.clicked = false;
+          this._cdr.detectChanges();
+          console.log('modifying');
+        }
+      }); 
+  }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
   getSelectedDate(): void {
     console.log(this.date);
@@ -166,7 +188,7 @@ export class OrdersComponent implements OnInit {
     this.selectedOrderId = orderId;
     const order = this.Orders.find((order) => order._id === orderId);
     if (order) {
-      let isMobile = window.innerWidth <= 768; // Tailwind's 'md' breakpoint
+      let isMobile = window.innerWidth <= 959; // Tailwind's 'md' breakpoint
       if (!firstTime && isMobile) {
         this.clicked = true;
       }
@@ -322,9 +344,41 @@ export class OrdersComponent implements OnInit {
       this.getOrders();
     }
   }
-  canceled(order: Order) {
-    this.Order = order;
-    this._cdr.detectChanges();
+cancelOrder() {
+    const confirmation = this._fuseConfirmationService.open({
+      title: 'Cancel',
+      message: 'Would you like to cancel the order ?',
+      actions: {
+        confirm: {
+          label: 'yes',
+        },
+        cancel: {
+          label: 'no',
+        },
+      },
+    });
+
+    confirmation.afterClosed().subscribe((result) => {
+      console.log('result', result);
+      if((this.Order?.status===Status.assigned || this.Order?.status===Status.picked_up) && result === 'confirmed'){
+        if (result === 'confirmed') {
+          this._orderService
+            .getOrdersAgent(this.Order?._id!)
+            .subscribe((agentId) => {
+              console.log('canceled succefully');
+              this._JourneyService.subscribeToJourney(agentId!);
+              this._JourneyService.cancelOrder(agentId, this.Order!);
+              this.router.navigate(['/orders']);
+            });
+        }
+      }
+      else if(result === 'confirmed' && (this.Order?.status === Status.pending)){
+        this._orderService.cancelOrder(this.Order!._id!)
+        .subscribe(() => {
+          this.router.navigate(['/orders']);
+        });
+      }
+    });
   }
   onTabChange(event: MatTabChangeEvent) {
     switch (event.index) {

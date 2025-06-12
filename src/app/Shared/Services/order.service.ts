@@ -65,4 +65,7 @@ export class OrderService {
   deactivateOrder(orderId: string): Observable<boolean> {
     return this.http.put<boolean>(`${this.endpoint}/${orderId}/deactivate`,{});
   }
+  cancelOrder(orderId: string): Observable<null> {
+    return this.http.put<null>(`${this.endpoint}/${orderId}/cancel`,{});
+  }
 }

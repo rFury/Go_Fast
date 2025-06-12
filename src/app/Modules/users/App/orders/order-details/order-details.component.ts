@@ -305,18 +305,26 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
 
     confirmation.afterClosed().subscribe((result) => {
       console.log('result', result);
-      this.locationSubscription?.unsubscribe();
-      this.orderSubscription?.unsubscribe();
-      this.isActive=false;
-      if (result === 'confirmed') {
-        this._orderService
-          .getOrdersAgent(this.Order?._id!)
-          .subscribe((agentId) => {
-            console.log('canceled succefully');
-            this._JourneyService.subscribeToJourney(agentId!);
-            this._JourneyService.cancelOrder(agentId, this.Order!);
-            this.router.navigate(['/orders']);
-          });
+      if((this.Order?.status===Status.assigned || this.Order?.status===Status.picked_up) && result === 'confirmed'){
+        this.locationSubscription?.unsubscribe();
+        this.orderSubscription?.unsubscribe();
+        this.isActive=false;
+        if (result === 'confirmed') {
+          this._orderService
+            .getOrdersAgent(this.Order?._id!)
+            .subscribe((agentId) => {
+              console.log('canceled succefully');
+              this._JourneyService.subscribeToJourney(agentId!);
+              this._JourneyService.cancelOrder(agentId, this.Order!);
+              this.router.navigate(['/orders']);
+            });
+        }
+      }
+      else if(result === 'confirmed' && (this.Order?.status === Status.pending)){
+        this._orderService.cancelOrder(this.Order!._id!)
+        .subscribe(() => {
+          this.router.navigate(['/orders']);
+        });
       }
     });
   }

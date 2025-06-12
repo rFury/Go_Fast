@@ -349,15 +349,15 @@
                 @if(Order){
                 <!-- Right Panel -->
                 <div class="w-full h-screen md:w-1/2 pr-0 md:pr-8 pt-0 md:pt-4 pb-0 md:pb-4"
-                    [ngClass]="{'fixed inset-0 h-screen w-full z-50 bg-white overflow-y-auto': clicked}">
+                    [ngClass]="{'fixed inset-0 h-screen w-full z-50 bg-transparent backdrop-blur-md overflow-y-hidden flex justify-center items-center': clicked}">
                     @if(clicked) {
                     <button class="block md:hidden absolute top-2 right-2 bg-gray-100 z-50 p-2 rounded-full shadow-lg"
-                        mat-icon-button (click)="clicked=false">
+                        mat-icon-button (click)="clicked=false;_cdr.detectChanges()">
                         <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
                     </button>
                     }
-                    <div class="mt-10 sm:mt-0 h-screen">
-                        <ordercarddetails [Order]="Order" (canceled)="canceled($event)"></ordercarddetails>
+                    <div class="h-full" [ngClass]="{'max-w-xl ':clicked}">
+                        <ordercarddetails [Order]="Order" (canceled)="cancelOrder()"></ordercarddetails>
                     </div>
                 </div>
                 }
