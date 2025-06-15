@@ -108,6 +108,9 @@ export class OrdersComponent implements OnInit, OnDestroy {
   currentBearing: number = 0;
   isFetchingLocation = false;
   private isFollowingUser: boolean = true;
+  depotMode: boolean = false;
+  depotLocation : [number, number] = [10.1956, 36.8625];
+  ;
 
   private currentLegCoordinates: [number, number][] = [];
   private forcedSimulationMode = false;
@@ -219,14 +222,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
                     }
                     this.updateJourneyProgress();
                     this._cdr.markForCheck();
-                  }else{
-                    this._snackBar.open(
-                      'Order canceled!',
-                      'Close',
-                      {
-                        duration: 3000,
-                      }
-                    );
+                  } else {
+                    this._snackBar.open('Order canceled!', 'Close', {
+                      duration: 3000,
+                    });
                     this.processJourneyOrders(data.journey.orders);
                     this._cdr.markForCheck();
                   }
@@ -283,6 +282,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }*/
 
   private processJourneyOrders(orders: Order[]): void {
+    console.log('processing orders');
+
     interface PendingRouteStop {
       order: Order;
       coordinates: [number, number];
@@ -326,21 +327,33 @@ export class OrdersComponent implements OnInit, OnDestroy {
         return null;
       })
       .filter((stop): stop is PendingRouteStop => stop !== null) as RouteStop[];
-
     if (this.stops.length) {
-      const i = this.stops.findIndex((stop) => stop.status === 'pending');
-      this.currentStopIndex = i;
-      this.stops[i].status = 'active';
-      this._orderService.activateOrder(this.stops[i].order._id!).subscribe({
-        next: (data: boolean) => {
-          console.log('order onroute ' + data);
-        },
-        error: (err: any) => {
-          console.log(err);
-        },
-      });
+      console.log('in');
 
-      if (!this.isNavigating) {
+      const i = this.stops.findIndex((stop) => stop.status === 'pending');
+      console.log(i);
+
+      if (i !== -1) {
+        this.depotMode = false;
+        this.currentStopIndex = i;
+        this.stops[i]!.status = 'active';
+        this._orderService.activateOrder(this.stops[i].order._id!).subscribe({
+          next: (data: boolean) => {
+            console.log('order onroute ' + data);
+          },
+          error: (err: any) => {
+            console.log(err);
+          },
+        });
+
+        if (!this.isNavigating) {
+          console.log('hethi');
+
+          this.initializeMapWithRoute();
+        }
+      } else {
+        this.depotMode = true;
+        this.currentStopIndex=this.stops.length;
         this.initializeMapWithRoute();
       }
     }
@@ -356,7 +369,18 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   private initializeMapWithRoute(): void {
-    if (!this.stops.length) return;
+    console.log('initializeMapWithRoute');
+
+    if (
+      !this.stops.length || this.depotMode
+    ) {
+      console.log('no stops', this.stops);
+
+      this.initializeMap(10.1956, 36.8625);
+      this.createFullRoute();
+
+      return;
+    }
     const [lng, lat] = this.stops[0].coordinates;
     console.log(this.stops);
 
@@ -421,10 +445,29 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   private createFullRoute(): void {
-    if (this.stops.length < 2) return;
-    const waypoints = this.stops
-      .map((stop) => `${stop.coordinates[0]},${stop.coordinates[1]}`)
-      .join(';');
+    let waypoints = '';
+    if (this.depotMode) {
+      console.log(this.depotMode,this.userLocation);
+      waypoints = `${this.userLocation![0]},${this.userLocation![1]};${10.276214},${36.759965}`;
+      const el = document.createElement('div');
+      el.className = 'depot-marker';
+      el.innerHTML = `
+        <img src="depot.png" alt="depot" class="w-8 h-8 z-10 animate-pulse">`;
+      new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([10.276214, 36.759965])
+        .addTo(this.map!);
+      const el2 = document.createElement('div');
+      el2.className = 'custom-marker';
+      el2.innerHTML = `<img src="pin.png" alt="Marker" class="w-8 h-8 animate-pulse">`;
+      new mapboxgl.Marker({ element: el2, anchor: 'bottom' })
+        .setLngLat(this.userLocation!)
+        .addTo(this.map!);
+    } else{
+      if (this.stops.length < 2) return;
+      waypoints = this.stops
+        .map((stop) => `${stop.coordinates[0]},${stop.coordinates[1]}`)
+        .join(';');
+    }
     fetch(
       `https://api.mapbox.com/directions/v5/mapbox/driving/${waypoints}?geometries=geojson&overview=full&access_token=${this._mapService.mapboxToken}`
     )
@@ -513,6 +556,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   async completeCurrentStop(): Promise<void> {
+    if(this.depotMode){
+      this.endNavigation();
+      this.completeJourney()
+    }
     if (this.currentStopIndex >= this.stops.length) return;
 
     // Check if PDF has been generated
@@ -890,10 +937,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   private checkDistanceToCurrentStop(location: [number, number]): void {
-    if (this.currentStopIndex >= this.stops.length) return;
+    let coordinates: [number, number];
+    if (this.depotMode){
+      coordinates = [10.276214, 36.759965];
+    }else{
+      coordinates = this.stops[this.currentStopIndex].coordinates;
+    }
     const distance = this.calculateDistance(
       location,
-      this.stops[this.currentStopIndex].coordinates
+      coordinates
     );
     this.distanceToNextStop = distance;
     this.timeToNextStop = distance / 0.5;
@@ -919,18 +971,14 @@ export class OrdersComponent implements OnInit, OnDestroy {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  private showArrivalNotification(): void {
-    this._snackBar
-      .open('You have arrived at the destination!', 'Complete Stop', {
-        duration: 0,
-      })
-      .onAction()
-      .subscribe(() => this.completeCurrentStop());
-  }
-
   private async createNavigationRoute(): Promise<void> {
-    if (this.currentStopIndex >= this.stops.length) return;
-    const currentStop = this.stops[this.currentStopIndex];
+    let currentStop:any;
+    console.log('createNavigationRoute');
+    if (this.currentStopIndex >= this.stops.length || this.depotMode){
+      currentStop={coordinates:[10.276214, 36.759965]} as any;
+    }else{
+      currentStop = this.stops[this.currentStopIndex];
+    }
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${
       this.userLocation![0]
     },${this.userLocation![1]};${currentStop.coordinates[0]},${
@@ -969,8 +1017,9 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private addDestinationMarker(stop: RouteStop): void {
     const el = document.createElement('div');
     el.className = 'destination-marker';
-    const colorClass = stop.isPickup ? 'bg-yellow-500' : 'bg-red-500';
-    el.innerHTML = `<div class="flex items-center justify-center rounded-full ${colorClass} text-white w-12 h-12 shadow-lg animate-pulse"><img src="pick-up.svg" alt="Destination" class="w-8 h-8"></div>`;
+    const colorClass = this.depotMode ? 'bg-green-500' : stop.isPickup ? 'bg-yellow-500' : 'bg-red-500';
+    const icon = this.depotMode ? 'depot.png' : 'pick-up.svg';
+    el.innerHTML = `<div class="flex items-center justify-center rounded-full ${colorClass} text-white w-12 h-12 shadow-lg animate-pulse"><img src="${icon}" alt="Destination" class="w-8 h-8"></div>`;
     const marker = new mapboxgl.Marker({ element: el })
       .setLngLat(stop.coordinates)
       .addTo(this.map!);
