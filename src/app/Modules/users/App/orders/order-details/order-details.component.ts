@@ -1,4 +1,11 @@
-import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
 import { MapService } from '../../../../../Shared/Services/map.service';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,6 +28,7 @@ import { LocationService } from '../../../../../Shared/Services/agent-location.s
 import { OrderDetailsCardComponent } from '../../../../../Shared/Components/order details/order.details.component';
 import { JourneyService } from '../../../../../Shared/Services/Journey.service';
 import { FuseConfirmationService } from '../../../../../Shared/Components/confirmation/confirmation.service';
+import { SuperAuthService } from '../../../../../Shared/Services/super-auth-service.service';
 
 @Component({
   selector: 'app-order-details',
@@ -54,9 +62,11 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   private _notificationService = inject(NotificationPromptService);
   private _JourneyService = inject(JourneyService);
   private _fuseConfirmationService = inject(FuseConfirmationService);
+  private _superAuthService = inject(SuperAuthService);
 
   private orderSubscription: Subscription | null = null;
   private locationSubscription: Subscription | null = null;
+  private fetchInterval: any = null;
   time = 0;
 
   Order: Order | null = null;
@@ -68,6 +78,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   notification10Shown: boolean = false;
   notification5Shown: boolean = false;
 
+  loggedIn = false;
   copied = false;
   agentDetails = false;
   agentMarker: mapboxgl.Marker | null = null;
@@ -75,8 +86,9 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') || undefined;
     if (!id) return;
+    this.loggedIn = this._superAuthService.isLoggedIn() as boolean;
     this.initializeMap();
-    this._orderService.getOrder(id).subscribe({
+    this._orderService.getOrder(id,!this.loggedIn).subscribe({
       next: (res) => {
         this.updateOrderData(res);
       },
@@ -91,6 +103,10 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     if (this.orderSubscription) this.orderSubscription.unsubscribe();
     if (this.locationSubscription) this.locationSubscription.unsubscribe();
     if (this.map) this.map.remove();
+    if (this.fetchInterval) {
+      clearInterval(this.fetchInterval);
+      this.fetchInterval = null;
+    }
   }
 
   private updateOrderData(order: Order): void {
@@ -104,7 +120,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       this.Order.status === Status.assigned ||
       this.Order.status === Status.pending
     ) {
-      if(this.Order.onRoute){
+      if (this.Order.onRoute) {
         const el2 = document.createElement('div');
         el2.className = 'custom-marker';
         el2.innerHTML = `<img src="location-a-icon.svg" alt="Marker1" class="w-8 h-8 animate-pulse">`;
@@ -117,33 +133,33 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
           )
           .addTo(this.map!);
         this.handleTracking();
-      }else{
+      } else {
         const el = document.createElement('div');
-      el.className = 'custom-marker';
-      el.innerHTML = `<img src="location-a-icon.svg" alt="Marker" class="w-8 h-8 animate-pulse">`;
-      new mapboxgl.Marker({ element: el, anchor: 'bottom' })
-        .setLngLat(
-          new mapboxgl.LngLat(
-            this.Order?.pick_up?.place?.coordinates![0]!,
-            this.Order?.pick_up?.place?.coordinates![1]!
+        el.className = 'custom-marker';
+        el.innerHTML = `<img src="location-a-icon.svg" alt="Marker" class="w-8 h-8 animate-pulse">`;
+        new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat(
+            new mapboxgl.LngLat(
+              this.Order?.pick_up?.place?.coordinates![0]!,
+              this.Order?.pick_up?.place?.coordinates![1]!
+            )
           )
-        )
-        .addTo(this.map!);
-      const el2 = document.createElement('div');
-      el2.className = 'custom-marker';
-      el2.innerHTML = `<img src="location-b-icon.svg" alt="Marker2" class="w-8 h-8 animate-pulse">`;
-      new mapboxgl.Marker({ element: el2, anchor: 'bottom' })
-        .setLngLat(
-          new mapboxgl.LngLat(
-            this.Order?.destination?.place?.coordinates![0]!,
-            this.Order?.destination?.place?.coordinates![1]!
+          .addTo(this.map!);
+        const el2 = document.createElement('div');
+        el2.className = 'custom-marker';
+        el2.innerHTML = `<img src="location-b-icon.svg" alt="Marker2" class="w-8 h-8 animate-pulse">`;
+        new mapboxgl.Marker({ element: el2, anchor: 'bottom' })
+          .setLngLat(
+            new mapboxgl.LngLat(
+              this.Order?.destination?.place?.coordinates![0]!,
+              this.Order?.destination?.place?.coordinates![1]!
+            )
           )
-        )
-        .addTo(this.map!);
-      this.getRoute(
-        this.Order.pick_up?.place?.coordinates!,
-        this.Order.destination?.place?.coordinates!
-      );
+          .addTo(this.map!);
+        this.getRoute(
+          this.Order.pick_up?.place?.coordinates!,
+          this.Order.destination?.place?.coordinates!
+        );
       }
     } else if (this.Order.status === Status.picked_up) {
       if (this.Order.completed === true) {
@@ -152,7 +168,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
         el.className = 'depot-marker';
 
         el.innerHTML = `
-          <img src="pin.png" alt="depot" class="w-8 h-8 z-10 animate-pulse">`
+          <img src="pin.png" alt="depot" class="w-8 h-8 z-10 animate-pulse">`;
 
         new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat(new mapboxgl.LngLat(10.276214, 36.759965))
@@ -290,6 +306,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   }
 
   cancelOrder() {
+    if(!this.loggedIn) return;
     const confirmation = this._fuseConfirmationService.open({
       title: 'Cancel',
       message: 'Would you like to cancel the order ?',
@@ -305,10 +322,14 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
 
     confirmation.afterClosed().subscribe((result) => {
       console.log('result', result);
-      if((this.Order?.status===Status.assigned || this.Order?.status===Status.picked_up) && result === 'confirmed'){
+      if (
+        (this.Order?.status === Status.assigned ||
+          this.Order?.status === Status.picked_up) &&
+        result === 'confirmed'
+      ) {
         this.locationSubscription?.unsubscribe();
         this.orderSubscription?.unsubscribe();
-        this.isActive=false;
+        this.isActive = false;
         if (result === 'confirmed') {
           this._orderService
             .getOrdersAgent(this.Order?._id!)
@@ -319,10 +340,11 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
               this.router.navigate(['/orders']);
             });
         }
-      }
-      else if(result === 'confirmed' && (this.Order?.status === Status.pending)){
-        this._orderService.cancelOrder(this.Order!._id!)
-        .subscribe(() => {
+      } else if (
+        result === 'confirmed' &&
+        this.Order?.status === Status.pending
+      ) {
+        this._orderService.cancelOrder(this.Order!._id!).subscribe(() => {
           this.router.navigate(['/orders']);
         });
       }
@@ -399,10 +421,27 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
           if (orderLoc) {
             const distance = this.calculateDistance(data.coordinates, orderLoc);
             this.time = distance / 0.5;
+            if (distance < 0.5 && !this.fetchInterval) {
+              this.fetchInterval = setInterval(() => {
+                console.log('interval set');
+                
+                this._orderService
+                  .getOrder(this.Order!._id!,!this.loggedIn)
+                  .subscribe((order) => {
+                    this.updateOrderData(order); // Update order data
+                    if (order.completed === true) {
+                      // Stop if order is completed
+                      clearInterval(this.fetchInterval);
+                      window.location.reload();
+                      this.fetchInterval = null;
+                    }
+                  });
+              }, 5000); // Fetch every 10 seconds
+            } else if (distance > 0.5 && this.fetchInterval) {
+              clearInterval(this.fetchInterval);
+              this.fetchInterval = null;
+            }
             if (distance < 0.05 && !this.notificationShown) {
-              setTimeout(() => {
-                this.getOrderTimeout(this.Order!._id!);
-              }, 10000);
               this.showNotification(
                 this.Order?.status === Status.assigned
                   ? 'Driver is at pick-up location!'
@@ -513,15 +552,6 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getOrderTimeout(id:string){
-    this._orderService.getOrder(id).subscribe((order) => {
-      this.Order = order;
-      if (this.Order.agent) {
-        this.Agent = this.Order.agent as Agent;
-      }
-    });
-  }
-
   private updateAgentMarker(coordinates: [number, number]): void {
     if (!this.agentMarker) {
       const el = document.createElement('div');
@@ -538,12 +568,15 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
         el.style.cursor = 'pointer';
         el.style.padding = '0';
         el.style.margin = '0';
-        el.innerHTML = `<img src="${this.Agent.avatar}" alt="agent" class="w-14 h-14 z-10 animate-pulse rounded-full bg-transparent">`
-      } else{
-        el.innerHTML = `<div (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front'" class="w-14 h-14 z-10 animate-pulse rounded-full flex items-center justify-center bg-gray-200 text-black font-bold text-3xl pointer-cursor">${this.Agent?.first_name?.charAt(0).toUpperCase()}</div>`
+        el.innerHTML = `<img src="${this.Agent.avatar}" alt="agent" class="w-14 h-14 z-10 animate-pulse rounded-full bg-transparent">`;
+      } else {
+        el.innerHTML = `<div (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front'" class="w-14 h-14 z-10 animate-pulse rounded-full flex items-center justify-center bg-gray-200 text-black font-bold text-3xl pointer-cursor">${this.Agent?.first_name
+          ?.charAt(0)
+          .toUpperCase()}</div>`;
       }
       el.addEventListener('click', () => {
-        this.flippableCard.face = this.flippableCard.face === 'front' ? 'back' : 'front'
+        this.flippableCard.face =
+          this.flippableCard.face === 'front' ? 'back' : 'front';
       });
       this.agentMarker = new mapboxgl.Marker({ element: el, anchor: 'center' })
         .setLngLat(coordinates)

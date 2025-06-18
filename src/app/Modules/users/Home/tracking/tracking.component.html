@@ -1,0 +1,36 @@
+<section class="tracking-section">
+  <div class="container">
+    <div class="tracking-header">
+      <h1>🚚 Suivez votre colis</h1>
+      <p>Entrez votre code de suivi pour obtenir des mises à jour en temps réel sur votre livraison</p>
+    </div>
+
+    <div class="tracking-form">
+      <div class="tracking-input-group">
+        <input 
+          type="text" 
+          [(ngModel)]="trackingCode"
+          placeholder="Entrez votre code de suivi (ex: FD123456)"
+          class="tracking-input"
+          minlength="8"
+          (keyup.enter)="trackOrder()">
+        <button 
+          (click)="trackOrder()" 
+          class="track-btn"
+          [disabled]="trackingCode.length < 6 || isLoading">
+          <span *ngIf="!isLoading">🔍 Suivre mon colis</span>
+          <span *ngIf="isLoading">🔄 Recherche...</span>
+        </button>
+      </div>
+
+      <div *ngIf="isLoading" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Recherche de votre colis en cours...</p>
+      </div>
+    </div>
+
+      <div class="tracking-actions">
+        <button routerLink="/contact" class="btn-primary">💬 Besoin d'aide ?</button>
+      </div>
+    </div>
+</section>

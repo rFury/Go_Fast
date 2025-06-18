@@ -82,11 +82,14 @@ export class JourneyService {
     if (!agentId || !order) throw new Error('Agent ID and order are required');
     this.socket.emit('cancel-order', { agentId, order });
   }
-
   disconnect(): void {
+    console.log('disconnecting from Journey');
     this.socket.disconnect();
   }
   getJourneyHttp():Observable<Routes>{
     return this.http.get<Routes>(`${environment.api}/routes`);
+  }
+  endRouteHttp():Observable<any>{
+    return this.http.post<any>(`${environment.api}/routes/end-route`,{});
   }
 }

@@ -1,19 +1,20 @@
 
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewEncapsulation } from '@angular/core';
-import { fuseAnimations } from '@fuse/animations';
-import { FuseNavigationService } from '@fuse/components/navigation/navigation.service';
-import { FuseNavigationItem } from '@fuse/components/navigation/navigation.types';
-import { FuseUtilsService } from '@fuse/services/utils/utils.service';
+
 import { ReplaySubject, Subject } from 'rxjs';
 import { FuseHorizontalNavigationBasicItemComponent } from './components/basic/basic.component';
 import { FuseHorizontalNavigationBranchItemComponent } from './components/branch/branch.component';
 import { FuseHorizontalNavigationSpacerItemComponent } from './components/spacer/spacer.component';
+import { Animations } from '../../../Animations/public-api';
+import { FuseNavigationItem } from '../../../Models/Navigation.model';
+import { FuseNavigationService } from '../navigation.service';
+import { UtilsService } from '../../../Services/utils.service';
 
 @Component({
     selector: 'fuse-horizontal-navigation',
     templateUrl: './horizontal.component.html',
     styleUrls: ['./horizontal.component.scss'],
-    animations: fuseAnimations,
+    animations: Animations,
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'fuseHorizontalNavigation',
@@ -21,7 +22,7 @@ import { FuseHorizontalNavigationSpacerItemComponent } from './components/spacer
 })
 export class FuseHorizontalNavigationComponent implements OnChanges, OnInit, OnDestroy
 {
-    @Input() name: string = this._fuseUtilsService.randomId();
+    @Input() name: string = '';
     @Input() navigation: FuseNavigationItem[];
 
     onRefreshed: ReplaySubject<boolean> = new ReplaySubject<boolean>(1);
@@ -33,9 +34,10 @@ export class FuseHorizontalNavigationComponent implements OnChanges, OnInit, OnD
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _fuseNavigationService: FuseNavigationService,
-        private _fuseUtilsService: FuseUtilsService,
+        private _fuseUtilsService: UtilsService,
     )
     {
+        this._fuseUtilsService.randomId()
     }
 
     // -----------------------------------------------------------------------------------------------------

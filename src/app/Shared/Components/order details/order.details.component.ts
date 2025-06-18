@@ -28,6 +28,7 @@ export class OrderDetailsCardComponent implements OnInit
     @Input({required: true })Order: Order | null = null;
     @Input() withMap: boolean = true;
     @Output() canceled = new EventEmitter<Order>();
+    loggedIn = false;
     details: boolean = true;
     private router = inject(Router);
     _route= inject(ActivatedRoute);
@@ -42,7 +43,13 @@ export class OrderDetailsCardComponent implements OnInit
     private clipboard = inject(Clipboard);
     private snackBar = inject(SnackBarService);
     ngOnInit(){
-      this.type=this._authService.decodeToken().type==='client';
+      if(this._authService.isLoggedIn()){
+        this.loggedIn = true;
+        this.type=this._authService.decodeToken().type==='client';
+      }else{
+        this.loggedIn = false;
+        this.type=true;
+      }
     }
     orderDetails(id:string){
         this.router.navigate([`${id}`], { relativeTo: this._route }).then();

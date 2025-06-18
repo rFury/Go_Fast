@@ -1,6 +1,19 @@
+
 <div class="flex flex-col h-screen w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
+          <!-- Alert -->
+          @if (showAlert) {
+            <alert
+              class="mt-8 w-fit mx-auto"
+              [appearance]="'outline'"
+              [showIcon]="false"
+              [dismissible]="true"
+              [type]="alert.type"
+              [@shake]="alert.type === 'error'">
+              {{alert.message}}
+            </alert>
+          }
   <!-- Start Journey Screen (when offline) -->
-  @if (!journeyActive && agent?.agentStatus === 'offline') {
+  @if (!journeyActive || agent?.agentStatus === 'offline') {
   <div class="flex flex-col items-center justify-center w-full h-full">
     <div class="text-center p-8 max-w-md bg-white dark:bg-slate-800 rounded-xl shadow-lg animate-fade-in">
       <h2 class="text-2xl font-bold mb-4">
@@ -249,7 +262,7 @@
         MatTooltip="Show route overview">
         <mat-icon>map</mat-icon>
       </button>
-      @if(distanceToNextStop < 0.07){ <button mat-icon-button color="primary" (click)="completeCurrentStop()"
+      @if(distanceToNextStop < 0.5){ <button mat-icon-button color="primary" (click)="completeCurrentStop()"
         aria-label="Mark as complete" MatTooltip="Mark as complete">
         <mat-icon>check_circle</mat-icon>
         </button>

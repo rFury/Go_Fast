@@ -31,6 +31,7 @@ import { LocationService } from '../../../../Shared/Services/agent-location.serv
 import { OrderService } from '../../../../Shared/Services/order.service';
 import { MessagesComponent } from '../../../../Shared/Components/messages/messages.component';
 import { Animations } from '../../../../Shared/Animations/public-api';
+import { FuseAlertComponent } from '../../../../Shared/Components/alert/public-api';
 
 interface RouteStop {
   order: Order;
@@ -64,6 +65,7 @@ interface NavigationStep {
     OrderDetailsCardComponent,
     CompactComponent,
     MessagesComponent,
+    FuseAlertComponent
   ],
   animations: Animations,
   templateUrl: './orders.component.html',
@@ -78,6 +80,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private _snackBar = inject(MatSnackBar);
   private _locationService = inject(LocationService);
   private _orderService = inject(OrderService);
+
 
   agent: Agent | null = null;
   map: mapboxgl.Map | null = null;
@@ -110,7 +113,8 @@ export class OrdersComponent implements OnInit, OnDestroy {
   private isFollowingUser: boolean = true;
   depotMode: boolean = false;
   depotLocation : [number, number] = [10.1956, 36.8625];
-  ;
+  alert: { type: 'error' | 'success'; message: string } | null = null;
+  showAlert = false;
 
   private currentLegCoordinates: [number, number][] = [];
   private forcedSimulationMode = false;
@@ -218,7 +222,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
                       await this.startNavigation(this.forcedSimulationMode);
                       this.centerMapOnCurrentStop();
                     } else {
-                      this.completeJourney();
+                      //this.completeJourney();
+                      this.depotMode=true;
+                      this.initializeMapWithRoute();
+                      await this.startNavigation(this.forcedSimulationMode);
                     }
                     this.updateJourneyProgress();
                     this._cdr.markForCheck();
@@ -239,7 +246,11 @@ export class OrdersComponent implements OnInit, OnDestroy {
           });
       },
       error: (err: any) => {
-        console.log(err);
+        console.log('err');
+        this.journeyActive=false;
+        this.journeySubscription?.unsubscribe();
+        this._journeyService.disconnect();
+        this._cdr.markForCheck();
       },
     });
   }
@@ -258,12 +269,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
     const sub = this._agentService.startJourney().subscribe({
       next: () => {
         this.journeyActive = true;
+        this.agent!.agentStatus = 'online';
         this.setupSocketConnection();
         this._cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error starting journey:', err);
         this.journeyActive = false;
+        this.alert = { type: 'error', message: 'No Journey for you yet !' };
+        this.showAlert = true;
         this._cdr.detectChanges();
       },
     });
@@ -353,7 +367,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
         }
       } else {
         this.depotMode = true;
-        this.currentStopIndex=this.stops.length;
+        this.currentStopIndex=this.stops.length-1;
         this.initializeMapWithRoute();
       }
     }
@@ -558,7 +572,16 @@ export class OrdersComponent implements OnInit, OnDestroy {
   async completeCurrentStop(): Promise<void> {
     if(this.depotMode){
       this.endNavigation();
-      this.completeJourney()
+      this.completeJourney();
+      this.subscriptions.forEach((sub) => sub.unsubscribe());
+      this.subscriptions = [];
+      this._journeyService.endRouteHttp().subscribe({
+        next: (data) => {
+          console.log('route ended');
+        },
+        error: (err) => console.error('Error ending route:', err),
+      });
+      return;
     }
     if (this.currentStopIndex >= this.stops.length) return;
 
@@ -615,7 +638,10 @@ export class OrdersComponent implements OnInit, OnDestroy {
             await this.startNavigation(this.forcedSimulationMode);
             this.centerMapOnCurrentStop();
           } else {
-            this.completeJourney();
+            //this.completeJourney();
+            this.depotMode=true;
+            this.initializeMapWithRoute();
+            await this.startNavigation(this.forcedSimulationMode);
           }
           this.updateJourneyProgress();
           this.isDetailModalOpen = false;

@@ -20,7 +20,7 @@ import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.m
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
 import { NotificationsComponent } from '../../../../../../Shared/Components/notifications/notifications.component';
 import { ShortcutsComponent } from './common/shortcuts/shortcuts.component';
-import { SearchComponent } from './common/search/search.component';
+import { SearchComponent } from '../../../../../../Shared/Components/search/search.component';
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';

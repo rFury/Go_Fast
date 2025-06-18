@@ -17,6 +17,8 @@ import { authGuard } from '../../Shared/Guards/auth.guard';
 import { CallbackComponent } from './sign-in/callback.component';
 import { Error404Component } from '../../Shared/Components/error/error-404/error-404.component';
 import { Error500Component } from '../../Shared/Components/error/error-500/error-500.component';
+import { OrderDetailsComponent } from './App/orders/order-details/order-details.component';
+import homeRoutes from './Home/home.routes';
 
 export default [
   {
@@ -30,6 +32,21 @@ export default [
         canActivate: [userAuthGuard,userGuard],
         data: {
           layout: 'classy',
+          who: 'users',
+        },
+      },
+      {
+        path: 'main',
+        loadChildren: () => homeRoutes,
+        data: {
+          layout: 'modern',
+        },
+      },
+      {
+        path: 'guest/:id',
+        component: OrderDetailsComponent,
+        data: {
+          layout: 'empty',
           who: 'users',
         },
       },
