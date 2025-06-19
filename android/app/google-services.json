@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "163646447101",
+    "project_id": "go-fast-3116e",
+    "storage_bucket": "go-fast-3116e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:163646447101:android:4aa44a54d34b9e3a020d94",
+        "android_client_info": {
+          "package_name": "com.company.goFast"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOiGRpJKdC7TXiTak50YwGyimP62j9uuk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
