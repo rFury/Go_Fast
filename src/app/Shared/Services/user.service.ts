@@ -10,6 +10,8 @@ import { Pagination } from '../Models/Pagination.model';
 import { FeatureActions } from '../enums/feature-actions';
 import { Client } from '../Models/Client.model';
 import { MenuService } from './menu.service';
+import { Agent } from '../Models/Agent.model';
+import { Governorate } from '../Models/Gouvernorat.model';
 
 @Injectable({
   providedIn: 'root',
@@ -17,17 +19,18 @@ import { MenuService } from './menu.service';
 export class UserService {
   endpointUser = `${environment.api}/users`;
   endpointClient = `${environment.api}/clients`;
-  _user = signal<User | Client | null>(null);
-  private _statusTimeout: any;
+  endpointAgent = `${environment.api}/agents`;
+  _user = signal<User | Client | Agent | null>(null);
   private _inactivityTimeout: any;
   _defaultLink = new BehaviorSubject<string | null>(null);
   features=signal<FeatureAuth[] | null>(null);
   http = inject(HttpClient);
   router = inject(Router);
-  _menu = inject(MenuService);
+  _menu = inject(MenuService); 
 
   
     user = this._user.asReadonly();
+    userObservable = new BehaviorSubject<User | Client | Agent | null>(null);
 
     private _trackActivity() {
       window.addEventListener('mousemove', this._resetInactivityTimer.bind(this));
@@ -37,6 +40,7 @@ export class UserService {
         clearTimeout(this._inactivityTimeout);
         if(this._user()?.status==="away"){
           this._user.update(u => ({ ...u!, status:"online" }));
+          this.userObservable.next(this._user());
           console.log(this._user());
           
           this.updateState("online").subscribe()
@@ -45,11 +49,14 @@ export class UserService {
           this.updateState('away').subscribe();
         }, 300000); // 5 minutes inactivity
     }
+    
 
   get user$(){
     return this._user()
   }
-
+  get userObs(){
+    return this.userObservable.asObservable()
+  }
 
   set defaultLink(value: string) {
     this._defaultLink.next(value);
@@ -59,31 +66,38 @@ export class UserService {
   }
 
   checkPermission(code: string, action: string): Observable<boolean> {
-    if (this.features()) {
-      const featuresAuth = this.features();
-      return of(!!featuresAuth?.some(
-        (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
-      ));
-    } else {
-      return this._menu.getActions().pipe(
-        map(actions => {
-          return !!actions?.some(
-            (fau) => fau.code === code && fau.actions?.includes(action as FeatureActions)
-          );
-        })
+    const check = (features: any[]): boolean => {
+      if (action === "list") {
+        return features?.some(fau => fau.code === code);
+      }
+      return features?.some(
+        fau => fau.code === code && fau.actions?.includes(action as FeatureActions)
       );
+    };
+    const featuresAuth = this.features();
+    if (featuresAuth) {
+      return of(check(featuresAuth));
     }
+    return this._menu.getActions().pipe(
+      map(actions => check(actions))
+    );
   }
   
   
+  
 
-  get(): Observable<User> {
+  get(): Observable<User | Agent | Client> {
     return this.http.get<User>(`${this.endpointUser}/me`).pipe(
       tap((user)=>{
-        if(user.type === "client"){
+        if(user.type === "client"){         
           this._user.set(user as Client);
+          this.userObservable.next(user as Client);
+        }else if(user.type === "agent"){
+          this._user.set(user as Agent);
+          this.userObservable.next(user as Agent);
         }else{
           this._user.set(user);
+          this.userObservable.next(user);
         }
       }),
       catchError((error) => {
@@ -91,9 +105,11 @@ export class UserService {
       })
     );
   }
-  getAll(type:string): Observable<User[] | Client[]> {
+  getAll(type:string): Observable<User[] | Client[] | Agent[]> {
     if(type === "client"){
     return this.http.get<Client[]>(`${this.endpointClient}/all`,{params:{type:"client"}})
+    }else if(type === "agent"){
+      return this.http.get<Agent[]>(`${this.endpointAgent}/all`,{params:{type:"agent"}})
     }
     return this.http.get<User[]>(`${this.endpointUser}/all`,{params:{type:"user"}})
   }
@@ -135,20 +151,22 @@ export class UserService {
   getUserProfile(): Observable<User> {
     return this.http.get<User>(`${this.endpointUser}/me`);
   }
-  updatePersonalInfo(user: User): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/personal-info`, user);
+  completeUpdatePersonalInfo({email,phone,city,key,newEmail}:{email:string,phone:string,city:Governorate,key:string,newEmail:boolean}): Observable<User> {
+    return this.http.patch<User>(`${this.endpointUser}/completed-personal-info`, {email,phone,city,key});
   }
-  updateMyAvatar(data: FormData): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/my-avatar`, data).pipe(
-      tap((user) => {
-        this._user.set(user);
-      })
-    );
+  updatePersonalInfo(): Observable<User> {
+    return this.http.patch<User>(`${this.endpointUser}/personal-info`,{});
   }
 
-  addUser(user: User | Client): Observable<any> {
-    const endpoint = user instanceof Client ?this.endpointClient: this.endpointUser ;
-    console.log(user instanceof Client);
+  addUser(user: User | Client | Agent): Observable<any> {
+    let endpoint;
+    if(user instanceof Client){
+      endpoint = this.endpointClient;
+    }else if(user instanceof Agent){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint= this.endpointUser
+    }
     
     return this.http.post<any>(`${endpoint}`, {
       user,
@@ -180,34 +198,58 @@ export class UserService {
     if (filterNewOld) {
       searchParams = searchParams.append('filterNewOld', filterNewOld);
     }
-    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
+    let endpoint;
+    if(who === "client"){
+      endpoint = this.endpointClient;
+    }else if(who === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.get<Pagination<User | Client>>(`${endpoint}`, {
       params: searchParams,
     });
   }
   getOne(id: string,who:string): Observable<User | Client> {
-    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
+    let endpoint;
+    if(who === "client"){
+      endpoint = this.endpointClient;
+    }else if(who === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.get<User>(`${endpoint}/${id}`);
   }
-  updateOne(user: User | Client): Observable<User | Client> {
-    const endpoint = user.type === 'client' ?this.endpointClient: this.endpointUser ;
-    console.log(user instanceof Client);
+  updateOne(user: User | Client | Agent): Observable<User | Client | Agent> {
+    let endpoint;
+    if(user.type === "client"){
+      endpoint = this.endpointClient;
+    }else if(user.type === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.put<User | Client>(`${endpoint}/${user._id}`, { user });
   }
   enableAccount(id: string): Observable<User> {
     return this.http.get<User>(`${this.endpointUser}/${id}/enable-disable`);
   }
   deleteOne(id: string,who?:string): Observable<null> {
-    const endpoint = who === "client" ? this.endpointClient : this.endpointUser;
-
+    let endpoint;
+    if(who === "client"){
+      endpoint = this.endpointClient;
+    }else if(who === "agent"){
+      endpoint = this.endpointAgent;
+    }else{
+      endpoint = this.endpointUser;
+    }
     return this.http.delete<null>(`${endpoint}/${id}`);
   }
-  updateAvatar(data: FormData, id: string): Observable<User> {
-    return this.http.post<User>(`${this.endpointUser}/${id}/avatar`, data).pipe(
-      tap((user) => {
-        this._user.set(user);
-      })
-    );
+  updateAvatar(file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('avatar', file); 
+    return this.http.patch<User>(`${this.endpointUser}/avatar`, formData);
   }
 
   initializeUser(user: User) {
@@ -220,8 +262,15 @@ export class UserService {
     return this.http.patch<User>(`${this.endpointUser}/status`, { status }).pipe(
       tap(updatedUser => {
         this._user.update(u => ({ ...u!, status }));
+        this.userObservable.next(this._user());
       })
     );
   }
-  
+  updatePassword(data: any): Observable<any> {
+    return this.http.patch<any>(`${this.endpointUser}/update-password`, {currentPassword:data.currentPassword});
+  }
+  completePasswordChange(code: string,newPassword: string): Observable<any> {
+    return this.http.patch<any>(`${this.endpointUser}/complete-password-change`, {key:code,newPassword});
+  }
+
 }

@@ -29,7 +29,12 @@ export const authInterceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn):
                 location.reload();
             }else if (error instanceof HttpErrorResponse && error.status === 403){
                 console.log(error);
-                router.navigate(['/admin/unauthorized']);                
+                const url=authService.decodeToken().type==='client'?'/404':'/admin/unauthorized';
+                router.navigate([url]);                
+            }
+            else if(error instanceof HttpErrorResponse && error.status === 500){
+                router.navigate(['/500']);                
+
             }
 
             return throwError(error);

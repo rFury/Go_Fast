@@ -9,7 +9,7 @@ import { FuseNavigationItem } from '../../../../../Models/Navigation.model';
 import { FuseNavigationService } from '../../../navigation.service';
 import { FuseVerticalNavigationComponent } from '../../vertical.component';
 import { UtilsService } from '../../../../../Services/utils.service';
-
+import { MenuService } from '../../../../../Services/menu.service';
 @Component({
     selector: 'fuse-vertical-navigation-basic-item',
     templateUrl: './basic.component.html',

@@ -19,6 +19,7 @@ export class User {
   previousStatus?: string;
   userFeatures?:UserFeatureExpress[];
   userFeaturesFull?:UserFeature[];
+  agentId?:string;
   new ?: {
     value ?: boolean,
     password ?: boolean

@@ -1,6 +1,7 @@
 import { Directive, Input, TemplateRef, ViewContainerRef, inject } from '@angular/core';
 import { UserService } from '../../Services/user.service';
 import { FeatureActions } from '../../enums/feature-actions';
+import { has } from 'lodash';
 
 @Directive({
   selector: '[hasPermission]',
@@ -17,10 +18,14 @@ export class HasPermissionDirective {
   @Input() set hasPermission(value: [string, string]) {
     const [code, action] = value;
 
-    if (this.userService.checkPermission(code, action)) {
-      this.viewContainer.createEmbeddedView(this.templateRef);
-    } else {
-      this.viewContainer.clear();
-    }
+    this.userService.checkPermission(code, action).subscribe(
+      (hasPermission) => {
+        if (hasPermission) {
+          this.viewContainer.createEmbeddedView(this.templateRef);
+        } else {
+          this.viewContainer.clear();
+        }
+      }
+    )
   }
 }

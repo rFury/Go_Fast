@@ -1,0 +1,16 @@
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari, Opera */
+  }
+  .mapboxgl-directions {
+    display: none;
+  }
+  @media (max-width: 640px) { // sm breakpoint
+    .dragging-adjust {
+      top: calc(100vh - 67.18px) !important;
+      //height: calc(100vh - 160px) !important;
+    }
+  }

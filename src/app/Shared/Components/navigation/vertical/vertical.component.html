@@ -7,10 +7,10 @@
 
   <!-- Content -->
   <div
-    class="fuse-vertical-navigation-content bg"
-    fuseScrollbar
-      [fuseScrollbarOptions]="{wheelPropagation: inner, suppressScrollX: true}"
+    class="fuse-vertical-navigation-content"
+    [ngClass]="bg==='white'?'bg-white':'bg'"
     #navigationContent>
+    
 
     <!-- Content header -->
     <div class="fuse-vertical-navigation-content-header">
@@ -65,15 +65,14 @@
         }
       }
     }
-
-    <!-- Content footer
-    <div class="fuse-vertical-navigation-content-footer">
+    <!-- Content footer -->
+    <div class="fuse-vertical-navigation-content-footer pt-8">
       <ng-content select="[fuseVerticalNavigationContentFooter]"></ng-content>
     </div>
 
   </div>
 
-  <div class="fuse-vertical-navigation-footer">
+  <div class="fuse-vertical-navigation-footer bg">
     <ng-content select="[fuseVerticalNavigationFooter]"></ng-content>
   </div>
 
@@ -99,5 +98,4 @@
       }
     }
   </div>
-}-->
-</div>
+}

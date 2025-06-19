@@ -1,7 +1,7 @@
 import { animate, AnimationBuilder, AnimationPlayer, style } from '@angular/animations';
 import { BooleanInput, coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ScrollStrategy, ScrollStrategyOptions } from '@angular/cdk/overlay';
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, NgClass } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, HostBinding, HostListener, inject, Inject, Input, OnChanges, OnDestroy, OnInit, Output, QueryList, Renderer2, SimpleChanges, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Animations } from '../../../Animations/public-api';
@@ -16,7 +16,7 @@ import { FuseScrollbarDirective } from '../../../directives/scrollbar/scrollbar.
 import { delay, filter, merge, ReplaySubject, Subject, Subscription, takeUntil } from 'rxjs';
 import { UtilsService } from '../../../Services/utils.service';
 import { FuseVerticalNavigationAppearance, FuseVerticalNavigationMode, FuseNavigationItem, FuseVerticalNavigationPosition } from '../../../Models/Navigation.model';
-
+import { MenuService } from '../../../Services/menu.service';
 @Component({
     selector: 'fuse-vertical-navigation',
     templateUrl: './vertical.component.html',
@@ -25,12 +25,13 @@ import { FuseVerticalNavigationAppearance, FuseVerticalNavigationMode, FuseNavig
     encapsulation: ViewEncapsulation.None,
     changeDetection: ChangeDetectionStrategy.OnPush,
     exportAs: 'fuseVerticalNavigation',
-    imports: [FuseScrollbarDirective, FuseVerticalNavigationAsideItemComponent, FuseVerticalNavigationBasicItemComponent, FuseVerticalNavigationCollapsableItemComponent, FuseVerticalNavigationDividerItemComponent, FuseVerticalNavigationGroupItemComponent, FuseVerticalNavigationSpacerItemComponent]
+    imports: [FuseScrollbarDirective, FuseVerticalNavigationAsideItemComponent, FuseVerticalNavigationBasicItemComponent, FuseVerticalNavigationCollapsableItemComponent, FuseVerticalNavigationDividerItemComponent, FuseVerticalNavigationGroupItemComponent, FuseVerticalNavigationSpacerItemComponent,NgClass]
 })
 export class FuseVerticalNavigationComponent implements OnChanges, OnInit, AfterViewInit, OnDestroy
 {
     private _scrollStrategyOptions=inject(ScrollStrategyOptions);
     private _fuseUtilsService=inject(UtilsService);
+    private _menuService=inject(MenuService);
 
     /* eslint-disable @typescript-eslint/naming-convention */
     static ngAcceptInputType_inner: BooleanInput;
@@ -47,6 +48,8 @@ export class FuseVerticalNavigationComponent implements OnChanges, OnInit, After
     @Input() opened: boolean = true;
     @Input() position: FuseVerticalNavigationPosition = 'left';
     @Input() transparentOverlay: boolean = false;
+    @Input() bg: string = 'default';
+    @Input() who: string = 'admin';
     @Output() readonly appearanceChanged: EventEmitter<FuseVerticalNavigationAppearance> = new EventEmitter<FuseVerticalNavigationAppearance>();
     @Output() readonly modeChanged: EventEmitter<FuseVerticalNavigationMode> = new EventEmitter<FuseVerticalNavigationMode>();
     @Output() readonly openedChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
@@ -461,7 +464,6 @@ export class FuseVerticalNavigationComponent implements OnChanges, OnInit, After
         {
             return;
         }
-
         // Set the opened
         this._toggleOpened(true);
     }
@@ -791,5 +793,8 @@ export class FuseVerticalNavigationComponent implements OnChanges, OnInit, After
 
         // Execute the observable
         this.openedChanged.next(open);
+    }
+    markAsRead(id:string){
+        this._menuService.markAsRead(id);
     }
 }

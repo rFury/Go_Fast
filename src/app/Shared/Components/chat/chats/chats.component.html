@@ -1,0 +1,208 @@
+@if(loading){
+    <div class="flex h-full w-full items-center justify-center">
+        <div class="flex flex-col items-center justify-center">
+            <div class="flex flex-col items-center justify-center">
+                <mat-progress-spinner mode="indeterminate" diameter="100"></mat-progress-spinner>
+            </div>
+        </div>
+    </div>
+}
+@else{
+    <div class="relative flex flex-auto w-screen h-full bg-card dark:bg-transparent">
+
+        <mat-drawer-container class="flex-auto h-full" [hasBackdrop]="false">
+    
+            <!-- Drawer -->
+            <mat-drawer class="w-full sm:w-80 md:w-100 md:border-r md:shadow-none dark:bg-gray-900" [autoFocus]="false"
+                [(opened)]="drawerOpened" #drawer>
+    
+                <!-- New chat -->
+                @if(drawerComponent === 'new-chat'){
+                <chat-new-chat [drawer]="drawer"></chat-new-chat>
+                }
+    
+            </mat-drawer>
+    
+            <!-- Drawer content -->
+            <mat-drawer-content class="flex flex-auto h-full w-full overflow-hidden">
+                <!-- Chats list -->
+                <div class="relative flex flex-auto flex-col w-screen sm:max-w-80 md:max-w-100 bg-card dark:bg-transparent">
+    
+                    <!-- Header -->
+                    <div class="flex flex-col flex-0 py-4 px-8 border-b bg-gray-50 dark:bg-transparent">
+                        <div class="flex items-center">
+                            <div class="flex items-center mr-1 cursor-pointer">
+                                <div class="w-10 h-10 ml-5 sm:ml-0">
+                                    @if(profile?.avatar){
+                                    <img class="object-cover w-full h-full rounded-full object-cover" [src]="profile.avatar"
+                                        alt="Profile avatar" />
+                                    } @else{
+                                    <div
+                                        class="flex items-center justify-center w-full h-full rounded-full text-md uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                        {{profile.first_name.charAt(0)}}
+                                    </div>
+                                    }
+                                </div>
+                                <div class="ml-4 font-medium truncate">{{profile.first_name}} {{profile.last_name}}</div>
+                            </div>
+                            <button class="ml-auto" mat-icon-button (click)="openNewChat()">
+                                <mat-icon [svgIcon]="'heroicons_outline:plus-circle'"></mat-icon>
+                            </button>
+                            <button class="ml-1 -mr-4" mat-icon-button [matMenuTriggerFor]="chatsHeaderMenu">
+                                <mat-icon [svgIcon]="'heroicons_outline:ellipsis-vertical'"></mat-icon>
+                                <mat-menu #chatsHeaderMenu>
+                                    <button mat-menu-item>
+                                        <mat-icon [svgIcon]="'heroicons_outline:user-group'"></mat-icon>
+                                        New group
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon [svgIcon]="'heroicons_outline:chat-bubble-left-right'"></mat-icon>
+                                        Create a room
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
+                                        Profile
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon [svgIcon]="'heroicons_outline:archive-box'"></mat-icon>
+                                        Archived
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon [svgIcon]="'heroicons_outline:star'"></mat-icon>
+                                        Starred
+                                    </button>
+                                    <button mat-menu-item>
+                                        <mat-icon [svgIcon]="'heroicons_outline:cog-8-tooth'"></mat-icon>
+                                        Settings
+                                    </button>
+                                </mat-menu>
+                            </button>
+                        </div>
+                        <!-- Search -->
+                        <div class="mt-4">
+                            <mat-form-field class="fuse-mat-rounded fuse-mat-dense w-full" [subscriptSizing]="'dynamic'">
+                                <mat-icon matPrefix class="icon-size-5"
+                                    [svgIcon]="'heroicons_solid:magnifying-glass'"></mat-icon>
+                                <input matInput [autocomplete]="'off'" [placeholder]="'Search or start new chat'"
+                                    (input)="filterChats(searchField.value)" #searchField>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                    @if(chats && chats.length > 0){
+    
+                    <!-- Chats -->
+                    <div class="flex-auto overflow-y-auto">
+                        @if(filteredChats.length > 0){
+                        @for(chat of filteredChats; track chat){
+                        <a class="z-20 flex items-center py-5 px-8 cursor-pointer border-b"
+                            [ngClass]="{'hover:bg-gray-100 dark:hover:bg-hover': !selectedChat || selectedChat._id !== chat._id,
+                                                                'bg-primary-50 dark:bg-hover': selectedChat && selectedChat._id === chat._id}" [routerLink]="[chat._id]">
+                            <div class="relative flex flex-0 items-center justify-center w-10 h-10">
+                                @if(chat.unreadCount[_id.toString()] > 0){
+                                    <div class="absolute bottom-0 right-0 flex-0 w-2 h-2 -ml-0.5 rounded-full ring-2 ring-bg-card dark:ring-gray-900 bg-primary dark:bg-primary-500 text-on-primary"
+                                        [class.ring-primary-50]="selectedChat && selectedChat._id === chat._id"></div>
+                                }
+                                @if(chat.user._id === _id){
+                                    @if(chat.contact.avatar){
+                                        <img class="w-full h-full rounded-full object-cover" [src]="chat.contact.avatar"
+                                        alt="Contact avatar" />
+                                    }
+                                    @else{
+                                        <div
+                                            class="flex items-center justify-center w-full h-full rounded-full text-md uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                            {{chat.contact.first_name.charAt(0)}}
+                                        </div>
+                                        }
+                                }
+                                @else{
+                                    @if(chat.user.avatar){
+                                        <img class="w-full h-full rounded-full object-cover" [src]="chat.user.avatar"
+                                        alt="User avatar" />
+                                    }
+                                    @else{
+                                        <div
+                                            class="flex items-center justify-center w-full h-full rounded-full text-md uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                                            {{chat.user.first_name.charAt(0)}}
+                                        </div>
+                                    }
+                                }
+    
+                            </div>
+                            <div class="min-w-0 ml-4">
+                                @if(chat.user._id === _id){
+                                    <div class="font-medium leading-5 truncate">{{chat.contact.first_name}} {{chat.contact.last_name}}</div>
+                                }
+                                @else{
+                                    <div class="font-medium leading-5 truncate">{{chat.user.first_name}} {{chat.user.last_name}}</div>
+                                    }
+                                @if(chat.lastMessage){
+                                <div class="leading-5 truncate text-secondary" [class.text-primary]="chat.unreadCount[_id.toString()] > 0"
+                                    [class.dark:text-primary-500]="chat.unreadCount[_id.toString()] > 0">
+                                    {{chat.lastMessage.content}}
+                                </div>
+                                } @else{
+                                <div class="leading-5 truncate text-secondary">
+                                    No messages yet
+                                </div>
+                                }
+                            </div>
+                            <div class="flex flex-col items-end self-start ml-auto pl-2">
+                                @if(chat.lastMessage){
+                                <div class="text-sm leading-5 text-secondary">{{chat.lastMessage.createdAt | date:'HH:mm'}}
+                                </div>
+                                }
+                                @if(chat.muted[_id.toString()]){
+                                <mat-icon class="icon-size-5 text-hint"
+                                    [svgIcon]="'heroicons_solid:speaker-x-mark'"></mat-icon>
+                                }
+                            </div>
+                        </a>
+                        }
+                        }
+                    </div>
+    
+                    }@else{
+                    <div class="flex flex-auto flex-col items-center justify-center h-full">
+                        <mat-icon class="icon-size-24"
+                            [svgIcon]="'heroicons_outline:chat-bubble-oval-left-ellipsis'"></mat-icon>
+                        <div class="mt-4 text-2xl font-semibold tracking-tight text-secondary">No chats</div>
+                    </div>
+                    }
+                </div>
+                <!-- Conversation -->
+                @if(chats && chats.length > 0){
+                @if(selectedChat){
+                @if(type ==='client'){
+                <div
+                    class="z-999 absolute left-0 sm:left-80 md:left-100 w-full sm:w-[calc(100vw-320px)] md:w-[calc(100vw-624px)] border-l">
+                    <router-outlet></router-outlet>
+                </div>
+                }@else {
+                <div
+                    class="z-999 absolute left-0 sm:left-80 md:left-100 w-full sm:w-[calc(100vw-320px)] md:w-[calc(100vw-480px)] border-l">
+                    <router-outlet></router-outlet>
+                </div>
+                }
+                }
+                }
+                @else{ 
+                    <div class="hidden sm:flex flex-col flex-auto overflow-y-auto lg:overflow-hidden bg-card dark:bg-default">
+
+                        <!-- Select chat or start new -->
+                        <div class="flex flex-col flex-auto items-center justify-center bg-gray-100 dark:bg-transparent">
+                            <mat-icon
+                                class="icon-size-24"
+                                [svgIcon]="'heroicons_outline:chat-bubble-oval-left-ellipsis'"></mat-icon>
+                            <div class="mt-4 text-2xl font-semibold tracking-tight text-secondary">Select a conversation or start a new chat</div>
+                        </div>
+                    
+                    </div>
+                    
+                }
+    
+            </mat-drawer-content>
+    
+        </mat-drawer-container>
+    
+    </div>     
+}

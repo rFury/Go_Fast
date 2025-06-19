@@ -1,73 +1,70 @@
 <fuse-loading-bar></fuse-loading-bar>
 <div class="flex h-screen ">
     <!-- Navigation -->
-    <fuse-vertical-navigation
-    class="dark  w-64 flex-none "
-    [mode]="isScreenSmall ? 'over' : 'side'"
-    [name]="'mainNavigation'"
-    [navigation]="navigation"
-    [opened]="!isScreenSmall"
->
-    <!-- Navigation header hook -->
-    <ng-container fuseVerticalNavigationContentHeader>
-        <div class="flex justify-between items-center p-2">
-            <div class="w-14">
-                <img src="logo-white.png" alt="logo">
-             </div>
-             <div>
-                @if(showUser){
+    <fuse-vertical-navigation class="dark flex-none max-w-56 min-w-56" [mode]="isScreenSmall ? 'over' : 'side'"
+        [name]="'mainNavigation'" [navigation]="navigation" [opened]="!isScreenSmall" [who]="'user'">
+        <!-- Navigation header hook -->
+        <ng-container fuseVerticalNavigationContentHeader>
+            <div class="flex items-center h-20 p-2 mt-5 mb-10" gap-2>
+                <img class="w-full" src="van+name.logo.png">
+            </div>
+        </ng-container>
+        <!-- Navigation footer hook -->
+        <ng-container fuseVerticalNavigationFooter>
+            <!-- User -->
+            <div class="flex items-center w-full px-2 py-4 border-t">
+                @if(!isLoading){
+                <div class="flex flex-col">
                     <user></user>
+                    <notifications-component></notifications-component>
+                </div>
+                <div class="flex flex-col w-full ml-4 overflow-hidden">
+                    <div
+                        class="w-full whitespace-nowrap text-ellipsis overflow-hidden leading-normal text-current opacity-80">
+                        {{user.first_name}} {{user.last_name}}
+                    </div>
+                    <div
+                        class="w-full mt-0.5 whitespace-nowrap text-sm text-ellipsis overflow-hidden leading-normal text-current opacity-50">
+                        {{user.email}}
+                    </div>
+                </div>
+                }@else {
+                <mat-progress-spinner [diameter]="45" mode="indeterminate"></mat-progress-spinner>
+                <div class="flex flex-col w-full ml-4 overflow-hidden">
+                    <div
+                        class="w-28 h-3 bg-gray-200 rounded-full animate-pulse opacity-80">
+                    </div>
+                    <div
+                        class="w-28 h-2 mt-1 bg-gray-100 rounded-full animate-pulse opacity-50">
+                    </div>
+                </div>
                 }
-                <notifications></notifications>
-             </div>
-        </div>
-    </ng-container>
-    <!-- Navigation footer hook -->
-    <ng-container fuseVerticalNavigationContentFooter>
-        <div
-            class="flex flex-0 items-center justify-center h-16 pr-6 pl-2 mt-8 mb-2 opacity-50 mx-auto"
-        ></div>
-    </ng-container>
-</fuse-vertical-navigation>
+            </div>
+        </ng-container>
+    </fuse-vertical-navigation>
 
 
-<!-- Wrapper -->
-    <div class="flex flex-col flex-1 min-w-0">
-        <!-- Header -->
-    <div
-        class="relative flex flex-0 items-center w-full h-16 px-4 md:px-6 z-49 shadow dark:shadow-none dark:border-b bg-card dark:bg-transparent print:hidden"
-    >
+    <!-- Wrapper -->
+    <div class="flex flex-col flex-1 min-w-0 relative">
+        @if(isScreenSmall){
         <!-- Navigation toggle button -->
-        <button mat-icon-button (click)="toggleNavigation('mainNavigation')">
+        <button mat-icon-button (click)="toggleNavigation('mainNavigation')" class="z-50 ml-4 mt-4">
             <mat-icon svgIcon="heroicons_outline:bars-3"></mat-icon>
         </button>
-
-        <ng-template #separatorTemplate>
-            <mat-icon svgIcon="heroicons_outline:chevron-right"></mat-icon>
-        </ng-template>
-        <!-- Components -->
-        <div class="flex items-center pl-2 ml-auto space-x-0.5 sm:space-x-2">
-
-            <search></search>
-            <shortcuts></shortcuts>
-
-        </div>
-    </div>
-    <!-- Content -->
-    <div class="flex flex-col flex-auto overflow-hidden bg-white">
-        @if (true) {
-            @if(isLoading){
-                <div class="flex flex-1 justify-center items-center">
-                    <mat-progress-spinner 
-                      [diameter]="45" 
-                      mode="indeterminate">
-                    </mat-progress-spinner>
-                  </div>
-            }@else {
-                <router-outlet></router-outlet>
-            }
         }
-    </div>
+        <!-- Content -->
+        <div class="absolute inset-0 overflow-auto">
+            @if (true) {
+            @if(isLoading){
+            <div class="flex flex-1 justify-center items-center">
+                <mat-progress-spinner [diameter]="45" mode="indeterminate">
+                </mat-progress-spinner>
+            </div>
+            }@else {
+            <router-outlet></router-outlet>
+            }
+            }
+        </div>
 
-</div>
+    </div>
 </div>

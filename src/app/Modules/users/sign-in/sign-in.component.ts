@@ -119,8 +119,11 @@ export class SignInComponent implements OnInit {
     if (!this.verify) {
       this._authService.signIn(this.signInForm?.value,'user').subscribe(
         (res) => {
-            console.log('correct');
-          
+          this._authService.saveToken(res.token);
+          const connectedUser = this._authService.decodeToken();
+          this._userService._defaultLink.next(connectedUser?.defaultLink);
+          this._authService.who.set(connectedUser?.type);     
+          this._router.navigate(['/']);
         },
         (err) => {
           if (err.status === 400) {
@@ -187,6 +190,17 @@ export class SignInComponent implements OnInit {
         this._router.navigate(['/sign-in']);
       }
     }
+  }
+
+  Google(){
+    this._authService.loginWithGoogle();
+  }
+  Facebook(){
+    this._authService.loginWithFacebook();
+  }
+  GitHub(){
+    //this._authService.loginWithGitHub();
+    this._router.navigate(['/admin/sign-in'])
   }
 
   onCodeChanged(code: string) {

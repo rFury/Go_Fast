@@ -23,7 +23,7 @@ import { User } from '../../../Shared/Models/User.model';
 import { UserService } from '../../../Shared/Services/user.service';
 
 @Component({
-  selector: 'auth-reset-password',
+  selector: 'reset-password',
   templateUrl: './reset-password.component.html',
   encapsulation: ViewEncapsulation.None,
   animations: Animations,
@@ -112,7 +112,7 @@ export class AuthResetPasswordComponent implements OnInit {
           localStorage.setItem('email', this.email);
           this.router.navigateByUrl(redirectURL);
         },
-        (response) => {
+        (error) => {
           this.alert = {
             type: 'error',
             message: 'Something went wrong, please try again.',

@@ -15,7 +15,7 @@ import { Feature } from '../../../../../../Shared/Models/Feature.model';
 import { FeatureService } from '../../../../../../Shared/Services/feature.service';
 import { FuseConfirmationService } from '../../../../../../Shared/Components/confirmation/confirmation.service';
 import { LoadingService } from '../../../../../../Shared/Services/loading.service';
-import { material } from '../../../../icons/data';
+import { heroicons } from '../../../../icons/data';
 import { icon } from '../../../../../../Shared/enums/iconType';
 import { HasPermissionDirective } from '../../../../../../Shared/directives/permission/has-permission.directive';
 import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
@@ -62,8 +62,8 @@ export class AddComponent implements OnInit {
     iconSearchControl = new FormControl('');
 
   ngOnInit(): void {
-    this.listIcons = material;
-    this.filteredListIcons = material;
+    this.listIcons = heroicons;
+    this.filteredListIcons = heroicons;
     this._loadingService.show();
     forkJoin([
         this._featureService.getFeatureParent()

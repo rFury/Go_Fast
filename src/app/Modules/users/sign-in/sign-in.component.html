@@ -1,11 +1,8 @@
-<div class="flex flex-col sm:flex-row items-center md:items-start sm:justify-center md:justify-start flex-auto min-w-0">
-  <div
-    class="md:flex md:items-center md:justify-end w-full sm:w-auto md:h-full md:w-1/2 py-8 px-4 sm:p-12 md:p-16 sm:rounded-2xl md:rounded-none sm:shadow md:shadow-none sm:bg-card min-h-screen max-h-screen">
-    <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0">
-
-
+<div class="flex flex-col sm:flex-row items-center md:items-center sm:justify-center  flex-auto min-w-0 min-h-screen max-h-screen">
+  <div class="md:flex md:items-center md:justify-end w-full sm:w-auto md:h-full md:w-1/2 py-8 px-4 sm:p-12 md:p-16 sm:rounded-2xl md:rounded-none sm:shadow md:shadow-none sm:bg-card lg:min-h-screen md:min-h-screen">
+    <div class="w-full max-w-80 sm:w-80 mx-auto sm:mx-0 mt-20 sm:mt-0">
       <!-- Title -->
-      <div class="mt-8 text-5xl font-bold tracking-tight leading-tight">Sign in</div>
+      <div class=" text-5xl font-bold tracking-tight leading-tight">Sign in</div>
       @if(!verify){
       <div class="flex items-baseline mt-0.5 font-medium">
         <div>Don't have an account?</div>
@@ -18,14 +15,14 @@
 
       <!-- Alert -->
       @if(showAlert) {
-      <alert class="mt-8" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
+      <alert class="mt-2" [appearance]="'outline'" [showIcon]="false" [type]="alert.type"
         [@shake]="alert.type === 'error'">
         {{alert.message}}
       </alert>
       }
 
       <!-- Sign in form -->
-      <form class="mt-8" [formGroup]="signInForm" #signInNgForm="ngForm">
+      <form class="mt-2" [formGroup]="signInForm" #signInNgForm="ngForm">
 
         <!-- Email field -->
         <mat-form-field class="w-full">
@@ -69,7 +66,7 @@
             Remember me
           </mat-checkbox>
           <a class="text-md font-medium text-primary-500 hover:underline"
-            [routerLink]="['/admin/forgot-password']">Forgot password?
+            [routerLink]="['/forgot-password']">Forgot password?
           </a>
         </div>
         }@else{
@@ -104,13 +101,13 @@
 
         <!-- Single sign-on buttons -->
         <div class="flex items-center mt-8 space-x-4">
-          <button class="flex-auto" type="button" mat-stroked-button>
+          <button class="flex-auto" type="button" mat-stroked-button (click)="Facebook()">
             <mat-icon class="icon-size-5" [svgIcon]="'feather:facebook'"></mat-icon>
           </button>
-          <button class="flex-auto" type="button" mat-stroked-button>
+          <button class="flex-auto" type="button" mat-stroked-button (click)="Google()">
             <mat-icon class="icon-size-5" [svgIcon]="'feather:mail'"></mat-icon>
           </button>
-          <button class="flex-auto" type="button" mat-stroked-button>
+          <button class="flex-auto" type="button" mat-stroked-button (click)="GitHub()">
             <mat-icon class="icon-size-5" [svgIcon]="'feather:github'"></mat-icon>
           </button>
         </div>
@@ -142,14 +139,14 @@
     <div class="z-10 relative w-full max-w-2xl">
       <div class="text-7xl font-bold leading-none text-gray-100">
         <div>Welcome to</div>
-        <div>our community</div>
+        <div>GoFast</div>
       </div>
       <div class="mt-6 text-lg tracking-tight leading-6 text-gray-400">
-        Fuse helps developers to build organized and well coded dashboards full of beautiful and rich modules.
-        Join us and start building your application today.
+        GoFast is a platform that helps you to find the best delivery service for your needs.
+        Join us and start delivering your goods today.
       </div>
       <div class="flex items-center mt-8">
-        <div class="ml-4 font-medium tracking-tight text-gray-400">More than 17k people joined us, it's your turn</div>
+        <div class="font-medium tracking-tight text-gray-400">More than 17k people joined us, it's your turn</div>
       </div>
     </div>
   </div>

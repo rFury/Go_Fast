@@ -4,6 +4,7 @@ export enum FeatureActions {
   read = 'read',
   update = 'update',
   delete = 'delete',
+  list = 'list',
 }
 
 export const listFeatureActions: RefList<FeatureActions>[] = [
@@ -11,4 +12,5 @@ export const listFeatureActions: RefList<FeatureActions>[] = [
   { key: FeatureActions.read, value: 'Read' },
   { key: FeatureActions.update, value: 'Update' },
   { key: FeatureActions.delete, value: 'Delete' },
+  { key: FeatureActions.list, value: 'List' },
 ];

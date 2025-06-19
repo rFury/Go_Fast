@@ -11,6 +11,14 @@ import backOfficeRoutes from './back-office/back-office.routes';
 import { tokenGuard } from '../../Shared/Guards/token.guard';
 import { NotAllowedComponent } from '../../Shared/Components/not-allowed/not-allowed.component';
 import { adminGuard } from '../../Shared/Guards/admin.guard';
+import { AgentsComponent } from './agents/agents.component';
+import agentsRoutes from './agents/agents.routes';
+import { agentGuard } from '../../Shared/Guards/agent.guard';
+import { locationGuard } from '../../Shared/Guards/location.guard';
+import { LocationNotAllowedComponent } from '../../Shared/Components/location-not-allowed/not-allowed.component';
+import { SettingsComponent } from '../../Shared/Components/settings/settings.component';
+import { featureAction } from '../../Shared/Guards/featureAction.guard';
+
 
 export default [
   {
@@ -33,8 +41,23 @@ export default [
         },
       },
       {
+        path:'agents',
+        component:AgentsComponent,
+        loadChildren:()=> agentsRoutes,
+        canActivate :[authGuard,agentGuard,locationGuard],
+        data: {
+          layout: 'classy',
+          data: {
+            breadcrumb: {
+                label: 'Dashboard',
+                info: { myData: { icon: 'home', iconType: 'material' } },
+            },
+        },
+        },
+      },
+      {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo:  'agents',
         pathMatch: 'full',
       },
       {
@@ -85,7 +108,16 @@ export default [
           layout: 'empty',
         },
       },
+      {
+        path:'agents/not-allowed',
+        component:LocationNotAllowedComponent,
+        data:{
+          layout:'empty'
+        }
+      },
+      {
+        path: 'settings',
+        component:SettingsComponent,
+      }, 
     ],
-  },
-  { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: '' },
-] satisfies Route[];
+  }] satisfies Route[];

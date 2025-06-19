@@ -1,7 +1,9 @@
 @if (layout === 'empty') {
-    <empty-layout></empty-layout>
+    <user-empty-layout></user-empty-layout>
   }
   @if (layout === 'classy') {
-      <classy-layout></classy-layout>
+      <user-classy-layout></user-classy-layout>
   }
-  
+  @if(layout === 'modern'){
+      <user-modern-layout></user-modern-layout>
+  }

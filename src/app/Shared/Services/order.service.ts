@@ -44,10 +44,31 @@ export class OrderService {
   deleteOrder(id: string): Observable<null> {
     return this.http.delete<null>(`${this.endpoint}/${id}`);
   }
-  getOrder(id: string): Observable<Order> {
+  getOrder(id: string,guest=false): Observable<Order> {
+    if(guest){
+      return this.http.get<Order>(`${this.endpoint}-guest/${id}`);
+    }
     return this.http.get<Order>(`${this.endpoint}/${id}`);
-  }
+ }
   updateOrder(order: Order): Observable<null> {
     return this.http.put<null>(`${this.endpoint}/${order._id}`, { order });
+  }
+  getOrdersAgent(orderId: string): Observable<string> {
+    return this.http.get<string>(`${this.endpoint}/agent/${orderId}`);
+  }
+  pickUpOrder(order: Order): Observable<Order | null> {
+    return this.http.put<Order | null>(`${this.endpoint}/${order._id}/pick-up`,{});
+  }
+  deliverOrder(order: Order): Observable<null> {
+    return this.http.put<null>(`${this.endpoint}/${order._id}/deliver`,{});
+  }
+  activateOrder(orderId: string): Observable<boolean> {
+    return this.http.put<boolean>(`${this.endpoint}/${orderId}/activate`,{});
+  }
+  deactivateOrder(orderId: string): Observable<boolean> {
+    return this.http.put<boolean>(`${this.endpoint}/${orderId}/deactivate`,{});
+  }
+  cancelOrder(orderId: string): Observable<null> {
+    return this.http.put<null>(`${this.endpoint}/${orderId}/cancel`,{});
   }
 }

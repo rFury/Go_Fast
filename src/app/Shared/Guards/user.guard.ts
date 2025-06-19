@@ -5,10 +5,25 @@ import { SuperAuthService } from '../Services/super-auth-service.service';
 
 export const userGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const _authService = inject(SuperAuthService);
-  
-    if(_authService.decodeToken().type === 'client'  && _authService.isLoggedIn()){
+  const _router = inject(Router);
+  if (_authService.isLoggedIn()) {
+    const who = _authService.decodeToken().type;
+    if(who === 'client'){
       return true;
     }else{
-    return false;
+      if(who === 'agent'){
+        return _router.createUrlTree(['admin/agents/'], {
+          queryParams: { returnUrl: state.url },
+        });
+      }else{
+        return _router.createUrlTree(['admin/dashboard/'], {
+          queryParams: { returnUrl: state.url },
+        });
+      }
+    }
+  } else {
+    return _router.createUrlTree(['/sign-in'], {
+      queryParams: { returnUrl: state.url },
+    });
   }
 };

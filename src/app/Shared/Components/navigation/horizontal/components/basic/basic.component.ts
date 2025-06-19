@@ -4,11 +4,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/router';
-import { FuseHorizontalNavigationComponent } from '@fuse/components/navigation/horizontal/horizontal.component';
-import { FuseNavigationService } from '@fuse/components/navigation/navigation.service';
-import { FuseNavigationItem } from '@fuse/components/navigation/navigation.types';
-import { FuseUtilsService } from '@fuse/services/utils/utils.service';
+import { UtilsService } from '../../../../../Services/utils.service';
 import { Subject, takeUntil } from 'rxjs';
+import { FuseNavigationItem } from '../../../../../Models/Navigation.model';
+import { FuseNavigationService } from '../../../navigation.service';
+import { FuseHorizontalNavigationComponent } from '../../horizontal.component';
 
 @Component({
     selector: 'fuse-horizontal-navigation-basic-item',
@@ -31,7 +31,7 @@ export class FuseHorizontalNavigationBasicItemComponent implements OnInit, OnDes
     constructor(
         private _changeDetectorRef: ChangeDetectorRef,
         private _fuseNavigationService: FuseNavigationService,
-        private _fuseUtilsService: FuseUtilsService,
+        private _fuseUtilsService: UtilsService,
     )
     {
         // Set the equivalent of {exact: false} as default for active match options.

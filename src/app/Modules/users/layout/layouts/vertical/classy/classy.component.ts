@@ -1,123 +1,167 @@
-
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  HostListener,
+  inject,
+  OnDestroy,
+  OnInit,
+  ViewEncapsulation,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import {  Router, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { User } from '../../../../../../Shared/Models/User.model';
-import { MenuService } from '../../../../../../Shared/Services/menu.service';
 import { UserService } from '../../../../../../Shared/Services/user.service';
 import { FuseMediaWatcherService } from '../../../../../../Shared/Services/media-watcher/media-watcher.service';
-import { Navigation, NavigationService } from '../../../../../../Shared/Services/navigation.service';
 import { FuseNavigationService } from '../../../../../../Shared/Components/navigation/navigation.service';
 import { FuseVerticalNavigationComponent } from '../../../../../../Shared/Components/navigation/vertical/vertical.component';
 import { FuseNavigationItem } from '../../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../../Shared/Services/super-auth-service.service';
-import { NotificationsComponent } from "../../../../../../Shared/Components/common/notifications/notifications.component";
-import { UserComponent } from "../../../../../../Shared/Components/common/user/user.component";
-import { ShortcutsComponent } from "../../../../../../Shared/Components/common/shortcuts/shortcuts.component";
-import { SearchComponent } from "../../../../../../Shared/Components/common/search/search.component";
+import { UserComponent } from '../../../../../../Shared/Components/user/user.component';
 import { FuseLoadingBarComponent } from '../../../../../../Shared/Components/loading-bar/loading-bar.component';
 import { SideNavService } from '../../../../../../Shared/Services/sideNav.service';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
+import { FirebaseNotification } from '../../../../../../Shared/Services/firebase.notif.service';
+import { ChatService } from '../../../../../../Shared/Components/chat/chat.service';
+import { NotificationsComponent } from '../../../../../../Shared/Components/notifications/notifications.component';
+import { NotificationsService } from '../../../../../../Shared/Components/notifications/notifications.service';
 
 @Component({
-    selector: 'classy-layout',
-    templateUrl: './classy.component.html',
-    encapsulation: ViewEncapsulation.None,
-    imports: [FuseLoadingBarComponent,MatProgressSpinnerModule, FuseVerticalNavigationComponent, MatIconModule, MatButtonModule, RouterOutlet, NotificationsComponent, ShortcutsComponent, SearchComponent, UserComponent],
-    standalone: true,
+  selector: 'user-classy-layout',
+  templateUrl: './classy.component.html',
+  encapsulation: ViewEncapsulation.None,
+  imports: [
+    FuseLoadingBarComponent,
+    MatProgressSpinnerModule,
+    FuseVerticalNavigationComponent,
+    MatIconModule,
+    MatButtonModule,
+    RouterOutlet,
+    UserComponent,
+    NotificationsComponent,
+  ],
+  standalone: true,
 })
-export class ClassyLayoutComponent implements OnInit, OnDestroy
-{
-    protected _authService=inject(SuperAuthService);
-    protected _userService=inject(UserService);
-    protected _sideNavService=inject(SideNavService);
-    private _cdr = inject(ChangeDetectorRef);
-    showUser:boolean = false;
-    isScreenSmall!: boolean;
-    navigation!: FuseNavigationItem[];
-    user!: User;
-    private _unsubscribeAll: Subject<any> = new Subject<any>();
-    isLoading: boolean = true;
-    email : string = "";
-    constructor(
-        private menuService: MenuService,
-        private _fuseMediaWatcherService: FuseMediaWatcherService,
-        private _fuseNavigationService: FuseNavigationService,
-    )
-    {
-    }
+export class ClassyLayoutComponent implements OnInit, OnDestroy {
+  protected _authService = inject(SuperAuthService);
+  protected _userService = inject(UserService);
+  protected _sideNavService = inject(SideNavService);
+  private _cdr = inject(ChangeDetectorRef);
+  private firebase = inject(FirebaseNotification);
+  private _chatService = inject(ChatService);
+  private _notificationsService = inject(NotificationsService);
+  showUser: boolean = false;
+  isScreenSmall!: boolean;
+  navigation!: FuseNavigationItem[];
+  user!: User;
+  private _unsubscribeAll: Subject<any> = new Subject<any>();
+  isLoading: boolean = false;
+  email: string = '';
+  constructor(
+    private _fuseMediaWatcherService: FuseMediaWatcherService,
+    private _fuseNavigationService: FuseNavigationService
+  ) {}
+  async ngOnInit() {
+    this.isLoading = true;
+    console.log(this._authService.getToken());
+    const Orders: FuseNavigationItem = {
+      id: 'orders',
+      title: 'Orders',
+      type: 'basic',
+      icon: 'heroicons_outline:shopping-cart',
+      link: '/orders',
+    };
+    const newOrder: FuseNavigationItem = {
+      id: 'new-order',
+      title: 'New Order',
+      type: 'basic',
+      icon: 'heroicons_outline:plus',
+      link: '/new-order',
+    };
+    const divider: FuseNavigationItem = {
+      id: 'divider',
+      title: '',
+      type: 'divider',
+    };
+    const chat: FuseNavigationItem = {
+      id: 'chat',
+      title: 'Chat',
+      type: 'basic',
+      icon: 'heroicons_outline:chat-bubble-bottom-center-text',
+      link: '/chat',
+    };
+    this.navigation = [newOrder, Orders, divider, chat];
+    this._chatService.unreadCount$
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe((count) => {
+        console.log('Unread count:', count);
 
-    @HostListener('window:beforeunload', ['$event'])
-    onBeforeUnload(event: BeforeUnloadEvent) {
-      // Synchronous “offline” ping so the browser doesn’t cancel it
-      const url = `${this._userService.endpointUser}/status`;
-      const data = JSON.stringify({ status: 'not-visible' });
-      navigator.sendBeacon(url, data);
-    }
-    async ngOnInit()
-    {
-        this.isLoading=true;
+        const updatedChat: FuseNavigationItem = {
+          ...chat,
+          ...(count > 0
+            ? {
+                badge: {
+                  title: count.toString(),
+                  classes:
+                    'bg-indigo-500 text-white rounded-full w-6 flex items-center justify-center',
+                },
+              }
+            : {
+                badge: undefined, // or remove the badge entirely
+              }),
+        };
 
-        console.log(this._authService.getToken())
+        this.navigation = [newOrder, Orders, divider, updatedChat];
+        this._cdr.markForCheck(); // Trigger change detection
+      });
 
-        this._userService.get().subscribe({
-            next: (res) => {
-              this._userService.initializeUser(res);
-              this.showUser = true;
-              this._userService.updateState('online').subscribe(
-                (res) => {
-                    this._cdr.markForCheck();
-                }
-              );
-            },
-            error: (err) => console.error(err)
+    this._userService
+      .get()
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe({
+        next: async (res) => {
+          console.log(res);
+          this.user = res;
+          this._userService.initializeUser(res);
+          this.isLoading = false;
+          this._userService.updateState('online').subscribe((res) => {
+            this._cdr.markForCheck();
           });
+        },
+        error: (err) => console.error(err),
+      });
 
-         this.menuService.getMenu().subscribe({
-            next: (data) => {
-                this.navigation = data.menu;
-                this._userService.features.set(data.features)
-                console.log(this._userService.features())
-                console.log('navigation', this.navigation)
-                console.log('feature', data.features)
+    this._fuseMediaWatcherService.onMediaChange$
+      .pipe(takeUntil(this._unsubscribeAll))
+      .subscribe(({ matchingAliases }) => {
+        this.isScreenSmall = !matchingAliases.includes('md');
+        this._sideNavService.setOpen(!this.isScreenSmall);
+      });
+      if(!this.firebase.connected){
+        console.log('connecting');
+        
+        this.firebase.connect();
+      }
+  }
 
-            },
-            error: () => {},
-            complete:() => {
-                this.isLoading=false;
-            },
-        });
+  ngOnDestroy(): void {
+    this._unsubscribeAll.next(null);
+    this._unsubscribeAll.complete();
+  }
 
-        this._fuseMediaWatcherService.onMediaChange$
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(({matchingAliases}) =>
-            {
-                this.isScreenSmall = !matchingAliases.includes('md');
-                this._sideNavService.setOpen(!this.isScreenSmall);
-            });
+  toggleNavigation(name: string): void {
+    // Get the navigation
+    const navigation =
+      this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>(
+        name
+      );
+
+    if (navigation) {
+      navigation.toggle();
+      if (!this.isScreenSmall) {
+        this._sideNavService.toggle();
+      }
     }
-
-    ngOnDestroy(): void
-    {
-        this._unsubscribeAll.next(null);
-        this._unsubscribeAll.complete();
-    }
-
-    toggleNavigation(name: string): void
-    {
-        // Get the navigation
-        const navigation = this._fuseNavigationService.getComponent<FuseVerticalNavigationComponent>(name);
-
-        if ( navigation )
-        {
-            navigation.toggle();
-            if(!this.isScreenSmall){
-                this._sideNavService.toggle();
-            }
-
-        }
-    }
+  }
 }

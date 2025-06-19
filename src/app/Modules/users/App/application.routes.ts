@@ -1,64 +1,42 @@
 import { Route } from '@angular/router';
 import { ApplicationComponent } from './application.component';
-
-import { FeatureCodes } from '../../../Shared/enums/feature-codes';
-
+import { NewOrderComponent } from './new-order/new-order.component';
+import ordersRoutes from './orders/orders.routes';
+import { SettingsComponent } from '../../../Shared/Components/settings/settings.component';
+import chatRoutes from '../../../Shared/Components/chat/chat.routes';
 
 
 export default [
   {
     path: '',
     component: ApplicationComponent,
-    children: [/*
+    children: [
       {
-        path: 'features',
-        loadChildren: () => featuresRouting,
-        data: {
-          breadcrumb: 'Features',
-          feature: FeatureCodes.features,
-      },
+        path: '',
+        redirectTo: 'new-order',
+        pathMatch: 'full',
       },
       {
-        path: 'groups',
-        loadChildren: () => groupsRouting,
-        data: {
-          breadcrumb: 'Groups',
-          feature: FeatureCodes.groups,
-      },
-      },
-      
-      {
-        path: 'users',
-        loadChildren: () => usersRouting,
-        data: {
-          breadcrumb: 'Users',
-          feature: FeatureCodes.users,
-      },
+        path: 'orders',loadChildren:()=>ordersRoutes,
+        data:{
+          who:'users'
+        }
       },
       {
-        path: 'clients',
-        loadChildren: () => clientsRouting,
-        data: {
-          breadcrumb: 'Clients',
-          feature: FeatureCodes.clients,
-      },
+        path: 'new-order',
+        component:NewOrderComponent,
+        data:{
+          who:'users'
+        }
+      },   
+      {
+        path: 'settings',
+        component:SettingsComponent,
       },
       {
-        path: 'userfeatures',
-        loadChildren: () => userFeaturesRouting,
-        data: {
-          breadcrumb: 'UserFeatures',
-          feature: FeatureCodes.userFeatures,
-      },
-      },
-      {
-        path: 'orders',
-        loadChildren: () => featuresCopyRouting,
-        data: {
-          breadcrumb: 'UserFeatures',
-          feature: FeatureCodes.orders,
-      },
-      },*/
+        path: 'chat',
+        loadChildren:()=>chatRoutes,
+      },   
     ],
   }
 ] satisfies Route[];

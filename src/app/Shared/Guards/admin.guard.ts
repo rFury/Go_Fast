@@ -7,9 +7,24 @@ export const adminGuard: CanActivateFn = (route, state): boolean | UrlTree => {
   const _authService = inject(SuperAuthService);
   const router = inject(Router);
   
-    if((_authService.decodeToken().type === 'admin' || _authService.decodeToken().type === 'super') && _authService.isLoggedIn()){
-      return true;
+    if( _authService.isLoggedIn()){
+      const who = _authService.decodeToken().type;
+      if (who === 'user' || who === 'super'){
+        return true;
+      }else{
+        if(who === 'agent'){
+          return router.createUrlTree(['admin/agents/'], {
+            queryParams: { returnUrl: state.url },
+          });
+        }else{
+          return router.createUrlTree(['/'], {
+            queryParams: { returnUrl: state.url },
+          });
+        }
+      }
     }else{
-    return false;
+      return router.createUrlTree(['admin/sign-in'], {
+        queryParams: { returnUrl: state.url },
+      });
   }
 };

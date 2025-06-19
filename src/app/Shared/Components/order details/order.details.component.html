@@ -1,0 +1,101 @@
+@if(Order){
+<card class="flex-col h-full p-6 sm:py-12 sm:px-10 filter-pricing"
+    [class.w-full]="withMap"
+    [class.w-120]="!withMap">
+    @if(withMap){
+    <!-- Map -->
+    <div id="map" class="w-full h-50 rounded-3xl relative" (mouseenter)="hidden=false" (mouseleave)="hidden=true">
+        @if(Order.status===Status.assigned || Order.status === Status.picked_up || Order.status === Status.pending){
+            <button class="absolute bottom-2 right-2 bg-white z-50 p-2 rounded-full" mat-icon-button [hidden]="hidden"
+            (click)="orderDetails(Order._id)">
+            <mat-icon [svgIcon]="'feather:maximize-2'"></mat-icon>
+        </button>
+        }
+    </div>
+    }@else {
+    <div class="flex gap-2 items-baseline text-4xl font-bold tracking-tight leading-tight text-indigo-400">
+        Order
+        <div class="flex items-center w-fit">
+            <span class="text-lg font-light tracking-tight leading-tight text-gray-700 cursor-pointer"
+                matTooltip="Click to copy" (click)="copy(Order.code)">({{Order.code.substring(0,24)}}...)</span>
+            @if(!copied){
+            <button mat-icon-button (click)="copy(Order.code)" matTooltip="Click to copy">
+                <mat-icon [svgIcon]="'heroicons_outline:clipboard-document'">
+                </mat-icon>
+            </button>
+            }@else {
+            <button mat-icon-button matTooltip="Already copied">
+                <mat-icon [svgIcon]="'heroicons_outline:clipboard-document-check'">
+                </mat-icon>
+            </button>
+            }
+        </div>
+    </div>
+    }
+    <!-- Price -->
+    <div class="flex items-baseline whitespace-nowrap">
+        <div class="mr-2 text-2xl">TND</div>
+        <div class="text-6xl font-semibold leading-tight tracking-tight">$6.00</div>
+    </div>
+    @if ((Order.status === Status.pending || Order.status === Status.assigned) && type && loggedIn) {
+        <!-- CTA -->
+    <button class="fuse-mat-button-large mt-4 mb-4" mat-stroked-button [color]="'warn'" (click)="cancelOrder()">
+        Cancel order
+    </button>
+    }
+    @if(details){
+    <div class="space-y-4 text-lg font-medium tracking-tight text-secondary" @expandCollapse>
+        <!-- Sender's number -->
+        <div class="flex items-baseline justify-between">
+            <div class="font-bold text-gray-900">Sender's number</div>
+            <div class=" h-1 rounded bg-accent"
+            [class.w-44]="!withMap"
+            [class.w-60]="withMap"></div>            <span>+216
+                {{Order.pick_up?.phone.substring(0,2)
+                +" "+Order.pick_up?.phone.substring(2,5)+"
+                "+Order.pick_up?.phone.substring(5)}}</span>
+        </div>
+        <!-- Receiver's number -->
+        <div class="flex items-baseline justify-between">
+            <div class="font-bold text-gray-900">Receiver's number</div>
+            <div class=" h-1 rounded bg-accent"
+            [class.w-40]="!withMap"
+            [class.w-56]="withMap"></div>
+            <span>+216
+                {{Order.destination?.phone.substring(0,2)
+                +" "+Order.destination?.phone.substring(2,5)+"
+                "+Order.destination?.phone.substring(5)}}</span>
+        </div>
+
+        <!-- Product Description -->
+        <div>
+            <div class="mb-1 font-bold text-gray-900">Product Description:</div>
+            <div class="mb-2 w-full whitespace-wrap break-words">{{Order.productDesc}}</div>
+        </div>
+    </div>
+
+    }
+    <div (click)="details=!details" class="cursor-pointer flex items-center gap-2">
+        Details
+        <mat-icon [svgIcon]="'heroicons_outline:chevron-up'"
+            class="transform transition-transform duration-200 ease-in-out" [class.rotate-180]="!details"></mat-icon>
+    </div>
+    <div class="mt-4 flex flex-col gap-2">
+        <div class="flex gap-2">
+            <div class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                A</div>
+            <div class="font-bold text-gray-900">
+                {{Order.pick_up?.place.name+" ,"+Order.pick_up?.place.gouvernorat}}
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <div class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                B</div>
+            <div class="font-bold text-gray-900">
+                {{Order.destination?.place.name+" ,"+Order.destination?.place.gouvernorat}}
+            </div>
+        </div>
+    </div>
+</card>
+
+}

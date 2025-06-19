@@ -231,7 +231,7 @@
                                     @if (feature.icon) {
                                     <div class="font-medium items-center flex flex-row">
                                         <span class="w-7 shadow rounded-sm overflow-hidden mr-1">
-                                            <mat-icon class="icon-size-6">{{ feature.icon }}</mat-icon>
+                                            <mat-icon class="icon-size-6" [svgIcon]="feature.icon"></mat-icon>
                                         </span>
                                         <span class="block"> {{ feature.icon }} </span>
                                     </div>
@@ -251,10 +251,10 @@
                                     </div>
                                 </mat-option>
                                 } @for (item of filteredListIcons ; track item) {
-                                <mat-option [value]="item.label">
+                                <mat-option [value]="'heroicons_outline:'+item.label">
                                     <div class="font-medium items-center flex flex-row">
                                         <span class="w-9 shadow rounded-sm overflow-hidden mr-1">
-                                            <mat-icon class="icon-size-7 mr-1">{{ item.label }}</mat-icon>
+                                            <mat-icon class="icon-size-7 mr-1" [svgIcon]="'heroicons_outline:'+item.label"></mat-icon>
                                         </span>
                                         <span class="block"> {{ item.label }} </span>
                                     </div>

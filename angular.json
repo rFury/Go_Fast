@@ -25,7 +25,9 @@
                 "glob": "**/*",
                 "input": "public"
               },
-                "src/assets"
+                "src/assets",
+                "src/firebase-messaging-sw.js"
+
             ],
             "stylePreprocessorOptions": {
               "includePaths": [
@@ -38,7 +40,8 @@
               "src/assets/styles/vendors.scss",
               "src/assets/styles/main.scss",
               "src/tailwind.scss",
-              "mapbox-gl/dist/mapbox-gl.css"
+              "mapbox-gl/dist/mapbox-gl.css",
+              "node_modules/@ctrl/ngx-emoji-mart/picker.css"
             ],
             "scripts": []
           },

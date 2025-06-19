@@ -6,15 +6,16 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatIcon } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatOption } from '@angular/material/core';
 import { MatSelect, MatSelectChange, MatSelectTrigger } from '@angular/material/select';
-import { MatInput } from '@angular/material/input';
+import { MatInput, MatInputModule } from '@angular/material/input';
 import {
   MatFormField,
   MatLabel,
   MatError,
   MatHint,
+  MatFormFieldModule,
 } from '@angular/material/form-field';
 import { MatButton } from '@angular/material/button';
 import { forkJoin, map, startWith } from 'rxjs';
@@ -59,15 +60,15 @@ import { selectMapComponent } from '../../../../../../Shared/Components/map-sele
   imports: [
     FormsModule,
     MatButton,
-    MatFormField,
+    MatFormFieldModule,
     MatLabel,
-    MatInput,
+    MatInputModule,
     MatError,
     MatSelect,
     MatCardModule,
     MatOption,
     ReactiveFormsModule,
-    MatIcon,
+    MatIconModule,
     HasPermissionDirective,
     MatHint,
     MatButtonToggleModule,
@@ -226,7 +227,6 @@ export class AddComponent implements OnInit {
         this.coordinatesB = place?.coordinates!;
       }
     });
-    
   }
 
 

@@ -1,8 +1,7 @@
 import { Route, Routes } from '@angular/router';
 import { UsersComponent } from './users.component';
-import { authGuard } from '../../Shared/Guards/auth.guard';
+import { userAuthGuard } from '../../Shared/Guards/userAuth.guard';
 import { SignInComponent } from './sign-in/sign-in.component';
-import { AuthSignOutComponent } from '../admins/sign-out/sign-out.component';
 import { AuthForgotPasswordComponent } from './forgot-password/forgot-password.component';
 import { AuthResetPasswordComponent } from './reset-password/reset-password.component';
 import { noAuthGuard } from '../../Shared/Guards/noAuth.guard';
@@ -12,6 +11,14 @@ import { ApplicationComponent } from './App/application.component';
 import applicationRoutes from './App/application.routes';
 import { SignUpComponent } from './sign-up/sign-up.component';
 import { userGuard } from '../../Shared/Guards/user.guard';
+import { AuthSignOutComponent } from './sign-out/sign-out.component';
+import { CompleteComponent } from './complete-sign-up/complete.component';
+import { authGuard } from '../../Shared/Guards/auth.guard';
+import { CallbackComponent } from './sign-in/callback.component';
+import { Error404Component } from '../../Shared/Components/error/error-404/error-404.component';
+import { Error500Component } from '../../Shared/Components/error/error-500/error-500.component';
+import { OrderDetailsComponent } from './App/orders/order-details/order-details.component';
+import homeRoutes from './Home/home.routes';
 
 export default [
   {
@@ -22,9 +29,24 @@ export default [
         path: '',
         component: ApplicationComponent,
         loadChildren: () => applicationRoutes,
-        canActivate: [authGuard,userGuard],
+        canActivate: [userAuthGuard,userGuard],
         data: {
           layout: 'classy',
+          who: 'users',
+        },
+      },
+      {
+        path: 'main',
+        loadChildren: () => homeRoutes,
+        data: {
+          layout: 'modern',
+        },
+      },
+      {
+        path: 'guest/:id',
+        component: OrderDetailsComponent,
+        data: {
+          layout: 'empty',
           who: 'users',
         },
       },
@@ -38,9 +60,19 @@ export default [
         canActivate: [noAuthGuard],
       },
       {
+        path: 'auth/callback',
+        component: CallbackComponent,
+        data: {
+          layout: 'empty',
+          who: 'users',
+        },
+        canActivate: [noAuthGuard,tokenGuard],
+      },
+      {
         path: 'sign-up',
         component: SignUpComponent,
         data: {
+
           layout: 'empty',
         },
         canActivate: [noAuthGuard],
@@ -87,8 +119,24 @@ export default [
         canActivate: [noAuthGuard,tokenGuard],
       },
       {
-        path: 'unauthorized',
-        component: NotAllowedComponent,
+        path: 'complete-credentials',
+        component: CompleteComponent,
+        data: {
+          layout: 'empty',
+          who: 'users',
+        },
+        canActivate: [userAuthGuard],
+      },
+      {
+        path: '404',
+        component:Error404Component ,
+        data: {
+          layout: 'empty',
+        },
+      },
+      {
+        path: '500',
+        component:Error500Component ,
         data: {
           layout: 'empty',
         },

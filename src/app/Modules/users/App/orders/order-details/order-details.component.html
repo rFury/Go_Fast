@@ -1,0 +1,212 @@
+<div class="flex flex-col h-full w-full relative z-99 sm:z-50 overflow-hidden">
+    @if (Order) {
+      <div class="absolute top-2 sm:top-24 left-2 sm:left-4 z-50">
+        <div class="bg-gray-200 w-fit rounded-xl p-4 backdrop-blur-sm bg-opacity-50">
+          <button mat-icon-button class="bg-white rounded-full" [matMenuTriggerFor]="listCard01Menu">
+            <mat-icon [svgIcon]="'heroicons_solid:ellipsis-horizontal'"></mat-icon>
+          </button>
+          <mat-menu #listCard01Menu="matMenu" class="bg-white p-2 rounded-3xl">
+            <button mat-menu-item class="rounded-lg" (click)="goBack()">Go back</button>
+            @if ((Order.status === Status.pending || Order.status === Status.assigned) && loggedIn) {
+            <button mat-menu-item class="text-red-500 hover:bg-red-100 rounded-lg" (click)="cancelOrder()">Cancel order</button>
+            }
+          </mat-menu>
+        </div>
+        <div>
+          @if (Order.status=="pending") {
+            <h2 class="font-bold text-xl sm:text-5xl">We’re looking for<br>delivery agents...</h2>
+            <h4 class="text-4xl">This may take a while!</h4>
+          } @else if (Order.status=="assigned" && Agent) {
+            <h2 class="font-bold text-xl sm:text-5xl">Order assigned to<br>
+              <span class="underline cursor-pointer text-indigo-400" (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front';details=true" matTooltip="Click agent name to see details">{{Agent.first_name+" "+Agent.last_name}}</span>!
+            </h2>
+            <h4 class="text-md sm:text-3xl">
+              <span>
+                Driver
+                @if (isActive) {
+                  <ng-container *ngTemplateOutlet="active"></ng-container>
+                } @else {
+                  <ng-container *ngTemplateOutlet="waiting"></ng-container>
+                }
+                <ng-template #active>
+                  is <span class="font-bold text-green-500">{{ time | number: '1.0-0' }} minutes</span> away from pick‑up
+                </ng-template>
+                <ng-template #waiting>
+                  on his way for pick‑up
+                </ng-template>
+                , please wait!
+              </span>
+            </h4>
+          } @else if (Order.status===Status.picked_up && Agent) {
+            @if(!Order.completed){
+              <h2 class="font-bold text-xl sm:text-5xl">Order picked up by<br>
+                <span class="underline cursor-pointer text-indigo-400" (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front';details=true" matTooltip="Click agent name to see details">{{Agent.first_name+" "+Agent.last_name}}</span>!
+              </h2>
+              <h4 class="text-md sm:text-3xl">
+                <span class="hidden sm:block">
+                  Driver
+                  @if (isActive) {
+                    is <span class="font-bold text-green-500">{{ time | number: '1.0-0' }} minutes</span> away from destination
+                  } @else {
+                    on his way to destination
+                  }
+                  , please wait!
+                </span>
+              </h4>
+            } @else {
+              <h2 class="font-bold text-xl sm:text-5xl">Order picked up to depot by<br>
+                <span class="underline cursor-pointer text-indigo-400" (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front'" matTooltip="Click agent name to see details">{{Agent.first_name+" "+Agent.last_name}}</span>!
+              </h2>
+              <h4 class="text-md sm:text-3xl">
+                <span class="hidden sm:block">
+                   looking for a delivery driver
+                  , please wait!
+                </span>
+              </h4>
+            }
+          }
+        </div>
+      </div>
+      <div class="fixed inset-x-0 bottom-0 sm:absolute sm:right-4 sm:left-[unset] sm:top-16 z-50 
+      h-[60vh] sm:h-fit transition-all duration-300 ease-in-out flex flex-col items-center scrollbar-hide"
+        @expandCollapse [class.dragging-adjust]="dragging"
+[class.h-auto]="flippableCard.face === 'back'"
+[class.translate-y-2]="dragging">
+
+<!-- Mobile Handle -->
+<div class="sm:hidden bg-gray-300 w-12 h-1 rounded-full mx-auto mb-2 mt-2"></div>
+
+<div class="h-full overflow-hidden rounded-t-3xl sm:rounded-2xl shadow-2xl">
+<card [flippable]="true" [face]="'front'" #flippableCard="Card" class="h-full">
+<ng-container CardFront>
+  <div class="h-full overflow-y-auto scrollbar-hide">
+    <ordercarddetails [Order]="Order" [withMap]="false" (canceled)="cancelOrder()"></ordercarddetails>
+  </div>
+</ng-container>
+
+<ng-container CardBack>
+  @if (Agent) {
+    <card class="flex flex-col w-full h-full relative overflow-y-auto scrollbar-hide">
+      <!-- Header with Back Button -->
+      <div class="sticky top-0 bg-white z-10 p-4 sm:p-6 border-b border-gray-100">
+        <button class="absolute top-4 right-4 w-8 h-8 sm:w-10 sm:h-10" 
+                mat-icon-button 
+                (click)="flippableCard.face = flippableCard.face === 'front' ? 'back' : 'front'">
+          <mat-icon [svgIcon]="'heroicons_outline:arrow-long-left'" class="text-lg sm:text-xl"></mat-icon>
+        </button>
+        <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Driver Details</h3>
+      </div>
+
+      <!-- Agent Details Content -->
+      <div class="flex-1 p-4 sm:p-6">
+        <div class="flex flex-col items-center space-y-4 sm:space-y-6">
+          <!-- Avatar -->
+          <div class="flex items-center justify-center w-20 h-20 sm:w-32 sm:h-32 rounded-full overflow-hidden ring-4 ring-gray-200">
+            @if (Agent.avatar) {
+              <img class="object-cover w-full h-full" [src]="Agent.avatar" [alt]="Agent.first_name">
+            } @else {
+              <div class="flex items-center justify-center w-full h-full rounded overflow-hidden uppercase text-3xl sm:text-8xl font-bold leading-none bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                {{Agent.first_name.charAt(0)}}
+              </div>
+            }
+          </div>
+
+          <!-- Name and Role -->
+          <div class="text-center">
+            <div class="text-xl sm:text-4xl font-bold text-gray-800 break-words">
+              {{Agent.first_name+" "+Agent.last_name}}
+            </div>
+            <div class="flex items-center justify-center mt-2">
+              <div class="flex items-center justify-center py-1 px-3 rounded-full bg-blue-100 text-blue-700">
+                <span class="text-xs sm:text-sm font-medium">Driver</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Details -->
+          <div class="w-full flex flex-row border-t border-gray-100 pt-1">
+            <div class="w-1/2 space-y-4 sm:space-y-6 pt-4">
+              <!-- Job Title -->
+            <div class="flex items-start space-x-3 sm:space-x-4">
+              <div class="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 mt-0.5">
+                <mat-icon [svgIcon]="'heroicons_outline:briefcase'" class="text-gray-500 text-lg sm:text-xl"></mat-icon>
+              </div>
+              <div class="text-sm sm:text-base text-gray-700">Delivery driver</div>
+            </div>
+
+            <!-- Company -->
+            <div class="flex items-start space-x-3 sm:space-x-4">
+              <div class="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 mt-0.5">
+                <mat-icon [svgIcon]="'heroicons_outline:building-office-2'" class="text-gray-500 text-lg sm:text-xl"></mat-icon>
+              </div>
+              <div class="text-sm sm:text-base text-gray-700">Go Fast</div>
+            </div>
+            </div>
+
+            <div class="w-1/2 space-y-4 sm:space-y-6 pt-4">
+            <!-- Email -->
+            <div class="flex items-start space-x-3 sm:space-x-4">
+              <div class="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 mt-0.5">
+                <mat-icon [svgIcon]="'heroicons_outline:envelope'" class="text-gray-500 text-lg sm:text-xl"></mat-icon>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0">
+                  <a class="text-sm sm:text-base text-blue-600 hover:text-blue-800 hover:underline break-all" 
+                     [href]="'mailto:' + Agent.email" 
+                     target="_blank">
+                    {{Agent.email}}
+                  </a>
+                  <div class="text-xs sm:text-sm text-gray-500">
+                    <span class="hidden sm:inline mx-2">•</span>
+                    <span class="font-medium">Personal</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phone Numbers -->
+            <div class="flex items-start space-x-3 sm:space-x-4">
+              <div class="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 mt-0.5">
+                <mat-icon [svgIcon]="'heroicons_outline:phone'" class="text-gray-500 text-lg sm:text-xl"></mat-icon>
+              </div>
+              <div class="min-w-0 flex-1 space-y-2 sm:space-y-3">
+                <!-- Phone 1 -->
+                <div class="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0">
+                  <div class="flex items-center">
+                    <img src="TN.svg" class="w-4 h-3 sm:w-6 sm:h-4 mr-2" alt="Tunisia flag" />
+                    <div class="font-mono text-sm sm:text-base text-gray-700">{{Agent.phone1}}</div>
+                  </div>
+                  <div class="text-xs sm:text-sm text-gray-500">
+                    <span class="hidden sm:inline mx-2">•</span>
+                    <span class="font-medium">Work</span>
+                  </div>
+                </div>
+                
+                <!-- Phone 2 -->
+                <div class="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0">
+                  <div class="flex items-center">
+                    <img src="TN.svg" class="w-4 h-3 sm:w-6 sm:h-4 mr-2" alt="Tunisia flag" />
+                    <div class="font-mono text-sm sm:text-base text-gray-700">{{Agent.phone2}}</div>
+                  </div>
+                  <div class="text-xs sm:text-sm text-gray-500">
+                    <span class="hidden sm:inline mx-2">•</span>
+                    <span class="font-medium">Work</span>
+                  </div>
+                </div>
+              </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </card>
+  }
+</ng-container>
+</card>
+</div>
+</div>
+}
+    <div class="w-full min-h-screen max-h-screen z-0">
+      <div id="map" class="min-h-screen max-h-screen w-full"></div>
+    </div>
+  </div>

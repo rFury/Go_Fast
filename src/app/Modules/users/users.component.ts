@@ -1,5 +1,5 @@
-import { Component, Provider, Renderer2, ViewEncapsulation,Inject, inject } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, provideRouter, Router, RouterOutlet } from '@angular/router';
+import { Component,  Renderer2, ViewEncapsulation,Inject } from '@angular/core';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { Subject, combineLatest, takeUntil, map, filter } from 'rxjs';
 import { ClassyLayoutComponent } from './layout/layouts/vertical/classy/classy.component'
 import { FuseConfigService } from '../../Shared/Services/config/config.service';
@@ -8,12 +8,12 @@ import { FusePlatformService } from '../../Shared/Services/platform/platform.ser
 import { FuseConfig } from '../../Shared/Services/config/config.types';
 import { DOCUMENT } from '@angular/common';
 import { EmptyLayoutComponent } from './layout/layouts/empty/empty.component';
-import { UserService } from '../../Shared/Services/user.service';
+import { ModernLayoutComponent } from './layout/layouts/modern/modern.component';
 
 @Component({
   selector: 'app-users',
   encapsulation: ViewEncapsulation.None,
-  imports: [ClassyLayoutComponent,EmptyLayoutComponent],
+  imports: [ClassyLayoutComponent,EmptyLayoutComponent,ModernLayoutComponent],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
 })
@@ -92,11 +92,7 @@ export class UsersComponent
         {
             // Update the layout
             this._updateLayout();
-        });
-
-        // Set the OS name
-        this._renderer2.addClass(this._document.body, this._fusePlatformService.osName);
-    }
+        });    }
 
     /**
      * On destroy

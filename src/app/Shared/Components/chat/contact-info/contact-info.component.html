@@ -1,0 +1,72 @@
+<div class="flex flex-col flex-auto h-full bg-card dark:bg-default">
+
+    <!-- Header -->
+    <div class="flex flex-0 items-center h-18 px-4 border-b bg-gray-50 dark:bg-transparent">
+        <button mat-icon-button (click)="drawer.close()">
+            <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+        </button>
+        <div class="ml-2 text-lg font-medium">Contact info</div>
+    </div>
+
+    <div class="overflow-y-auto">
+        <!-- Contact avatar & info -->
+        <div class="flex flex-col items-center mt-8">
+            <div class="w-40 h-40 rounded-full">
+                @if(chat.contact.avatar){
+                <img class="w-full h-full rounded-full object-cover" [src]="chat.contact.avatar"
+                    [alt]="'Contact avatar'">
+                } @else{
+                <div
+                    class="flex items-center justify-center w-full h-full rounded-full text-8xl font-semibold uppercase bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-200">
+                    {{chat.contact.first_name.charAt(0)}}
+                </div>
+                }
+            </div>
+            <div class="mt-4 text-lg font-medium">{{chat.contact.first_name}} {{chat.contact.last_name}}</div>
+            <div class="mt-0.5 text-md text-secondary">order</div>
+        </div>
+
+        <div class="py-10 px-7">
+            <!-- Media -->
+            <div class="text-lg font-medium">Media</div>
+            <div class="grid grid-cols-4 gap-1 mt-4">
+                @for(item of chat.sharedAttachments; track item){
+                    @if(item.attachment.type==='media'){
+                        <img class="h-20 rounded object-cover" [src]="item.attachment.url" />}
+                    @else if(item.attachment.type==='doc'){
+                        <mat-icon [svgIcon]="'heroicons_outline:document'"></mat-icon>
+                    }
+                    @else if(item.attachment.type==='link'){
+                        <mat-icon [svgIcon]="'heroicons_outline:link'"></mat-icon>
+                    }
+                }
+            </div>
+            <!-- Details -->
+            <div class="mt-10 space-y-4">
+                <div class="text-lg font-medium mb-3">Details</div>
+                <div>
+                    <div class="font-medium text-secondary">Email</div>
+                    <div class="">{{chat.contact.email}}</div>
+                </div>
+                <div>
+                    <div class="font-medium text-secondary">Phone number</div>
+                    <div class="">21897753</div>
+                </div>
+
+                <div>
+                    <div class="font-medium text-secondary">Title</div>
+                    <div class="">Ttitle</div>
+                </div>
+                <div>
+                    <div class="font-medium text-secondary">Company</div>
+                    <div class="">GoFast</div>
+                </div>
+                <div>
+                    <div class="font-medium text-secondary">Address</div>
+                    <div class="">address</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

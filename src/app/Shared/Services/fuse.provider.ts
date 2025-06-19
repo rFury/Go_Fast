@@ -36,7 +36,6 @@ export const provideFuse = (config: FuseProviderConfig): Array<Provider | Enviro
             },
         },
         {
-            // Use the 'fill' appearance on Angular Material form fields by default
             provide : MAT_FORM_FIELD_DEFAULT_OPTIONS,
             useValue: {
                 appearance: 'fill',

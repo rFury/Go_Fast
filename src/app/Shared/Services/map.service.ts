@@ -21,7 +21,7 @@ export class MapService {
       let place: Place = new Place();
       place.id = suggestion.id;
       place.setPlace(suggestion.place_name, 'postcode');
-      place.coordinates = suggestion.geometry.coordinates;
+      place.coordinates = [lng,lat];
         return place;
       }),
       catchError(err => {

@@ -1,0 +1,237 @@
+<div class="flex flex-col flex-auto min-w-0 h-screen overflow-y-auto" cdkScrollable>
+
+    <!-- Header -->
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8">
+            <div class="flex flex-col sm:flex-row flex-auto sm:items-center min-w-0 my-8 sm:my-12">
+                <!-- Avatar and name -->
+                <div class="flex flex-auto items-center min-w-0">
+                    <div class="flex-0 w-16 h-16 rounded-full overflow-hidden">
+                        @if(user.avatar){
+                        <img class="w-full h-full object-cover" [src]="user.avatar">
+                        }@else{
+                        <div
+                            class="w-full h-full flex items-center justify-center text-2xl font-bold bg-gray-200 rounded-full">
+                            {{user.first_name.charAt(0).toUpperCase()}}</div>
+                        }
+                    </div>
+                    <div class="flex flex-col min-w-0 ml-4">
+                        <ng-container>
+                            <div
+                                class="text-2xl md:text-5xl font-semibold tracking-tight leading-7 md:leading-snug truncate">
+                                {{'welcome-back'}}, {{user.first_name}} {{user.last_name}}</div>
+                        </ng-container>
+                        <div class="flex items-center">
+                            <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:bell'"></mat-icon>
+                            <div class="ml-1.5 leading-6 truncate text-secondary">You have 2 new messages and 15 new
+                                tasks</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Project selector -->
+            <div class="relative flex self-start pt-2 pb-1 pl-5 pr-4 cursor-pointer overflow-hidden rounded-t-xl border border-b-0 bg-default"
+                matRipple [matMenuTriggerFor]="projectsMenu">
+                <div class="flex items-center">
+                    <div class="overflow-hidden">
+                        <div class="font-medium leading-6 truncate">{{selectedProject}}</div>
+                    </div>
+                    <div class="flex items-center justify-center pl-2">
+                        <mat-icon class="icon-size-5" [svgIcon]="'heroicons_mini:chevron-down'"></mat-icon>
+                    </div>
+                </div>
+                <mat-menu #projectsMenu="matMenu" [xPosition]="'before'">
+                    <button mat-menu-item (click)="selectedProject='ACME Corp. Backend App'">ACME Corp. Backend App
+                    </button>
+                    <button mat-menu-item (click)="selectedProject='ACME Corp. Frontend App'">ACME Corp. Frontend App
+                    </button>
+                    <button mat-menu-item (click)="selectedProject='Creapond'">Creapond
+                    </button>
+                    <button mat-menu-item (click)="selectedProject='Withinpixels'">Withinpixels
+                    </button>
+                </mat-menu>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-auto border-t -mt-px pt-4 sm:pt-6 bg-default">
+        <div class="w-full max-w-screen-xl mx-auto mb-20">
+            <!-- Tabs -->
+            <mat-tab-group class="sm:px-2" mat-stretch-tabs="false" [animationDuration]="'0'">
+
+                <!-- Home -->
+                <mat-tab label="Home">
+                    <ng-template matTabContent>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full min-w-0">
+                            <!-- Summary -->
+                            @for (item of cards; track item) {
+                            <div class="flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                <div class="flex items-start justify-between">
+                                    <div class="text-lg font-medium tracking-tight leading-6 truncate">{{item.label}}
+                                    </div>
+                                </div>
+                                <div class="flex flex-col items-center mt-2">
+                                    <div
+                                        class="text-7xl sm:text-8xl font-bold tracking-tight leading-none text-blue-500">
+                                        {{item.count}}</div>
+                                    <div class="text-lg font-medium text-blue-600 dark:text-blue-500">{{item.label}}
+                                    </div>
+                                    <div class="flex items-baseline justify-center w-full mt-5 text-secondary">
+                                        <div class="text-md font-medium truncate">Online:</div>
+                                        <div class="ml-1.5 text-lg font-semibold">{{item.countOnline}}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            }
+                            <!-- Github issues summary -->
+                            <div
+                                class="sm:col-span-2 md:col-span-4 flex flex-col flex-auto p-6 bg-card shadow rounded-2xl overflow-hidden">
+                                <div class="flex flex-col sm:flex-row items-start justify-between">
+                                    <div class="text-lg font-medium tracking-tight leading-6 truncate">Orders Summary
+                                    </div>
+                                    <div class="mt-3 sm:mt-0 sm:ml-2">
+                                        <mat-button-toggle-group value="this_week"
+                                            #OrdersWeekSelector="matButtonToggleGroup">
+                                            <mat-button-toggle value="last_week">Last Week</mat-button-toggle>
+                                            <mat-button-toggle value="this_week">This Week</mat-button-toggle>
+                                        </mat-button-toggle-group>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 lg:grid-cols-2 grid-flow-row gap-6 w-full mt-8 sm:mt-4">
+                                    <!-- New vs. Closed -->
+                                    <div class="flex flex-col flex-auto">
+                                        <div class="font-medium text-secondary">New vs. Closed</div>
+                                        <div class="flex flex-col flex-auto">
+                                            @if (chartOrders[OrdersWeekSelector.value]) {
+                                            <apx-chart class="flex-auto w-full h-80"
+                                                [chart]="chartOrders[OrdersWeekSelector.value].chart"
+                                                [colors]="chartOrders[OrdersWeekSelector.value].colors"
+                                                [dataLabels]="chartOrders[OrdersWeekSelector.value].dataLabels"
+                                                [grid]="chartOrders[OrdersWeekSelector.value].grid"
+                                                [labels]="chartOrders[OrdersWeekSelector.value].labels"
+                                                [legend]="chartOrders[OrdersWeekSelector.value].legend"
+                                                [plotOptions]="chartOrders[OrdersWeekSelector.value].plotOptions"
+                                                [series]="chartOrders[OrdersWeekSelector.value].series"
+                                                [states]="chartOrders[OrdersWeekSelector.value].states"
+                                                [stroke]="chartOrders[OrdersWeekSelector.value].stroke"
+                                                [tooltip]="chartOrders[OrdersWeekSelector.value].tooltip"
+                                                [xaxis]="chartOrders[OrdersWeekSelector.value].xaxis"
+                                                [yaxis]="chartOrders[OrdersWeekSelector.value].yaxis"></apx-chart>
+                                            }
+                                        </div>
+
+                                    </div>
+                                    <!-- Overview -->
+                                    <div class="flex flex-col">
+                                        <div class="font-medium text-secondary">Overview</div>
+                                        <div class="flex-auto grid grid-cols-4 gap-4 mt-6">
+                                            <!-- New issues -->
+                                            <div
+                                                class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-indigo-50 text-indigo-800 dark:bg-white dark:bg-opacity-5 dark:text-indigo-400">
+                                                <div
+                                                    class="text-5xl sm:text-7xl font-semibold leading-none tracking-tight">
+                                                    {{orders[OrdersWeekSelector.value].overview['deliveredOrders']}}
+                                                </div>
+                                                <div class="mt-1 text-sm sm:text-lg font-medium">Delivered Orders</div>
+                                            </div>
+                                            <!-- Closed -->
+                                            <div
+                                                class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-green-50 text-green-800 dark:bg-white dark:bg-opacity-5 dark:text-green-500">
+                                                <div
+                                                    class="text-5xl sm:text-7xl font-semibold leading-none tracking-tight">
+                                                    {{orders[OrdersWeekSelector.value].overview['picked_upOrders']}}
+                                                </div>
+                                                <div class="mt-1 text-sm sm:text-lg font-medium">Picked Up</div>
+                                            </div>
+                                            <!-- Fixed -->
+                                            <div
+                                                class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-gray-100 text-secondary dark:bg-white dark:bg-opacity-5">
+                                                <div class="text-5xl font-semibold leading-none tracking-tight">
+                                                    {{orders[OrdersWeekSelector.value].overview['canceledOrders']}}
+                                                </div>
+                                                <div class="mt-1 text-sm font-medium text-center">Canceled</div>
+                                            </div>
+                                            <!-- Won't fix -->
+                                            <div
+                                                class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-gray-100 text-secondary dark:bg-white dark:bg-opacity-5">
+                                                <div class="text-5xl font-semibold leading-none tracking-tight">
+                                                    {{orders[OrdersWeekSelector.value].overview['returnedOrders']}}
+                                                </div>
+                                                <div class="mt-1 text-sm font-medium text-center">Returned</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </ng-template>
+                </mat-tab>
+                <!-- Team -->
+                <mat-tab>
+                    <ng-template mat-tab-label>
+                        <span class="inline-flex items-center space-x-2">
+                            <span class="">Team</span>
+                            <span
+                                class="px-2 py-1 text-sm rounded-full bg-primary-100 text-on-primary-100">{{data.team.length}}</span>
+                        </span>
+                    </ng-template>
+                    <ng-template matTabContent>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full min-w-0">
+                            @for (member of data.team; track member) {
+                            <div
+                                class="flex flex-col flex-auto items-center bg-card shadow rounded-2xl overflow-hidden">
+                                <!-- Avatar & Info -->
+                                <div class="flex flex-col flex-auto w-full p-8 text-center">
+                                    <div class="w-32 h-32 mx-auto overflow-hidden relative">
+                                        @if(member.avatar){
+                                        <img class="w-full h-full object-cover rounded-full border-2" [src]="member.avatar"
+                                            [ngClass]="{'border-green-500': member.status == 'online',
+                                        'border-gray-500': member.status == 'not-visible',
+                                        'border-yellow-500': member.status == 'away'
+                                        }">
+                                        }@else{
+                                        <div class="w-full h-full flex items-center justify-center text-2xl font-bold bg-gray-200 rounded-full border-2"
+                                            [ngClass]="{'border-green-500': member.status == 'online',
+                                        'border-gray-500': member.status == 'not-visible',
+                                        'border-yellow-500': member.status == 'away'
+                                        }">
+                                            {{member.first_name.charAt(0).toUpperCase()}}</div>
+                                        }
+                                        <div class="absolute bottom-2 right-2 w-4 h-4 rounded-full" [ngClass]="{'bg-green-500': member.status == 'online',
+                                            'bg-gray-500': member.status == 'not-visible',
+                                            'bg-yellow-500': member.status == 'away'
+                                            }"></div>
+                                    </div>
+                                    <div class="mt-6 font-medium">{{member.first_name}} {{member.last_name}}</div>
+                                    <div class="text-secondary">{{member.groupId.label}}</div>
+                                </div>
+                                <!-- Email & Phone -->
+                                <div class="flex items-center w-full border-t divide-x">
+                                    <a class="flex flex-auto items-center justify-center py-4 hover:bg-hover"
+                                        [href]="'mailto:' + member.email">
+                                        <mat-icon class="icon-size-5 text-hint"
+                                            [svgIcon]="'heroicons_solid:envelope'"></mat-icon>
+                                        <span class="ml-2">Email</span>
+                                    </a>
+                                    @if(member.phone1 || member.phone2){
+                                    <a class="flex flex-auto items-center justify-center py-4 hover:bg-hover"
+                                        [href]="'tel:' + member.phone1 || member.phone2">
+                                        <mat-icon class="icon-size-5 text-hint"
+                                            [svgIcon]="'heroicons_solid:phone'"></mat-icon>
+                                        <span class="ml-2">Call</span>
+                                    </a>
+                                    }
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </ng-template>
+                </mat-tab>
+
+            </mat-tab-group>
+        </div>
+    </div>
+
+</div>

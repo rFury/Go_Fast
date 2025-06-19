@@ -1,0 +1,367 @@
+<div class="flex flex-col flex-auto h-screen overflow-hidden">
+    <div class="flex-auto">
+        <div class="w-full max-w-screen-xl mx-auto h-full">
+            <!-- Main Container -->
+            <div class="flex flex-col md:flex-row w-full">
+                <!-- Left Panel -->
+                <div class="w-full md:w-1/2 p-4  overflow-y-auto h-[calc(100vh-0rem)]">
+                    <!-- Tabs -->
+                    <mat-tab-group class="sm:px-2" mat-stretch-tabs="false" [animationDuration]="'500'"
+                        (selectedTabChange)="onTabChange($event)">
+                        <mat-tab label="All">
+                            <ng-template matTabContent>
+                                @if(Loading){
+                                <mat-progress-spinner class="m-auto" color="primary" mode="indeterminate"
+                                    diameter="30"></mat-progress-spinner>
+                                }@else{
+                                <!-- Tab content -->
+                                <div class="mt-4 relative">
+                                    <!-- Filter Row -->
+                                    <form class="flex flex-row gap-2 justify-center md:justify-between mb-4"
+                                        #myForm="ngForm" ngForm="ngForm">
+                                        <div class="relative flex items-center justify-center px-4 leading-9 rounded-md cursor-pointer bg-gray-200 w-1/2"
+                                            (click)="dueDatePicker.open()">
+                                            <mat-icon class="icon-size-5 text-current"
+                                                [svgIcon]="'heroicons_solid:calendar'"></mat-icon>
+                                            @if(date){
+                                            <span class="ml-2 text-md font-medium">
+                                                <ng-container>{{formattedDate}}</ng-container>
+                                            </span>
+                                            }
+                                            <mat-form-field
+                                                class="fuse-mat-dense invisible absolute inset-0 -mt-2.5 opacity-0 pointer-events-none"
+                                                [subscriptSizing]="'dynamic'">
+                                                <input matInput name="dueDate" [(ngModel)]="date"
+                                                    [matDatepicker]="dueDatePicker">
+                                                <mat-datepicker #dueDatePicker>
+                                                    <mat-datepicker-actions>
+                                                        <button mat-button matDatepickerCancel>Clear
+                                                        </button>
+                                                        <button class="" mat-flat-button [color]="'primary'"
+                                                            matDatepickerApply (click)="getSelectedDate()">Select
+                                                        </button>
+                                                    </mat-datepicker-actions>
+                                                </mat-datepicker>
+                                            </mat-form-field>
+                                        </div>
+                                        <mat-form-field class="w-1/2 rounded-full" [subscriptSizing]="'dynamic'">
+                                            <mat-select [value]="''" (selectionChange)="filterByCategory($event)">
+                                                <mat-option [value]="''">All</mat-option>
+                                                @for (item of status; track $index) {
+                                                <ng-container>
+                                                    <mat-option [value]="item.key">{{item.value}}</mat-option>
+                                                </ng-container>
+                                                }
+                                            </mat-select>
+                                        </mat-form-field>
+                                    </form>
+                                    @if(Orders.length===0){
+                                    <div
+                                        class="flex flex-col items-center  min-h-full w-full rounded-xl p-8 text-center animate-fade-in">
+                                        <!-- Illustration Container -->
+                                        <div class="mb-6 transform transition-all duration-300 hover:scale-105">
+                                            <svg class="w-32 h-32 text-gray-900" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                                </path>
+                                            </svg>
+                                        </div>
+
+                                        <!-- Text Content -->
+                                        <div class="space-y-4">
+                                            <h2 class="text-3xl md:text-4xl font-bold  tracking-wide">
+                                                No Orders Found
+                                            </h2>
+
+                                            <p class="text-gray-600 max-w-md mx-auto text-lg">
+                                                It seems there are no orders matching your criteria.
+                                                Try adjusting your filters or check back later.
+                                            </p>
+                                        </div>
+
+                                        <!-- Optional Action Button -->
+                                        <div class="mt-8">
+                                            <button mat-flat-button (click)="getOrders()"
+                                                class="px-6 py-2.5 bg-indigo-100 text-indigo-600 rounded-lg font-medium hover:bg-indido-200 transition-colors duration-200">
+                                                Refresh Orders
+                                            </button>
+                                        </div>
+                                    </div>
+                                    }@else {
+                                    <!-- Order Cards -->
+                                    @for (item of Orders; track $index) {
+                                    <div class="mt-6 cursor-pointer">
+                                        <div class="bg-gray-50 p-4 rounded-lg mb-4" [ngClass]="{
+                                            'border-2 border-indigo-400 bg-white shadow-lg': selectedOrderId === item._id
+                                          }" (click)="selectOrder(item._id)">
+                                            @if(item.status=="pending"){
+                                            <div class="text-gray-600 font-medium mb-2">Looking for a courier</div>
+                                            }@else if(item.status=="assigned") {
+                                            <div class="text-gray-600 font-medium mb-2">Courier assigned</div>
+                                            }
+                                            @else if(item.status=="delivered") {
+                                            <div class="text-gray-600 font-medium mb-2">Delivered</div>
+                                            }
+                                            @else if(item.status=="canceled") {
+                                            <div class="text-gray-600 font-medium mb-2">Canceled</div>
+                                            }
+                                            @else if(item.status=="picked-up") {
+                                            <div class="text-gray-600 font-medium mb-2">Picked up</div>
+                                            }
+                                            @else if(item.status=="returned") {
+                                            <div class="text-gray-600 font-medium mb-2">Returned</div>
+                                            }
+                                            <div class="flex justify-between mb-1">
+                                                <div class="font-semibold">{{getDate(item.createdAt)}},
+                                                    {{getTime(item.createdAt)}}</div>
+                                                <div class="font-semibold">TND6</div>
+                                            </div>
+                                            <div class="mb-2 w-full whitespace-wrap break-words">{{item.productDesc}}
+                                            </div>
+                                            <div class="mt-4 flex flex-col gap-2">
+                                                <div class="flex gap-2">
+                                                    <div
+                                                        class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                                        A</div>
+                                                    <div class="font-bold text-gray-900">
+                                                        {{item?.pick_up.place.name+"
+                                                        ,"+item?.pick_up.place.gouvernorat}}
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    <div
+                                                        class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                                        B</div>
+                                                    <div class="font-bold text-gray-900">
+                                                        {{item?.destination.place.name+"
+                                                        ,"+item?.destination.place.gouvernorat}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    }
+                                    <button mat-button (click)="loadMore()" class="w-full" [hidden]="max<=currentSize">
+                                        Load More
+                                    </button>
+                                    }
+                                </div>
+                                }
+                            </ng-template>
+                        </mat-tab>
+                        <mat-tab label="Active" (click)="getOrders('pending,assigned,picked-up')">
+                            <ng-template matTabContent>
+                                @if(Loading){
+                                <mat-progress-spinner class="m-auto" color="primary" mode="indeterminate"
+                                    diameter="30"></mat-progress-spinner>
+                                }@else{
+                                <!-- Tab content -->
+                                <div class="mt-4 relative">
+                                    <!-- Filter Row -->
+                                    @if(Orders.length===0){
+                                    <div
+                                        class="flex flex-col items-center  min-h-full w-full rounded-xl p-8 text-center animate-fade-in">
+                                        <!-- Illustration Container -->
+                                        <div class="mb-6 transform transition-all duration-300 hover:scale-105">
+                                            <svg class="w-32 h-32 text-gray-900" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                                </path>
+                                            </svg>
+                                        </div>
+                                        <!-- Text Content -->
+                                        <div class="space-y-4">
+                                            <h2 class="text-3xl md:text-4xl font-bold  tracking-wide">
+                                                No Orders Found
+                                            </h2>
+
+                                            <p class="text-gray-600 max-w-md mx-auto text-lg">
+                                                It seems there are no orders matching your criteria.
+                                                Try adjusting your filters or check back later.
+                                            </p>
+                                        </div>
+
+                                        <!-- Optional Action Button -->
+                                        <div class="mt-8">
+                                            <button mat-flat-button (click)="getOrders()"
+                                                class="px-6 py-2.5 bg-indigo-100 text-indigo-600 rounded-lg font-medium hover:bg-indido-200 transition-colors duration-200">
+                                                Refresh Orders
+                                            </button>
+                                        </div>
+                                    </div>
+                                    }@else {
+                                    <!-- Order Cards -->
+                                    @for (item of Orders; track $index) {
+                                    <div class="mt-6 cursor-pointer">
+                                        <div class="bg-gray-50 p-4 rounded-lg mb-4" [ngClass]="{
+                                            'border-2 border-indigo-400 bg-white shadow-lg': selectedOrderId === item._id
+                                          }" (click)="selectOrder(item._id)">
+                                            @if(item.status=="pending"){
+                                            <div class="text-gray-600 font-medium mb-2">Looking for a courier</div>
+                                            }@else if(item.status=="assigned") {
+                                            <div class="text-gray-600 font-medium mb-2">Courier assigned</div>
+                                            }
+                                            @else if(item.status=="picked-up") {
+                                            <div class="text-gray-600 font-medium mb-2">Picked up</div>
+                                            }
+                                            <div class="flex justify-between mb-1">
+                                                <div class="font-semibold">{{getDate(item.createdAt)}},
+                                                    {{getTime(item.createdAt)}}</div>
+                                                <div class="font-semibold">TND6</div>
+                                            </div>
+                                            <div class="mb-2 w-full whitespace-wrap break-words">{{item.productDesc}}
+                                            </div>
+                                            <div class="mt-4 flex flex-col gap-2">
+                                                <div class="flex gap-2">
+                                                    <div
+                                                        class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                                        A</div>
+                                                    <div class="font-bold text-gray-900">
+                                                        {{item?.pick_up.place.name+"
+                                                        ,"+item?.pick_up.place.gouvernorat}}
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    <div
+                                                        class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                                        B</div>
+                                                    <div class="font-bold text-gray-900">
+                                                        {{item?.destination.place.name+"
+                                                        ,"+item?.destination.place.gouvernorat}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    }
+                                    <button mat-button (click)="loadMore()" class="w-full" [hidden]="max<=currentSize">
+                                        Load More
+                                    </button>
+                                    }
+                                </div>
+                                }
+                            </ng-template>
+                        </mat-tab>
+                        <mat-tab label="Completed" (click)="getOrders('delivered,returned,canceled')">
+                            <ng-template matTabContent>
+                                @if(Loading){
+                                <mat-progress-spinner class="m-auto" color="primary" mode="indeterminate"
+                                    diameter="30"></mat-progress-spinner>
+                                }@else{
+                                <!-- Tab content -->
+                                <div class="mt-4 relative">
+                                    <!-- Filter Row -->
+                                    @if(Orders.length===0){
+                                    <div
+                                        class="flex flex-col items-center  min-h-full w-full rounded-xl p-8 text-center animate-fade-in">
+                                        <!-- Illustration Container -->
+                                        <div class="mb-6 transform transition-all duration-300 hover:scale-105">
+                                            <svg class="w-32 h-32 text-gray-900" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                                                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
+                                                </path>
+                                            </svg>
+                                        </div>
+
+                                        <!-- Text Content -->
+                                        <div class="space-y-4">
+                                            <h2 class="text-3xl md:text-4xl font-bold  tracking-wide">
+                                                No Orders Found
+                                            </h2>
+
+                                            <p class="text-gray-600 max-w-md mx-auto text-lg">
+                                                It seems there are no orders matching your criteria.
+                                                Try adjusting your filters or check back later.
+                                            </p>
+                                        </div>
+
+                                        <!-- Optional Action Button -->
+                                        <div class="mt-8">
+                                            <button mat-flat-button (click)="getOrders()"
+                                                class="px-6 py-2.5 bg-indigo-100 text-indigo-600 rounded-lg font-medium hover:bg-indido-200 transition-colors duration-200">
+                                                Refresh Orders
+                                            </button>
+                                        </div>
+                                    </div>
+                                    }@else {
+                                    <!-- Order Cards -->
+                                    @for (item of Orders; track $index) {
+                                    <div class="mt-6 cursor-pointer">
+                                        <div class="bg-gray-50 p-4 rounded-lg mb-4" [ngClass]="{
+                                            'border-2 border-indigo-400 bg-white shadow-lg': selectedOrderId === item._id
+                                          }" (click)="selectOrder(item._id)">
+
+                                            @if(item.status=="delivered") {
+                                            <div class="text-gray-600 font-medium mb-2">Delivered</div>
+                                            }
+                                            @else if(item.status=="canceled") {
+                                            <div class="text-gray-600 font-medium mb-2">Canceled</div>
+                                            }
+                                            @else if(item.status=="returned") {
+                                            <div class="text-gray-600 font-medium mb-2">Returned</div>
+                                            }
+                                            <div class="flex justify-between mb-1">
+                                                <div class="font-semibold">{{getDate(item.createdAt)}},
+                                                    {{getTime(item.createdAt)}}</div>
+                                                <div class="font-semibold">TND6</div>
+                                            </div>
+                                            <div class="mb-2 w-full whitespace-wrap break-words">{{item.productDesc}}
+                                            </div>
+                                            <div class="mt-4 flex flex-col gap-2">
+                                                <div class="flex gap-2">
+                                                    <div
+                                                        class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                                        A</div>
+                                                    <div class="font-bold text-gray-900">
+                                                        {{item?.pick_up.place.name+"
+                                                        ,"+item?.pick_up.place.gouvernorat}}
+                                                    </div>
+                                                </div>
+                                                <div class="flex gap-2">
+                                                    <div
+                                                        class="bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center">
+                                                        B</div>
+                                                    <div class="font-bold text-gray-900">
+                                                        {{item?.destination.place.name+"
+                                                        ,"+item?.destination.place.gouvernorat}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    }
+                                    <button mat-button (click)="loadMore()" class="w-full" [hidden]="max<=currentSize">
+                                        Load More
+                                    </button>
+                                    }
+                                </div>
+                                }
+                            </ng-template>
+
+                        </mat-tab>
+
+                    </mat-tab-group>
+                </div>
+
+                @if(Order){
+                <!-- Right Panel -->
+                <div class="w-full h-screen md:w-1/2 pr-0 md:pr-8 pt-0 md:pt-4 pb-0 md:pb-4"
+                    [ngClass]="{'fixed inset-0 h-screen w-full z-50 bg-transparent backdrop-blur-md overflow-y-hidden flex justify-center items-center': clicked}">
+                    @if(clicked) {
+                    <button class="block md:hidden absolute top-2 right-2 bg-gray-100 z-50 p-2 rounded-full shadow-lg"
+                        mat-icon-button (click)="clicked=false;_cdr.detectChanges()">
+                        <mat-icon [svgIcon]="'heroicons_outline:x-mark'"></mat-icon>
+                    </button>
+                    }
+                    <div class="h-full" [ngClass]="{'max-w-xl ':clicked}">
+                        <ordercarddetails [Order]="Order" (canceled)="cancelOrder()"></ordercarddetails>
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
