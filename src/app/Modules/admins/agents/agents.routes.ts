@@ -5,6 +5,7 @@ import { FeatureCodes } from '../../../Shared/enums/feature-codes';
 import { agentGuard } from '../../../Shared/Guards/agent.guard';
 import { SettingsComponent } from '../../../Shared/Components/settings/settings.component';
 import chatRoutes from '../../../Shared/Components/chat/chat.routes';
+import { FinanceComponent } from './finance/finance.component';
 
 export default [
   {
@@ -18,6 +19,14 @@ export default [
           feature: FeatureCodes.ordersAgent,
       },
       canActivate:[agentGuard]
+      },
+      {
+        path:'track-orders',
+        component:FinanceComponent,
+        data:{
+          feature : FeatureCodes.trackOrders,
+        },
+        canActivate:[agentGuard]
       },
       {
         path: 'settings',

@@ -1,0 +1,291 @@
+<div class="flex flex-col h-screen w-full overflow-y-auto" >
+    <div class="flex flex-wrap w-full max-w-screen mx-auto p-8 mb-10">
+        <!-- Title and Action Buttons -->
+        <div class="flex items-center justify-between w-full mb-8">
+            <div>
+                <h2 class="text-4xl font-bold tracking-tight text-gray-800">Delivery Driver Dashboard</h2>
+                <p class="text-gray-600">Monitor your financial and order status</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button class="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700">
+                    <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0113 5a5 5 0 014.9 4.103A4 4 0 0117 16H7z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Export
+                </button>
+                <!-- Mobile Menu -->
+                <div class="sm:hidden">
+                    <button class="p-2 rounded-full bg-gray-200">
+                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 w-full">
+            <!-- Left Column: Orders and Account Balance -->
+            <div class="flex flex-col gap-8">
+                <!-- Orders Summary -->
+                <div class="flex flex-col p-8 bg-white shadow-lg rounded-2xl">
+                    <div class="flex flex-col sm:flex-row items-start justify-between">
+                        <div class="text-lg font-medium tracking-tight leading-6 truncate">Orders Summary
+                        </div>
+                        <div class="mt-3 sm:mt-0 sm:ml-2">
+                            <mat-button-toggle-group value="this_week"
+                                #OrdersWeekSelector="matButtonToggleGroup">
+                                <mat-button-toggle value="last_week">Last Week</mat-button-toggle>
+                                <mat-button-toggle value="this_week">This Week</mat-button-toggle>
+                            </mat-button-toggle-group>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 grid-flow-row gap-6 w-full mt-8 sm:mt-4">
+                        <!-- New vs. Closed -->
+                        <div class="flex flex-col flex-auto">
+                            <div class="font-medium text-secondary">New vs. Closed</div>
+                            <div class="flex flex-col flex-auto">
+                                @if (chartOrders[OrdersWeekSelector.value]) {
+                                <apx-chart class="flex-auto w-full h-80"
+                                    [chart]="chartOrders[OrdersWeekSelector.value].chart"
+                                    [colors]="chartOrders[OrdersWeekSelector.value].colors"
+                                    [dataLabels]="chartOrders[OrdersWeekSelector.value].dataLabels"
+                                    [grid]="chartOrders[OrdersWeekSelector.value].grid"
+                                    [labels]="chartOrders[OrdersWeekSelector.value].labels"
+                                    [legend]="chartOrders[OrdersWeekSelector.value].legend"
+                                    [plotOptions]="chartOrders[OrdersWeekSelector.value].plotOptions"
+                                    [series]="chartOrders[OrdersWeekSelector.value].series"
+                                    [states]="chartOrders[OrdersWeekSelector.value].states"
+                                    [stroke]="chartOrders[OrdersWeekSelector.value].stroke"
+                                    [tooltip]="chartOrders[OrdersWeekSelector.value].tooltip"
+                                    [xaxis]="chartOrders[OrdersWeekSelector.value].xaxis"
+                                    [yaxis]="chartOrders[OrdersWeekSelector.value].yaxis"></apx-chart>
+                                }
+                            </div>
+
+                        </div>
+                        <!-- Overview -->
+                        <div class="flex flex-col">
+                            <div class="font-medium text-secondary">Overview</div>
+                            <div class="flex-auto grid grid-cols-4 gap-4 mt-6">
+                                <!-- New issues -->
+                                <div
+                                    class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-indigo-50 text-indigo-800 dark:bg-white dark:bg-opacity-5 dark:text-indigo-400">
+                                    <div
+                                        class="text-5xl sm:text-7xl font-semibold leading-none tracking-tight">
+                                        {{orders[OrdersWeekSelector.value].overview['deliveredOrders']}}
+                                    </div>
+                                    <div class="mt-1 text-sm sm:text-lg font-medium">Delivered Orders</div>
+                                </div>
+                                <!-- Closed -->
+                                <div
+                                    class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-green-50 text-green-800 dark:bg-white dark:bg-opacity-5 dark:text-green-500">
+                                    <div
+                                        class="text-5xl sm:text-7xl font-semibold leading-none tracking-tight">
+                                        {{orders[OrdersWeekSelector.value].overview['picked_upOrders']}}
+                                    </div>
+                                    <div class="mt-1 text-sm sm:text-lg font-medium">Picked Up</div>
+                                </div>
+                                <!-- Fixed -->
+                                <div
+                                    class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-gray-100 text-secondary dark:bg-white dark:bg-opacity-5">
+                                    <div class="text-5xl font-semibold leading-none tracking-tight">
+                                        {{orders[OrdersWeekSelector.value].overview['canceledOrders']}}
+                                    </div>
+                                    <div class="mt-1 text-sm font-medium text-center">Canceled</div>
+                                </div>
+                                <!-- Won't fix -->
+                                <div
+                                    class="col-span-2 flex flex-col items-center justify-center py-8 px-1 rounded-2xl bg-gray-100 text-secondary dark:bg-white dark:bg-opacity-5">
+                                    <div class="text-5xl font-semibold leading-none tracking-tight">
+                                        {{orders[OrdersWeekSelector.value].overview['returnedOrders']}}
+                                    </div>
+                                    <div class="mt-1 text-sm font-medium text-center">Returned</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account balance -->
+            <div class="flex flex-col flex-auto bg-card shadow rounded-2xl overflow-hidden">
+                <div class="flex flex-col p-6 pb-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <div class="mr-4 text-lg font-medium tracking-tight leading-6 truncate">Account Balance</div>
+                            <div class="text-secondary font-medium">Monthly balance growth and avg. monthly income</div>
+                        </div>
+                        <div class="ml-2">
+                            <button
+                                class="h-6 min-h-6 px-2 rounded-full bg-hover"
+                                mat-button
+                                [matMenuTriggerFor]="accountBalanceMenu">
+                                <span class="font-medium text-sm text-secondary">12 months</span>
+                            </button>
+                            <mat-menu #accountBalanceMenu="matMenu">
+                                <button mat-menu-item>3 months</button>
+                                <button mat-menu-item>6 months</button>
+                                <button mat-menu-item>9 months</button>
+                                <button mat-menu-item>12 months</button>
+                            </mat-menu>
+                        </div>
+                    </div>
+                    <div class="flex items-start mt-6 mr-2">
+                        <div class="flex flex-col">
+                            <div class="font-semibold text-3xl md:text-5xl tracking-tighter">{{data.accountBalance.growRate}}%</div>
+                            <div class="font-medium text-sm text-secondary leading-none">Average Monthly Growth</div>
+                        </div>
+                        <div class="flex flex-col ml-8 md:ml-16">
+                            <div class="font-semibold text-3xl md:text-5xl tracking-tighter">{{data.accountBalance.ami | currency:'USD'}}</div>
+                            <div class="font-medium text-sm text-secondary leading-none">Average Monthly Income</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col flex-auto">
+                    <apx-chart
+                        class="flex-auto w-full h-full"
+                        [chart]="accountBalanceOptions.chart"
+                        [colors]="accountBalanceOptions.colors"
+                        [fill]="accountBalanceOptions.fill"
+                        [series]="accountBalanceOptions.series"
+                        [stroke]="accountBalanceOptions.stroke"
+                        [tooltip]="accountBalanceOptions.tooltip"
+                        [xaxis]="accountBalanceOptions.xaxis"></apx-chart>
+                </div>
+            </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 w-full mt-8">
+                <!-- Recent transactions table -->
+                <div class="xl:col-span-2 flex flex-col flex-auto bg-card shadow rounded-2xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="mr-4 text-lg font-medium tracking-tight leading-6 truncate">Recent transactions</div>
+                        <div class="text-secondary font-medium">1 pending, 4 completed</div>
+                    </div>
+                    <div class="overflow-x-auto mx-6">
+                        <table
+                            class="w-full bg-transparent"
+                            mat-table
+                            matSort
+                            [dataSource]="recentTransactionsDataSource"
+                            [trackBy]="trackByFn"
+                            #recentTransactionsTable>
+    
+                            <!-- Transaction ID -->
+                            <ng-container matColumnDef="transactionId">
+                                <th
+                                    mat-header-cell
+                                    mat-sort-header
+                                    *matHeaderCellDef>
+                                    Transaction ID
+                                </th>
+                                <td
+                                    mat-cell
+                                    *matCellDef="let transaction">
+                                    <span class="pr-6 font-medium text-sm text-secondary whitespace-nowrap">
+                                        {{transaction.transactionId}}
+                                    </span>
+                                </td>
+                            </ng-container>
+    
+                            <!-- Date -->
+                            <ng-container matColumnDef="date">
+                                <th
+                                    mat-header-cell
+                                    mat-sort-header
+                                    *matHeaderCellDef>
+                                    Date
+                                </th>
+                                <td
+                                    mat-cell
+                                    *matCellDef="let transaction">
+                                    <span class="pr-6 whitespace-nowrap">
+                                        {{transaction.date | date:'MMM dd, y'}}
+                                    </span>
+                                </td>
+                            </ng-container>
+    
+                            <!-- Name -->
+                            <ng-container matColumnDef="name">
+                                <th
+                                    mat-header-cell
+                                    mat-sort-header
+                                    *matHeaderCellDef>
+                                    Name
+                                </th>
+                                <td
+                                    mat-cell
+                                    *matCellDef="let transaction">
+                                    <span class="pr-6 whitespace-nowrap">
+                                        {{transaction.name}}
+                                    </span>
+                                </td>
+                            </ng-container>
+    
+                            <!-- Amount -->
+                            <ng-container matColumnDef="amount">
+                                <th
+                                    mat-header-cell
+                                    mat-sort-header
+                                    *matHeaderCellDef>
+                                    Amount
+                                </th>
+                                <td
+                                    mat-cell
+                                    *matCellDef="let transaction">
+                                    <span class="pr-6 font-medium whitespace-nowrap">
+                                        {{transaction.amount | currency:'USD'}}
+                                    </span>
+                                </td>
+                            </ng-container>
+    
+                            <!-- Status -->
+                            <ng-container matColumnDef="status">
+                                <th
+                                    mat-header-cell
+                                    mat-sort-header
+                                    *matHeaderCellDef>
+                                    Status
+                                </th>
+                                <td
+                                    mat-cell
+                                    *matCellDef="let transaction">
+                                    <span
+                                        class="inline-flex items-center font-bold text-xs px-2.5 py-0.5 rounded-full tracking-wide uppercase"
+                                        [ngClass]="{'bg-red-200 text-red-800 dark:bg-red-600 dark:text-red-50': transaction.status === 'pending',
+                                                    'bg-green-200 text-green-800 dark:bg-green-600 dark:text-green-50': transaction.status === 'completed'}">
+                                        <span class="leading-relaxed whitespace-nowrap">{{transaction.status}}</span>
+                                    </span>
+                                </td>
+                            </ng-container>
+    
+                            <!-- Footer -->
+                            <ng-container matColumnDef="recentOrdersTableFooter">
+                                <td
+                                    class="py-6 px-0 border-0"
+                                    mat-footer-cell
+                                    *matFooterCellDef
+                                    colspan="6">
+                                    <button mat-stroked-button>See all transactions</button>
+                                </td>
+                            </ng-container>
+    
+                            <tr
+                                mat-header-row
+                                *matHeaderRowDef="recentTransactionsTableColumns"></tr>
+                            <tr
+                                class="order-row h-16"
+                                mat-row
+                                *matRowDef="let row; columns: recentTransactionsTableColumns;"></tr>
+                            <tr
+                                class="h-16 border-0"
+                                mat-footer-row
+                                *matFooterRowDef="['recentOrdersTableFooter']"></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
