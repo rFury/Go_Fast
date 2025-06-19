@@ -12,6 +12,8 @@
      bg-transparent backdrop-blur-md sm:backdrop-blur-none rounded-t-3xl sm:rounded-none border-rounded sm:border-none
       overflow-y-auto overflow-x-hidden max-h-[calc(100vh-2rem)] scrollbar-hide transition-all duration-500"
         @expandCollapse [class.dragging-adjust]="dragging">
+        <div class="sm:hidden bg-gray-300 w-12 h-1 rounded-full mx-auto mb-2 mt-2"></div>
+
         <form class="w-110 relative" #myForm="ngForm" ngForm="ngForm">
             <!-- Add your form elements or content here -->
             <div class="space-y-4 left-0">

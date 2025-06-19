@@ -76,7 +76,7 @@ export class ChatService {
       return;
     }
 
-    this.socket = io(`127.0.0.1:3000/chat`, {
+    this.socket = io(`${environment.socket}/chat`, {
       transports: ['websocket'],
       path: '/socket.io',
       auth: { token },

@@ -30,7 +30,7 @@ export class MenuService {
       this.router.navigate(['/admin/sign-in']);
     }
 
-    this.socket = io(`127.0.0.1:3000/menu`, {
+    this.socket = io(`${environment.socket}/menu`, {
       transports: ['websocket'],
       path: '/socket.io',
       auth: { token },

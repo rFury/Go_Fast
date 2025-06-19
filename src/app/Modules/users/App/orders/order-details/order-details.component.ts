@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   inject,
   OnDestroy,
@@ -20,7 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Agent } from '../../../../../Shared/Models/Agent.model';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { SnackBarService } from '../../../../../Shared/Services/snack-bar.service';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 import { Status } from '../../../../../Shared/enums/status.enums';
 import { CommonModule } from '@angular/common';
 import { NotificationPromptService } from '../../../../../Shared/Components/notification-prompt/notification.service';
@@ -29,6 +30,7 @@ import { OrderDetailsCardComponent } from '../../../../../Shared/Components/orde
 import { JourneyService } from '../../../../../Shared/Services/Journey.service';
 import { FuseConfirmationService } from '../../../../../Shared/Components/confirmation/confirmation.service';
 import { SuperAuthService } from '../../../../../Shared/Services/super-auth-service.service';
+import { FuseMediaWatcherService } from '../../../../../Shared/Services/media-watcher/media-watcher.service';
 
 @Component({
   selector: 'app-order-details',
@@ -49,9 +51,11 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   @ViewChild('flippableCard') flippableCard!: CardComponent;
   details: boolean = true;
   map: mapboxgl.Map;
-  dragging = signal(false);
+  dragging = false;
   Status = Status;
   AgentId: string | null = null;
+  private destroy$ = new Subject<void>();
+
   private _mapService = inject(MapService);
   private _orderService = inject(OrderService);
   private _agentLocationService = inject(LocationService);
@@ -63,6 +67,9 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   private _JourneyService = inject(JourneyService);
   private _fuseConfirmationService = inject(FuseConfirmationService);
   private _superAuthService = inject(SuperAuthService);
+  private _cdr = inject(ChangeDetectorRef);
+  private isScreenSmall = false;
+  private _fuseMediaWatcherService = inject(FuseMediaWatcherService);
 
   private orderSubscription: Subscription | null = null;
   private locationSubscription: Subscription | null = null;
@@ -97,6 +104,12 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
         this.router.navigate(['/404']);
       },
     });
+    this._fuseMediaWatcherService.onMediaChange$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(({ matchingAliases }) => {
+        this.isScreenSmall = !matchingAliases.includes('sm');
+        this._cdr.detectChanges();
+      });
   }
 
   ngOnDestroy(): void {
@@ -107,6 +120,8 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       clearInterval(this.fetchInterval);
       this.fetchInterval = null;
     }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private updateOrderData(order: Order): void {
@@ -207,8 +222,34 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       pitch: 0,
       bearing: 0,
     });
-    this.map.on('dragstart', () => this.dragging.set(true));
-    this.map.on('dragend', () => this.dragging.set(false));
+    this.map.on('dragstart', () => {
+      if (this.isScreenSmall) {
+        this.dragging = true;
+        console.log('dragstart');
+        this._cdr.detectChanges();
+      }
+    });
+    this.map.on('dragend', () => {
+      if (this.isScreenSmall) {
+        this.dragging = false;
+        console.log('dragend');
+        this._cdr.detectChanges();
+      }
+    });
+    // Add to setupMapEvents()
+    this.map.on('touchstart', () => {
+      if (this.isScreenSmall) {
+        this.dragging = true;
+        this._cdr.detectChanges();
+      }
+    });
+
+    this.map.on('touchend', () => {
+      if (this.isScreenSmall) {
+        this.dragging = false;
+        this._cdr.detectChanges();
+      }
+    });
   }
 
   getRoute(start: [number, number], end: [number, number]) {

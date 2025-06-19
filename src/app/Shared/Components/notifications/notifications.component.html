@@ -51,7 +51,7 @@
           class="flex group hover:bg-gray-50 dark:hover:bg-black dark:hover:bg-opacity-5"
           [ngClass]="{'unread': !notification.read}">
           <!-- Notification with a link -->
-          @if (notification.link) {
+          @if (notification.link && notification.type !=='order') {
             <!-- Normal links -->
             @if (!notification.useRouter) {
               <a
@@ -72,6 +72,11 @@
           <!-- Notification without a link -->
           @if (!notification.link) {
             <div class="flex flex-auto py-5 pl-6">
+              <ng-container *ngTemplateOutlet="notificationContent"></ng-container>
+            </div>
+          }
+          @if(notification.type === 'order' && notification.link){
+            <div class="flex flex-auto py-5 pl-6" (click)="popNotif(notification._id)">
               <ng-container *ngTemplateOutlet="notificationContent"></ng-container>
             </div>
           }

@@ -38,3 +38,9 @@
   border: 2px solid #0ea5e9;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+@media (max-width: 640px) { // sm breakpoint
+  .dragging-adjust {
+    top: calc(100vh - 90px) !important;
+    //height: calc(100vh - 160px) !important;
+  }
+}

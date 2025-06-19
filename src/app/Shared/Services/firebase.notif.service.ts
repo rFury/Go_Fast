@@ -149,18 +149,18 @@ export class FirebaseNotification {
         newNotification.description || '',
         'order',
         true,
-        () => this.handleOrderAcceptance(payload?.['orderId']),
+        () => this.handleOrderAcceptance(payload?.['orderId'],newNotification._id),
         () => console.log('Order declined'),
         50000
       );
     }
   }
 
-  private async handleOrderAcceptance(orderId: string | undefined): Promise<void> {
+  private async handleOrderAcceptance(orderId: string | undefined,notifId:string | undefined): Promise<void> {
     if (!orderId) return;
     
     try {
-      await firstValueFrom(this._agent.addOrderToJourney(orderId));
+      await firstValueFrom(this._agent.addOrderToJourney(orderId,notifId!));
       console.log('Order added to journey');
     } catch (err) {
       console.error('Failed to add order to journey:', err);

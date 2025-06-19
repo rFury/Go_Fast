@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 
+
 @Injectable({
   providedIn: 'root',
 })
@@ -15,7 +16,8 @@ export class JourneyService {
   private router:Router;
 
   constructor(private http:HttpClient) {
-    this.socket = io('http://127.0.0.1:3000/Journey', {
+
+    this.socket = io(`${environment.socket}/Journey`, {
       transports: ['websocket'],
       path: '/socket.io',
       withCredentials: true,

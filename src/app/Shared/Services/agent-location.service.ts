@@ -11,7 +11,7 @@ export class LocationService {
 
   constructor() {
     // Use environment variable for the backend URL
-    this.socket = io('http://127.0.0.1:3000', {
+    this.socket = io(`${environment.socket}`, {
       transports: ['websocket'],
       path: '/socket.io',
       withCredentials: true,

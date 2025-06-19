@@ -26,6 +26,7 @@
     "@angular/router": "^19.2.10",
     "@angular/service-worker": "^19.2.10",
     "@auth0/angular-jwt": "^5.2.0",
+    "@capacitor-firebase/messaging": "^7.2.0",
     "@capacitor/android": "^7.0.1",
     "@capacitor/camera": "^7.0.0",
     "@capacitor/cli": "^7.0.1",

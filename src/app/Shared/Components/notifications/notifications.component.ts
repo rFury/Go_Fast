@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  inject,
   OnDestroy,
   OnInit,
   TemplateRef,
@@ -18,7 +19,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { NotificationsService } from './notifications.service';
 import { Notification } from './notifications.types';
-import { Subject, takeUntil } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil } from 'rxjs';
+import { NotificationPromptService } from '../notification-prompt/notification.service';
+import { AgentService } from '../../Services/agent.service';
+import { SnackBarService } from '../../Services/snack-bar.service'; 
 
 @Component({
   selector: 'notifications-component',
@@ -40,7 +44,9 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   @ViewChild('notificationsOrigin') private _notificationsOrigin!: MatButton;
   @ViewChild('notificationsPanel')
   private _notificationsPanel!: TemplateRef<any>;
-
+  private notificationPromptService = inject(NotificationPromptService);
+  private _agent = inject(AgentService);
+  private snackBar = inject(SnackBarService);
   notifications!: Notification[];
   unreadCount: number = 0;
   private _overlayRef!: OverlayRef;
@@ -189,5 +195,25 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     }
 
     this.unreadCount = count;
+  }
+  popNotif(id: string): void {
+    const notif = this.notifications.find((notification) => notification._id === id);
+    const order_id = notif?.description?.substring(notif.description.indexOf('Code:')+5)
+    console.log(order_id);
+    this.notificationPromptService.openNotification(
+      notif?.title || 'New Order',
+      notif?.description || '',
+      'order',
+      true,
+      async () =>    { try {
+        await firstValueFrom(this._agent.addOrderToJourney(order_id!,notif!._id));
+        console.log('Order added to journey');
+      } catch (err) {
+        this.snackBar.openSnackBar('Order Already taken !', 'error');
+      }},
+      () => console.log('Order declined'),
+      50000
+    );
+    
   }
 }

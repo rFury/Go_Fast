@@ -1,5 +1,5 @@
 import { NgIf } from '@angular/common';
-import { Component, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
@@ -15,6 +15,7 @@ import { FuseHorizontalNavigationComponent } from '../../../../../Shared/Compone
 import { SearchComponent } from '../../../../../Shared/Components/search/search.component';
 import { FuseNavigationItem } from '../../../../../Shared/Models/Navigation.model';
 import { SuperAuthService } from '../../../../../Shared/Services/super-auth-service.service';
+import { UserService } from '../../../../../Shared/Services/user.service';
 
 @Component({
     selector     : 'user-modern-layout',
@@ -29,7 +30,10 @@ export class ModernLayoutComponent implements OnInit, OnDestroy
     navigation: FuseNavigationItem[];
     private _unsubscribeAll: Subject<any> = new Subject<any>();
     isloggedIn=false;
+    loading=false;
     private _superAuthService=inject(SuperAuthService)
+    private _userService=inject(UserService)
+    private _cdr=inject(ChangeDetectorRef)
 
     constructor(
         private _activatedRoute: ActivatedRoute,
@@ -45,8 +49,13 @@ export class ModernLayoutComponent implements OnInit, OnDestroy
     }
     ngOnInit(): void
     {
+        this.loading=true;
         if(this._superAuthService.isLoggedIn()){
             this.isloggedIn=true;
+            this._userService.get().subscribe((res) => {
+                this.loading=false;
+                this._cdr.markForCheck();
+            });
         }
 
                 this.navigation = [

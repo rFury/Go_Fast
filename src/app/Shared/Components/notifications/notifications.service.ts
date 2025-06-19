@@ -39,7 +39,7 @@ export class NotificationsService {
       return;
     }
 
-    this.socket = io(`127.0.0.1:3000/notifications`, {
+    this.socket = io(`${environment.socket}/notifications`, {
       transports: ['websocket'],
       path: '/socket.io',
       auth: { token },

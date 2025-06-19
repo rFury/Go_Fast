@@ -21,8 +21,8 @@ export class AgentService {
         return this.http.get<any>(this.endpoint);
     }
 
-    addOrderToJourney(id:string):Observable<any>{
-        return this.http.patch<any>(`${this.endpointRoute}/add-order`,{orderId:id});
+    addOrderToJourney(id:string,notifId:string):Observable<any>{
+        return this.http.patch<any>(`${this.endpointRoute}/add-order`,{orderId:id,notifId});
     }
 
 

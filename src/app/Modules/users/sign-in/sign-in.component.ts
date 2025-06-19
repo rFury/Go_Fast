@@ -198,6 +198,10 @@ export class SignInComponent implements OnInit {
   Facebook(){
     this._authService.loginWithFacebook();
   }
+  GitHub(){
+    //this._authService.loginWithGitHub();
+    this._router.navigate(['/admin/sign-in'])
+  }
 
   onCodeChanged(code: string) {
     this.isCodeComplete = false;

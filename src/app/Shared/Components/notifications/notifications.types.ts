@@ -9,4 +9,5 @@ export interface Notification
     link?: string;
     useRouter?: boolean;
     read: boolean;
+    type?: 'order' | 'message' | 'info' | 'warn' | 'success';
 }
