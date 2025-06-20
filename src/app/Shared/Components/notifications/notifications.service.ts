@@ -91,7 +91,8 @@ export class NotificationsService {
         tap((notifications) => {
           console.log('notifications', notifications);
           
-          this._notifications.next(notifications);
+          this._notifications.next(notifications.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()));
+          
         })
       );
   }

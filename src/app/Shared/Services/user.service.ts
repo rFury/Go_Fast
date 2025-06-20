@@ -105,6 +105,14 @@ export class UserService {
       })
     );
   }
+  updateTwoStep(): Observable<any> {
+    return this.http.patch<any>(`${this.endpointClient}/twostep`, {}).pipe(
+      tap((res) => {
+        this._user.update(u => ({ ...u!, twostep:!(u as Client).twostep }));
+        this.userObservable.next(this._user());
+      })
+    );
+  }
   getAll(type:string): Observable<User[] | Client[] | Agent[]> {
     if(type === "client"){
     return this.http.get<Client[]>(`${this.endpointClient}/all`,{params:{type:"client"}})

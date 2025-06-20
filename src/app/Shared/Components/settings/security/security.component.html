@@ -57,13 +57,13 @@
         <div class="grid sm:grid-cols-4 gap-6 w-full mt-8">
             <!-- 2-step auth -->
             <div class="sm:col-span-4 flex items-center justify-between">
-                <div class="flex-auto cursor-pointer" (click)="twoStepToggle.toggle()">
+                <div class="flex-auto cursor-pointer" (click)="twoStep()">
                     <div class="leading-6 font-medium">Enable 2-step authentication</div>
                     <div class="text-md text-secondary">
                         Protects you against password theft by requesting an authentication code via SMS on every login.
                     </div>
                 </div>
-                <mat-slide-toggle class="ml-4" [color]="'primary'" [formControlName]="'twoStep'" #twoStepToggle>
+                <mat-slide-toggle class="ml-4" [color]="'primary'" [formControlName]="'twoStep'" #twoStepToggle (change)="twoStep()">
                 </mat-slide-toggle>
             </div>
             <!-- Ask to change password -->

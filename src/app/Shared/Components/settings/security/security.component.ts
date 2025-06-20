@@ -23,12 +23,13 @@ import { VerificationDialogComponent } from '../../verificationDialog/verificati
 import { FuseAlertComponent } from '../../../Components/alert/alert.component';
 import { AlertType } from '../../alert/alert.types';
 import { Animations } from '../../../Animations/public-api';
+import { Client } from '../../../Models/Client.model';
 @Component({
   selector: 'settings-security',
   templateUrl: './security.component.html',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations:Animations,
+  animations: Animations,
   standalone: true,
   imports: [
     FormsModule,
@@ -52,43 +53,46 @@ export class SettingsSecurityComponent implements OnInit {
   showAlert: boolean = false;
   isVerifying: boolean = false;
   alert: { type: AlertType; message: string } = {
-    type   : 'error',
+    type: 'error',
     message: '',
-};
+  };
   ngOnInit(): void {
     // Create the form
-    this.securityForm = this._formBuilder.group(
-      {
-        currentPassword: ['', [Validators.required,Validators.minLength(8)]],
-        newPassword: ['', [Validators.required,Validators.minLength(8)]],
-        twoStep: [true],
-        askPasswordChange: [false],
+    this.securityForm = this._formBuilder.group({
+      currentPassword: ['', [Validators.required, Validators.minLength(8)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      twoStep: [true],
+      askPasswordChange: [false],
+    });
+    this.userService.userObs.subscribe((user) => {
+      this.user = user;
+      if(this.user?.type === 'client'){
+        this.securityForm.controls['twoStep'].setValue((this.user as Client).twostep?(this.user as Client).twostep:false);
       }
-    );
+      this._cdr.detectChanges();
+    });
   }
   save(): void {
     this.securityForm.markAllAsTouched();
     if (this.securityForm.valid) {
-      this.userService
-        .updatePassword(this.securityForm.value)
-        .subscribe(
-          {
-            next: (res) => {
-              this.alert.type = 'success';
-              this.alert.message = res.message;
-              this.showAlert = true;
-              this._cdr.detectChanges();
-              this.openVerificationDialog();
-            },
-            error: (error) => {
-              console.log(error);
-              this.alert.type = 'error';
-              this.alert.message = error.error.message;
-              this.showAlert = true;
-              this._cdr.detectChanges();
-            },
-          }
-        );}}
+      this.userService.updatePassword(this.securityForm.value).subscribe({
+        next: (res) => {
+          this.alert.type = 'success';
+          this.alert.message = res.message;
+          this.showAlert = true;
+          this._cdr.detectChanges();
+          this.openVerificationDialog();
+        },
+        error: (error) => {
+          console.log(error);
+          this.alert.type = 'error';
+          this.alert.message = error.error.message;
+          this.showAlert = true;
+          this._cdr.detectChanges();
+        },
+      });
+    }
+  }
   openVerificationDialog(): void {
     this.showDialog = true;
     this._cdr.detectChanges();
@@ -100,21 +104,22 @@ export class SettingsSecurityComponent implements OnInit {
   verified(event: string): void {
     this.isVerifying = true;
     this._cdr.detectChanges();
-    this.userService.completePasswordChange(event,this.securityForm.value.newPassword).subscribe(
-      {
+    this.userService
+      .completePasswordChange(event, this.securityForm.value.newPassword)
+      .subscribe({
         next: (res) => {
-            console.log(res);
-            this.showDialog = false;
-            this.alert.type = 'success';
-            this.alert.message = res.message;
-            this.showAlert = true;
-            this.isVerifying = false;
-            this._cdr.detectChanges();
+          console.log(res);
+          this.showDialog = false;
+          this.alert.type = 'success';
+          this.alert.message = res.message;
+          this.showAlert = true;
+          this.isVerifying = false;
+          this._cdr.detectChanges();
         },
         error: (error) => {
           console.log(error);
-          if(error.status == 406){
-            this.showDialog=false;
+          if (error.status == 406) {
+            this.showDialog = false;
           }
           this.alert.type = 'error';
           this.alert.message = error.error.message;
@@ -122,7 +127,21 @@ export class SettingsSecurityComponent implements OnInit {
           this.isVerifying = false;
           this._cdr.detectChanges();
         },
-      }
-    );
+      });
+  }
+  twoStep(): void {
+    this.securityForm.controls['twoStep'].disable()
+    this.userService.updateTwoStep().subscribe({
+      next: (res) => {
+        this.securityForm.controls['twoStep'].enable()
+        this._cdr.detectChanges();
+      },
+      error: (error) => {
+        console.log(error);
+        this.securityForm.controls['twoStep'].enable()
+        this._cdr.detectChanges();
+      },
+    });
+
   }
 }

@@ -8,6 +8,7 @@ export class Client extends User{
     city?:Governorate;
     accountType?:string;
     Orders?:Order[];
+    twostep?:boolean;
 
     constructor(){
         super();

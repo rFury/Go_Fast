@@ -123,7 +123,7 @@ export class CompleteComponent implements OnInit {
             // Set the alert
             this.alert = {
               type: 'error',
-              message: 'Something went wrong, please try again.',
+              message: err.error.message + ', please try again.',
             };
             this.showAlert = true;
           }
